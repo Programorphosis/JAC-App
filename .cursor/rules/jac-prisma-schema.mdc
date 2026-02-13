@@ -1,0 +1,21 @@
+---
+description: Schema Prisma – modelo base, índices multi-tenant, referenciaExterna unique
+globs: "**/*.prisma,**/prisma/**/*.ts"
+alwaysApply: false
+---
+
+# Prisma y modelo de datos
+
+El modelo oficial está definido en `SCHEMA BASE v1.md`. No agregar campos sin justificación formal. No eliminar relaciones ni simplificar por comodidad.
+
+## Reglas de modelo
+
+- Toda entidad de junta lleva `juntaId`. Índices por `juntaId` y compuestos cuando aplique (ej. `@@unique([juntaId, tipo, anio])` en Consecutivo).
+- En **Pago**: `consecutivo Int` es obligatorio (obtenido de tabla Consecutivo o lógica por junta/tipo/anio); `referenciaExterna String? @unique` para idempotencia (Wompi o número de transferencia). Método puede ser EFECTIVO, TRANSFERENCIA u ONLINE.
+- En **Carta**: campos opcionales `rutaPdf String?` (URL/ruta S3 del PDF), `hashDocumento String?` (integridad PDF), `motivoRechazo String?` (para rechazadas). Campos obligatorios: `qrToken`, `emitidaPorId`, `fechaEmision` (al aprobar).
+- No existe tabla "deudas". La deuda se calcula, no se persiste.
+- Historial laboral y historial agua: solo INSERT; no UPDATE/DELETE de registros históricos.
+
+## Consultas
+
+Nunca ejecutar consultas sin `where` que incluya `juntaId` (o filtro equivalente vía relación Usuario.juntaId). En servicios que reciben `tx` de Prisma, pasar el mismo `tx` para mantener atomicidad.

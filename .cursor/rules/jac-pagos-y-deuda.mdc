@@ -1,0 +1,51 @@
+---
+description: Pagos totales, deuda calculada, transacción serializable, idempotencia
+globs: "**/*payment*,**/*pago*,**/*debt*,**/*deuda*,**/payments/**/*.ts"
+alwaysApply: false
+---
+
+# Pagos y deuda – Reglas de negocio
+
+## Deuda
+
+- No se guarda en base de datos. Se calcula bajo demanda (DebtService).
+- Input: usuarioId (y opcional fechaCorte). Output: total + detalle por mes.
+- Algoritmo: último pago → meses vencidos → estado laboral por mes → tarifa vigente por mes → suma. Referencia: `calculadoraDeDeuda.md`.
+
+## Pagos (solo totales)
+
+- Un pago debe ser exactamente el monto de la deuda calculada. No pagos parciales.
+- El backend nunca acepta monto libre desde frontend: calcula deuda y exige coincidencia.
+- Registrar pago solo dentro de transacción Prisma con `isolationLevel: 'Serializable'`.
+- Recalcular deuda **dentro** de la misma transacción antes de insertar el pago.
+
+## Idempotencia (pagos online)
+
+- Campo `referenciaExterna` en Pago debe ser `@unique` (ej. transactionId de Wompi). Para método TRANSFERENCIA, referenciaExterna es el consecutivo o número de la transferencia.
+- Campo `consecutivo` en Pago es obligatorio (obtenido de tabla Consecutivo o lógica por junta/tipo/anio).
+- Una sola función `registerPaymentFromProvider(transactionData)` para webhook, retorno y job de reconciliación.
+- Si el webhook falla: rescate vía consulta a Wompi en el retorno del usuario + job nocturno de reconciliación. Referencia: `flujoDePagosCasoFallaWebhook.md`, `flujoDePagosCondicionDeCarrera.md`.
+
+## Ejemplo – Validación antes de registrar
+
+```typescript
+await prisma.$transaction(async (tx) => {
+  const deuda = await debtService.calculateUserDebtTx(tx, usuarioId);
+  if (deuda.total === 0) throw new Error('Usuario ya al día');
+  if (monto !== deuda.total) throw new Error('Pago debe ser total');
+  const consecutivo = await obtenerConsecutivoPago(tx, juntaId, tipo);
+  await tx.pago.create({ 
+    data: { 
+      juntaId, 
+      usuarioId, 
+      tipo: 'JUNTA', 
+      metodo: 'EFECTIVO', // o 'TRANSFERENCIA' o 'ONLINE'
+      monto, 
+      consecutivo,
+      referenciaExterna: metodo === 'TRANSFERENCIA' ? numeroTransferencia : null,
+      registradoPorId,
+      ... 
+    } 
+  });
+}, { isolationLevel: 'Serializable' });
+```

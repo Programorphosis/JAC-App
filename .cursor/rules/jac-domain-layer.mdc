@@ -1,0 +1,40 @@
+---
+description: Capa de dominio pura – sin HTTP, sin Nest, sin guardar deuda
+globs: "**/domain/**/*.ts"
+alwaysApply: false
+---
+
+# Domain Layer – Servicios de dominio puros
+
+Los servicios en `domain/` contienen solo lógica de negocio. No conocen HTTP, Nest ni Prisma directo (se inyectan repos o se pasa `tx`).
+
+## Lo que NO puede hacer un servicio de dominio
+
+- No usar decorators de Nest (@Get, @Post, etc.).
+- No lanzar `HttpException` ni devolver `Response`.
+- No usar `req`, `res`, `@Req()`.
+- No depender de módulos HTTP.
+
+## Servicios oficiales y responsabilidad
+
+- **DebtService**: calcular deuda bajo demanda. Nunca guarda. Solo lectura + cálculo.
+- **PaymentService**: registrar pago validando monto = deuda calculada (dentro de transacción).
+- **LetterService**: validar requisitos y emitir carta (consecutivo, QR, PDF). Todo en transacción.
+- **WaterService**: cambio estado/obligación agua + historial; job mensual día 1 (MORA).
+- **AuditService**: registrar evento en tabla Auditoria.
+
+## Ejemplo – DebtService
+
+```typescript
+// ✅ Solo calcula; no escribe
+async calculateUserDebt(params: { usuarioId: string; fechaCorte?: Date }): Promise<DebtResult> {
+  const ultimoPago = await this.obtenerUltimoPago(params.usuarioId);
+  const meses = this.generarMesesVencidos(inicio, fin);
+  // por cada mes: estado laboral + tarifa → acumular
+  return { total, detalle };
+}
+```
+
+## Ejemplo – PaymentService (transacción)
+
+Recalcular deuda **dentro** de la transacción, no fuera. Usar `isolationLevel: 'Serializable'` para pagos. Referencia: `definicionDomainServices.md`, `flujoDePagosCondicionDeCarrera.md`.

@@ -1,0 +1,15 @@
+---
+description: 
+globs: "**/*.ts"
+alwaysApply: false
+---
+
+# Seguridad
+
+- **JWT**: incluir `userId`, `juntaId`, `roles`. Expiración corta; refresh tokens rotativos. Nunca tomar `juntaId` del body; siempre del token.
+- **Guards**: validar rol (ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, CIUDADANO) según endpoint. Aplicar RBAC por recurso y junta.
+- **Validación**: backend valida todo. Frontend no decide permisos ni montos. DTO y pipes en Nest para inputs.
+- **Webhook Wompi**: verificar firma (HMAC) antes de procesar. Validar estado APPROVED y monto exacto.
+- **Rate limiting**: en login y en endpoints de pago. Logs y auditoría para intentos fallidos.
+
+No simplificar validaciones que afecten auditoría o integridad financiera. Referencia: `investigacionImplementacionDeSeguridadDeLaApp.md`, `00_ARQUITECTURA_RECTOR copy.md`.

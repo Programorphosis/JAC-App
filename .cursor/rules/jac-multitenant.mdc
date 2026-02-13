@@ -1,0 +1,50 @@
+---
+description: Multi-tenant obligatorio – juntaId en todas las entidades y consultas
+globs: "**/*.ts,**/*.prisma"
+alwaysApply: false
+---
+
+# Multi-tenant – Regla técnica crítica
+
+Toda entidad que pertenezca a una junta debe tener `juntaId`. Ninguna consulta de datos de junta puede ejecutarse sin filtrar por `juntaId`. El JWT incluye `userId`, `juntaId` (null para Platform Admin), `roles`. Nunca confiar en `juntaId` enviado desde el frontend. Usuario con rol PLATFORM_ADMIN tiene `juntaId` null y solo accede a rutas `/api/platform/*`; el resto de usuarios siempre tiene `juntaId` y todas sus consultas deben filtrar por él.
+
+## Consultas correctas
+
+```typescript
+// ✅ Correcto: juntaId del usuario autenticado (token)
+await prisma.pago.findFirst({
+  where: {
+    juntaId: authUser.juntaId,
+    id: pagoId,
+  },
+});
+```
+
+## Consultas prohibidas
+
+```typescript
+// ❌ Prohibido: sin juntaId
+await prisma.pago.findFirst({
+  where: { id: pagoId },
+});
+```
+
+## Creación de registros
+
+Siempre incluir `juntaId` desde el token, nunca desde el body:
+
+```typescript
+// ✅ Correcto
+await prisma.pago.create({
+  data: {
+    juntaId: authUser.juntaId,
+    usuarioId,
+    tipo: 'JUNTA',
+    monto,
+    metodo: 'EFECTIVO',
+    registradoPorId: authUser.userId,
+  },
+});
+```
+
+Entidades que deben llevar `juntaId`: Junta, Pago, Carta, Tarifa, Auditoria, Consecutivo. Usuario lleva `juntaId` opcional (null solo para Platform Admin). Referencia: `00_ARQUITECTURA_RECTOR copy.md`, `SCHEMA BASE v1.md`, `flujoBootstrapYOnboarding.md`.

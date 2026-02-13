@@ -1,0 +1,77 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: jac_postgres_dev
+    environment:
+      POSTGRES_USER: jac_user
+      POSTGRES_PASSWORD: jac_password_dev
+      POSTGRES_DB: jac_db_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jac_user -d jac_db_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jac_network
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: jac_backend_dev
+    command: npm run start:dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/backend:/app
+      - /app/node_modules
+      - ./apps/backend/prisma:/app/prisma
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://jac_user:jac_password_dev@postgres:5432/jac_db_dev?schema=public
+      - PORT=3000
+      - JWT_SECRET=dev-secret-change-in-production
+      - JWT_REFRESH_SECRET=dev-refresh-secret-change-in-production
+      - JWT_EXPIRES_IN=15m
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - CORS_ORIGIN=http://localhost:5173
+      - LOG_LEVEL=debug
+      - BOOTSTRAP_TOKEN=dev-bootstrap-token-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - jac_network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: jac_frontend_dev
+    command: npm run dev -- --host
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./apps/frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:3000/api
+    depends_on:
+      - backend
+    networks:
+      - jac_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data_dev:
+
+networks:
+  jac_network:
+    driver: bridge

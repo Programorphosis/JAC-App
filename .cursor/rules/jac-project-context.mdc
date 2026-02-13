@@ -1,0 +1,37 @@
+---
+description: Contexto y principios del proyecto JAC (Junta de Acción Comunal)
+alwaysApply: true
+---
+
+# Proyecto JAC – Contexto para el IDE
+
+Sistema digital para Juntas de Acción Comunal en Colombia. Multi-tenant, auditable, sin pagos parciales. Debe ser defendible ante auditorías legales y contables.
+
+## Stack obligatorio
+
+- Backend: Node.js + NestJS. ORM: Prisma. DB: PostgreSQL.
+- Auth: JWT (userId, juntaId, roles). Archivos: Multer + AWS S3. Pagos online: Wompi.
+- Frontend: React (Vite) + Tailwind + Axios. Sin TypeScript en MVP si así está definido.
+
+## Documentos de referencia (raíz del proyecto)
+
+- `plan.md` – Plan integral y principios rectores.
+- `00_ARQUITECTURA_RECTOR copy.md` – Multi-tenant y seguridad base.
+- `ROADMAP.md` – Fases y orden de desarrollo.
+- `chatModeCursor.md` – Reglas de implementación completas.
+- `definicionDomainServices.md` – Servicios de dominio (Debt, Payment, Letter, Water, Audit).
+- Flujos: `flujoDePagos.md`, `flujoDePagosCasoFallaWebhook.md`, `flujoDePagosCondicionDeCarrera.md`, `flujoReceptorDeAgua.md`, `flujoSolicitudCarta.md`, `validacionesDeCartaQR.md`, `flujoDocumentos.md`, `flujoBootstrapYOnboarding.md`.
+- `calculadoraDeDeuda.md` – Cálculo de deuda. `SCHEMA BASE v1.md` – Modelo Prisma.
+- `convencionesAPI.md` – Contrato de API. `consecutivosYCronJobs.md` – Consecutivos y cron jobs.
+
+## Reglas absolutas (no negociables)
+
+- No inventar funcionalidades ni inferir reglas no definidas. Si no está definido → preguntar.
+- No pagos parciales. No guardar deuda en BD. No editar/borrar registros históricos.
+- No mezclar lógica de negocio en controllers. No operaciones financieras sin transacción.
+- Toda consulta debe filtrar por `juntaId` (nunca confiar en juntaId desde frontend).
+- Backend es la única fuente de verdad. Seguridad > Auditoría > Consistencia > Velocidad.
+
+## Ante ambigüedad
+
+Elegir lo más seguro, auditable y explícito. Preguntar antes de asumir.

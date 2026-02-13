@@ -1,0 +1,26 @@
+---
+description: Auditoría obligatoria en acciones críticas y transacciones Prisma
+globs: "**/*.ts"
+alwaysApply: false
+---
+
+# Auditoría y transacciones
+
+## Auditoría obligatoria
+
+Toda acción crítica debe generar registro en la tabla `Auditoria`: juntaId, entidad, entidadId, accion, metadata (JSON), ejecutadoPorId, fecha. Ejemplos: registro de pago, emisión de carta, cambio estado agua, cambio historial laboral. La auditoría es inmutable (no UPDATE/DELETE). Referencia: `plan.md`, `00_ARQUITECTURA_RECTOR copy.md`.
+
+## Transacciones Prisma
+
+Operaciones que afectan varias tablas deben ejecutarse en una sola transacción. Si una parte falla → rollback completo. Pagos, emisión de cartas y cambios de agua deben usar transacciones. Para pagos, usar `isolationLevel: 'Serializable'` para evitar condición de carrera (doble pago). Referencia: `flujoDePagosCondicionDeCarrera.md`, `chatModeCursor.md`.
+
+## Ejemplo
+
+```typescript
+await prisma.$transaction(async (tx) => {
+  const pago = await tx.pago.create({ data: { ... } });
+  await auditService.registerEvent({ juntaId, entidad: 'Pago', entidadId: pago.id, accion: 'REGISTRO_PAGO', ... });
+});
+```
+
+No ocultar errores con lógica silenciosa. Errores explícitos y trazables.

@@ -1,0 +1,21 @@
+{
+  "name": "jac-app",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "docker-compose up",
+    "dev:build": "docker-compose build",
+    "dev:down": "docker-compose down",
+    "dev:logs": "docker-compose logs -f",
+    "dev:clean": "docker-compose down -v",
+    "db:migrate": "docker exec jac_backend_dev npx prisma migrate dev",
+    "db:studio": "docker exec -it jac_backend_dev npx prisma studio",
+    "db:reset": "docker exec jac_backend_dev npx prisma migrate reset"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

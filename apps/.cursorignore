@@ -1,0 +1,15 @@
+!.env
+!.env.example
+!.env.development
+!.env.staging
+!.env.production
+!docker-compose.yml
+!docker-compose.dev.yml
+!docker-compose.stage.yml
+!docker-compose.prod.yml
+!docker/docker-compose.dev.yml
+!docker/docker-compose.stage.yml
+!docker/docker-compose.prod.yml
+!docker/nginx/nginx.dev.conf
+!docker/nginx/nginx.stage.conf
+!docker/nginx/nginx.prod.conf
