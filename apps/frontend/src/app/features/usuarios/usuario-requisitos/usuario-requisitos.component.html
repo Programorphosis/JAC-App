@@ -1,0 +1,46 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Requisitos adicionales</mat-card-title>
+    <mat-card-subtitle>Estado y obligación por requisito</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    @if (loading) {
+      <p>Cargando...</p>
+    } @else if (estado && estado.requisitos.length > 0) {
+      <table class="w-full">
+        <thead>
+          <tr>
+            <th class="text-left">Requisito</th>
+            <th class="text-left">Estado</th>
+            <th class="text-left">Obligación</th>
+            <th class="text-left">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of estado.requisitos; track r.requisitoTipoId) {
+            <tr>
+              <td>{{ r.nombre }}</td>
+              <td>{{ r.estado }}</td>
+              <td>{{ r.obligacionActiva ? 'Sí' : 'No' }}</td>
+              <td>
+                <div class="flex gap-2">
+                  <button mat-stroked-button (click)="cambiarEstado(r.requisitoTipoId, 'AL_DIA')" [disabled]="r.estado === 'AL_DIA'">
+                    Al día
+                  </button>
+                  <button mat-stroked-button (click)="cambiarEstado(r.requisitoTipoId, 'MORA')" [disabled]="r.estado === 'MORA'">
+                    Mora
+                  </button>
+                  <button mat-stroked-button (click)="cambiarObligacion(r.requisitoTipoId, !r.obligacionActiva)">
+                    {{ r.obligacionActiva ? 'Exentar' : 'Activar' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p>No hay requisitos configurados para la junta.</p>
+    }
+  </mat-card-content>
+</mat-card>

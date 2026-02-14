@@ -9,7 +9,7 @@ description: Guides development order and phase completion using the project roa
 
 - Preguntas sobre orden de desarrollo ("¿qué sigue?", "¿qué hacer primero?").
 - Definir criterios de "listo" para una fase.
-- Resolver dependencias entre módulos (deuda → pagos → Wompi; agua; cartas).
+- Resolver dependencias entre módulos (deuda → pagos → Wompi; requisitos; cartas).
 - Ajustar o revisar el plan sin implementar (usar en conjunto con CHATMODE_PLAN_DESARROLLO si es solo planificación).
 
 ## Orden de fases (resumen)
@@ -20,7 +20,7 @@ description: Guides development order and phase completion using the project roa
 3. Auth + Application base (users, historial laboral, tarifas).  
 4. Endpoints deuda.  
 5. Pagos (efectivo + online: webhook, retorno, reconciliación).  
-6. Módulo agua (manual + cron día 1).  
+6. Módulo requisitos adicionales (manual + cron día 1).  
 7. Cartas (solicitud, validación, PDF, QR público).  
 8. Auditoría global + seguridad (rate limit, HMAC).  
 9–10. Frontend admin y usuario.  

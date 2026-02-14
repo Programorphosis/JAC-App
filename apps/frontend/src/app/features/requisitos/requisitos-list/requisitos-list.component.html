@@ -1,0 +1,46 @@
+<div class="flex flex-col gap-4">
+  <div class="flex items-center justify-between">
+    <h2>Requisitos adicionales</h2>
+    @if (!mostrandoForm) {
+      <button mat-raised-button color="primary" (click)="crear()">Nuevo requisito</button>
+    }
+  </div>
+
+  @if (mostrandoForm) {
+    <app-requisito-form (guardar)="onGuardar($event)" (cancelar)="cancelarForm()" />
+  }
+
+  <div class="mat-elevation-z2 overflow-hidden rounded">
+    <table mat-table [dataSource]="dataSource" class="w-full">
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+        <td mat-cell *matCellDef="let r">{{ r.nombre }}</td>
+      </ng-container>
+      <ng-container matColumnDef="corteAutomatico">
+        <th mat-header-cell *matHeaderCellDef>Corte automático</th>
+        <td mat-cell *matCellDef="let r">{{ r.tieneCorteAutomatico ? 'Sí' : 'No' }}</td>
+      </ng-container>
+      <ng-container matColumnDef="modificador">
+        <th mat-header-cell *matHeaderCellDef>Modificador</th>
+        <td mat-cell *matCellDef="let r">{{ modificador(r) }}</td>
+      </ng-container>
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let r"></td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+          @if (loading) {
+            Cargando...
+          } @else {
+            No hay requisitos. Crea uno desde Usuarios o aquí.
+          }
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>

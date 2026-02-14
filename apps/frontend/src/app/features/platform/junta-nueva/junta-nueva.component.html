@@ -1,0 +1,25 @@
+<div class="flex flex-col gap-4">
+  <div class="flex items-center gap-2">
+    <button mat-icon-button (click)="volver()" aria-label="Volver">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>Crear junta</h2>
+  </div>
+
+  @if (credenciales) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Junta creada</mat-card-title>
+        <mat-card-subtitle>Guarda estas credenciales para entregar al admin</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p><strong>Documento:</strong> {{ credenciales.adminUsuario.numeroDocumento }}</p>
+        <p><strong>Contraseña temporal:</strong> {{ credenciales.passwordTemporal }}</p>
+        <p class="credenciales-warning">Esta contraseña no se mostrará de nuevo.</p>
+        <button mat-raised-button color="primary" (click)="irAListado()">Ir al listado</button>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <app-junta-form (guardar)="onGuardar($event)" />
+  }
+</div>

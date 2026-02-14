@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '@nestjs/passport';
 import { PagosService } from './pagos.service';
 import { JuntaGuard } from '../../auth/guards/junta.guard';
@@ -18,6 +19,7 @@ import { Roles } from '../../auth/decorators/roles.decorator';
 import { RolNombre } from '@prisma/client';
 import { JwtUser } from '../../auth/strategies/jwt.strategy';
 import { RegistrarPagoEfectivoDto } from './dto/registrar-pago-efectivo.dto';
+import { RegistrarPagoCartaDto } from './dto/registrar-pago-carta.dto';
 import { CrearIntencionPagoDto } from './dto/crear-intencion-pago.dto';
 import {
   DeudaCeroError,
@@ -36,6 +38,7 @@ import {
  */
 @Controller('pagos')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
+@Throttle({ default: { limit: 20, ttl: 60_000 } }) // 20 requests/min en endpoints de pago
 export class PagosController {
   constructor(private readonly pagos: PagosService) {}
 
@@ -86,7 +89,99 @@ export class PagosController {
   }
 
   /**
-   * POST /pagos/online/intencion – Crear intención de pago online (link Wompi).
+   * POST /pagos/carta – Registrar pago tipo CARTA (efectivo o transferencia).
+   * Monto desde Junta.montoCarta. Solo TESORERA, ADMIN, SECRETARIA.
+   */
+  @Post('carta')
+  @UseGuards(RolesGuard)
+  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA)
+  @HttpCode(HttpStatus.CREATED)
+  async registrarCarta(
+    @Body() dto: RegistrarPagoCartaDto,
+    @Request() req: { user: JwtUser },
+  ) {
+    if (dto.metodo === 'TRANSFERENCIA' && !dto.referenciaExterna?.trim()) {
+      throw new BadRequestException(
+        'referenciaExterna es obligatoria para pagos por transferencia',
+      );
+    }
+
+    try {
+      const juntaId = req.user.juntaId!;
+      const result = await this.pagos.registrarPagoCarta({
+        usuarioId: dto.usuarioId,
+        juntaId,
+        metodo: dto.metodo,
+        registradoPorId: req.user.id,
+        referenciaExterna: dto.referenciaExterna?.trim() || undefined,
+      });
+
+      return {
+        data: result,
+        meta: { timestamp: new Date().toISOString() },
+      };
+    } catch (err) {
+      if (err instanceof UsuarioNoEncontradoError) {
+        throw new NotFoundException(err.message);
+      }
+      if (
+        err instanceof Error &&
+        err.message.includes('monto de carta configurado')
+      ) {
+        throw new UnprocessableEntityException(err.message);
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * POST /pagos/carta/online/intencion – Crear intención de pago CARTA online.
+   * Monto desde Junta.montoCarta. ADMIN, SECRETARIA, TESORERA, CIUDADANO.
+   */
+  @Post('carta/online/intencion')
+  @UseGuards(RolesGuard)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
+  async crearIntencionCarta(
+    @Body() dto: CrearIntencionPagoDto,
+    @Request() req: { user: JwtUser },
+  ) {
+    const juntaId = req.user.juntaId!;
+    const puedeCrearParaOtro =
+      req.user.roles.includes(RolNombre.ADMIN) ||
+      req.user.roles.includes(RolNombre.SECRETARIA) ||
+      req.user.roles.includes(RolNombre.TESORERA);
+
+    if (!puedeCrearParaOtro && dto.usuarioId !== req.user.id) {
+      throw new BadRequestException('Solo puede crear intención para sí mismo');
+    }
+
+    try {
+      const result = await this.pagos.crearIntencionPagoCartaOnline({
+        usuarioId: dto.usuarioId,
+        juntaId,
+        iniciadoPorId: req.user.id,
+      });
+
+      return {
+        data: result,
+        meta: { timestamp: new Date().toISOString() },
+      };
+    } catch (err) {
+      if (err instanceof UsuarioNoEncontradoError) {
+        throw new NotFoundException(err.message);
+      }
+      if (
+        err instanceof Error &&
+        err.message.includes('monto de carta configurado')
+      ) {
+        throw new UnprocessableEntityException(err.message);
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * POST /pagos/online/intencion – Crear intención de pago JUNTA online (link Wompi).
    * ADMIN, SECRETARIA, TESORERA pueden crear para cualquier usuario.
    * CIUDADANO solo para sí mismo.
    */

@@ -28,7 +28,7 @@ src/
  │    │     ├── debt.service.ts
  │    │     ├── payment.service.ts
  │    │     ├── letter.service.ts
- │    │     ├── water.service.ts
+ │    │     ├── requisito.service.ts
  │    │     └── audit.service.ts
  │    ├── types/
  │    └── errors/
@@ -153,11 +153,13 @@ Existe pago tipo CARTA
 
 Carta está en estado PENDIENTE
 
-Validación de agua:
+Validación de requisitos adicionales:
 
-Si obligacionActiva = true → estadoAgua debe ser AL_DIA
+Obtener getRequisitosParaCarta(usuarioId, juntaId) → lista de { requisitoTipoId, nombre, obligacionActiva, estado }.
 
-Si obligacionActiva = false → se omite validación de estado
+Para cada requisito con obligacionActiva=true → estado debe ser AL_DIA.
+
+Si obligacionActiva=false → se omite validación de ese requisito.
 
 Si algo falla → error explícito.
 
@@ -185,28 +187,29 @@ Registrar auditoría
 
 Todo dentro de una única transacción.
 
-4️⃣ WaterService (Actualizado v1.1)
+4️⃣ RequisitoService (v2 – requisitos adicionales dinámicos)
 
 Responsabilidad:
 
-Gestionar completamente la obligación de agua.
+Gestionar requisitos adicionales dinámicos por junta (agua, basura, etc.).
 
 Es el único servicio autorizado para:
 
-Cambiar estado (AL_DIA / MORA)
+Cambiar estado (AL_DIA / MORA) por requisitoTipoId
 
-Cambiar obligación (activa / exento)
+Cambiar obligación (activa / exento) por requisitoTipoId
 
-Ejecutar corte automático mensual
+Ejecutar corte automático mensual (solo requisitos con tieneCorteAutomatico=true)
 
 Insertar historial
 
 Registrar auditoría
 
-Nadie más puede modificar EstadoAgua o HistorialAgua.
+Nadie más puede modificar EstadoRequisito o HistorialRequisito.
 
 4.1 Cambio manual de estado
-updateWaterStatus(params: {
+updateEstadoRequisito(params: {
+  requisitoTipoId: string;
   usuarioId: string;
   nuevoEstado: 'AL_DIA' | 'MORA';
   cambiadoPorId: string;
@@ -215,30 +218,23 @@ updateWaterStatus(params: {
 
 Proceso:
 
-Obtener EstadoAgua actual
+Obtener EstadoRequisito actual (usuarioId, requisitoTipoId)
 
-Insertar HistorialAgua:
+Insertar HistorialRequisito:
 
 tipoCambio = ESTADO
 
-estadoAnterior
-
-estadoNuevo
-
-obligacionAnterior = null
-
-obligacionNueva = null
+estadoAnterior, estadoNuevo
 
 cambioAutomatico = false
 
-Actualizar EstadoAgua.estado
-
-Actualizar fechaUltimoCambio
+Actualizar EstadoRequisito.estado
 
 Registrar auditoría
 
 4.2 Cambio de obligación (Exento / No exento)
-updateWaterObligation(params: {
+updateObligacionRequisito(params: {
+  requisitoTipoId: string;
   usuarioId: string;
   obligacionActiva: boolean;
   cambiadoPorId: string;
@@ -247,23 +243,17 @@ updateWaterObligation(params: {
 
 Proceso:
 
-Obtener EstadoAgua actual
+Obtener EstadoRequisito actual
 
-Insertar HistorialAgua:
+Insertar HistorialRequisito:
 
 tipoCambio = OBLIGACION
 
-estadoAnterior = null
-
-estadoNuevo = null
-
-obligacionAnterior
-
-obligacionNueva
+obligacionAnterior, obligacionNueva
 
 cambioAutomatico = false
 
-Actualizar EstadoAgua.obligacionActiva
+Actualizar EstadoRequisito.obligacionActiva
 
 Registrar auditoría
 
@@ -272,8 +262,8 @@ Regla:
 Cambiar obligación NO modifica automáticamente el estado.
 
 4.3 Corte automático mensual (JOB del sistema)
-applyMonthlyWaterCutoff(params: {
-  juntaId: string;
+applyMonthlyCutoff(params: {
+  juntaId?: string;  // opcional: si no se pasa, procesa todas las juntas
 })
 
 
@@ -281,41 +271,23 @@ Regla de negocio oficial:
 
 Se ejecuta el día 1 de cada mes.
 
-No existen pagos adelantados.
+Itera sobre RequisitoTipo con tieneCorteAutomatico=true y activo=true.
 
-Todo usuario con obligacionActiva = true pasa a MORA.
+Para cada requisito: usuarios con obligacionActiva=true y estado=AL_DIA → MORA.
 
 Usuarios exentos no se tocan.
 
 Proceso:
 
-Buscar usuarios con:
+Para cada RequisitoTipo con tieneCorteAutomatico=true y activo=true:
 
-juntaId correspondiente
+Buscar EstadoRequisito donde obligacionActiva=true, estado=AL_DIA
 
-obligacionActiva = true
+Insertar HistorialRequisito (cambioAutomatico=true)
 
-estado = AL_DIA
+Actualizar EstadoRequisito.estado = MORA
 
-Para cada usuario:
-
-Insertar HistorialAgua:
-
-tipoCambio = ESTADO
-
-estadoAnterior = AL_DIA
-
-estadoNuevo = MORA
-
-cambioAutomatico = true
-
-cambiadoPorId = null
-
-Actualizar EstadoAgua.estado = MORA
-
-Actualizar fechaUltimoCambio
-
-Registrar auditoría global o por usuario.
+Registrar auditoría.
 
 Este método nunca depende de HTTP.
 Lo ejecuta infraestructura (cron), pero la lógica vive aquí.
@@ -364,9 +336,9 @@ Nunca se aceptan montos manipulables.
 
 Nunca se genera carta sin validación completa.
 
-Nunca se modifica EstadoAgua fuera de WaterService.
+Nunca se modifica EstadoRequisito fuera de RequisitoService.
 
-Nunca se modifica HistorialAgua fuera de WaterService.
+Nunca se modifica HistorialRequisito fuera de RequisitoService.
 
 Todo cambio crítico genera auditoría.
 

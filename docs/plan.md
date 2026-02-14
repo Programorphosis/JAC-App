@@ -81,7 +81,7 @@ PaymentService
 
 LetterService
 
-WaterService
+RequisitoService
 
 AuditService
 
@@ -119,7 +119,7 @@ payments
 
 letters
 
-water
+requisitos
 
 audit
 
@@ -202,10 +202,9 @@ Entidad independiente de la junta.
 
 Tablas:
 
-estado_agua (estado actual)
-historial_agua (histórico completo)
+RequisitoTipo, EstadoRequisito, HistorialRequisito (requisitos adicionales dinámicos: agua, basura, etc.).
 
-Gestión por rol RECEPTOR_AGUA.
+Gestión por modificador del RequisitoTipo (o ADMIN).
 
 No afecta cálculo de deuda de junta.
 
@@ -215,7 +214,7 @@ Requisitos obligatorios:
 
 Junta en deuda = 0
 
-Agua = al día
+Requisitos adicionales = al día
 
 Pago carta registrado
 
@@ -348,15 +347,17 @@ Wompi
 
 Frontend:
 
-React
+Angular 19+
 
-Vite
+Angular Material
 
-Tailwind
+Tailwind CSS
 
-Axios
+HttpClient (nativo)
 
-Sin TypeScript en MVP
+TypeScript (obligatorio en Angular)
+
+Referencia: `ARQUITECTURA_FRONTEND_ANGULAR.md`
 
 Infraestructura:
 

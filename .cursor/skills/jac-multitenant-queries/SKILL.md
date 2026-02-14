@@ -19,7 +19,7 @@ Ninguna consulta puede ejecutarse sin filtro por `juntaId`. El `juntaId` debe pr
 
 - **Lectura**: `where: { juntaId: authUser.juntaId, id: entityId }` (y variantes con relaciones).
 - **Creación**: incluir `juntaId: authUser.juntaId` en `data`.
-- **Entidades vía Usuario**: si la entidad no tiene juntaId pero pertenece a un usuario, filtrar por `usuario: { juntaId: authUser.juntaId }` (ej. EstadoAgua, HistorialAgua).
+- **Entidades vía Usuario**: si la entidad no tiene juntaId pero pertenece a un usuario, filtrar por `usuario: { juntaId: authUser.juntaId }` (ej. EstadoRequisito, HistorialRequisito). RequisitoTipo tiene juntaId directo.
 
 ## Patrones prohibidos
 

@@ -26,7 +26,7 @@ junta_id UUID NOT NULL
 
 **pagos:** id, juntaId, usuarioId, tipo (JUNTA | CARTA), metodo (EFECTIVO | TRANSFERENCIA | ONLINE), monto, consecutivo, referenciaExterna, registradoPorId, fechaPago.
 
-**documentos:** id, usuarioId, tipo, rutaS3, subidoPorId, fechaSubida. (Documentos de agua / soporte de carta: la validación de “agua al día” para emitir carta se hace solo por EstadoAgua, no por estado en Documento.)
+**documentos:** id, usuarioId, tipo, rutaS3, subidoPorId, fechaSubida. (Documentos de soporte: la validación de requisitos adicionales para emitir carta se hace por EstadoRequisito, no por estado en Documento.)
 
 **auditoria:** id, juntaId, entidad, entidadId, accion, metadata, ejecutadoPorId, fecha.
 
@@ -81,7 +81,7 @@ Backend calcula dinámicamente:
 
 deuda junta (sumatoria de deudas activas)
 
-estado agua (según EstadoAgua: AL_DIA o MORA; no según estado en Documento)
+requisitos adicionales (según EstadoRequisito por cada RequisitoTipo activo: AL_DIA o MORA; obligacionActiva indica si aplica)
 
 existencia de pago tipo CARTA
 
@@ -89,7 +89,7 @@ Respuesta ejemplo:
 
 {
   "deuda_junta": 0,
-  "estado_agua": "al_dia",
+  "requisitos": [{ "nombre": "agua", "obligacionActiva": true, "estado": "AL_DIA" }],
   "pago_carta": true
 }
 
@@ -99,7 +99,7 @@ Respuesta ejemplo:
 Paso 2 – Usuario sube recibo de agua
 POST /documentos
 
-Acciones backend: guarda archivo en S3, crea registro en Documento (tipo, rutaS3, subidoPorId). La condición “agua al día” para poder emitir carta se valida solo con EstadoAgua (y rol RECEPTOR_AGUA que marca AL_DIA), no con un estado en Documento.
+Acciones backend: guarda archivo en S3, crea registro en Documento (tipo, rutaS3, subidoPorId). La condición “agua al día” para poder emitir carta se valida con EstadoRequisito (el modificador del RequisitoTipo marca AL_DIA), no con un estado en Documento.
 
 Paso 3 – Usuario paga carta
 
@@ -148,7 +148,7 @@ Vista administrativa muestra: estado financiero calculado, documento(s) de agua 
 
 Acción: POST /cartas/{id}/validar
 
-Backend ejecuta validaciones automáticas: deuda junta = 0; estado agua = AL_DIA según EstadoAgua (no según estado en Documento); pago tipo CARTA existe y confirmado.
+Backend ejecuta validaciones automáticas: deuda junta = 0; todos los requisitos adicionales con obligacionActiva=true deben estar AL_DIA según EstadoRequisito; pago tipo CARTA existe y confirmado.
 
 Si todo OK: estado → APROBADA; fechaEmision → now(); emitidaPorId → secretaria_id; genera PDF; guarda rutaPdf (y opcionalmente hashDocumento); registra auditoría.
 
@@ -215,7 +215,7 @@ Nunca generar PDF si estado ≠ aprobada.
 
 No permitir múltiples cartas pendientes por usuario.
 
-No permitir validar si: existe deuda; EstadoAgua no es AL_DIA (o usuario exento); pago tipo CARTA inexistente. Para cartas rechazadas puede guardarse motivoRechazo (opcional).
+No permitir validar si: existe deuda; algún requisito con obligacionActiva=true no está AL_DIA; pago tipo CARTA inexistente. Para cartas rechazadas puede guardarse motivoRechazo (opcional).
 
 Toda acción debe registrar auditoría.
 

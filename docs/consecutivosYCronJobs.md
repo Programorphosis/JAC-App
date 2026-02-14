@@ -69,7 +69,7 @@ async function obtenerConsecutivo(tx, juntaId: string, tipo: string): Promise<nu
 
 | Job | Frecuencia | Responsable | Descripción |
 |-----|------------|-------------|-------------|
-| Corte de agua (MORA) | Día 1 de cada mes | WaterService.applyMonthlyWaterCutoff | Pasar a MORA a usuarios con obligacionActiva=true y estado=AL_DIA |
+| Corte requisitos (MORA) | Día 1 de cada mes | RequisitoService.applyMonthlyCutoff | Por cada RequisitoTipo con tieneCorteAutomatico=true: pasar a MORA a usuarios con obligacionActiva=true y estado=AL_DIA |
 | Reconciliación Wompi | Diario (nocturno) | PaymentService / Job dedicado | Comparar transacciones APPROVED en Wompi vs pagos en BD; registrar faltantes |
 
 ### 2.2 Recomendación: node-cron dentro del Backend
@@ -78,7 +78,7 @@ async function obtenerConsecutivo(tx, juntaId: string, tipo: string): Promise<nu
 
 **Ventajas:**
 - Un solo proceso para API y jobs.
-- Acceso directo a servicios de dominio (WaterService, etc.).
+- Acceso directo a servicios de dominio (RequisitoService, etc.).
 - Configuración en código, versionada.
 - En Docker: un contenedor backend ejecuta todo.
 
@@ -98,17 +98,14 @@ export class AppModule {}
 ```
 
 ```typescript
-// water.cron.ts
+// requisitos.cron.ts
 @Injectable()
-export class WaterCron {
-  constructor(private waterService: WaterService) {}
+export class RequisitosCronService {
+  constructor(private requisitoService: RequisitoService) {}
 
   @Cron('0 0 1 * *') // Día 1 de cada mes a las 00:00
   async handleMonthlyCutoff() {
-    const juntas = await this.getJuntasActivas();
-    for (const junta of juntas) {
-      await this.waterService.applyMonthlyWaterCutoff(junta.id);
-    }
+    await this.requisitoService.applyMonthlyCutoff();
   }
 }
 ```
@@ -128,10 +125,10 @@ export class WompiReconciliationCron {
 
 Si se prefiere separar los jobs del proceso API:
 
-- Crear endpoints internos (protegidos por API key o red interna): `POST /internal/cron/water-cutoff`, `POST /internal/cron/wompi-reconcile`.
+- Crear endpoints internos (protegidos por API key o red interna): `POST /internal/cron/requisitos-cutoff`, `POST /internal/cron/wompi-reconcile`.
 - Configurar crontab en el servidor:
   ```
-  0 0 1 * * curl -X POST -H "X-Internal-Key: secret" http://localhost:3000/internal/cron/water-cutoff
+  0 0 1 * * curl -X POST -H "X-Internal-Key: secret" http://localhost:3000/internal/cron/requisitos-cutoff
   0 2 * * * curl -X POST -H "X-Internal-Key: secret" http://localhost:3000/internal/cron/wompi-reconcile
   ```
 
@@ -145,4 +142,4 @@ Si se prefiere separar los jobs del proceso API:
 
 ---
 
-**Referencias:** `flujoReceptorDeAgua.md`, `flujoDePagosCasoFallaWebhook.md`, `definicionDomainServices.md`, `SCHEMA BASE v1.md`.
+**Referencias:** `flujoRequisitosAdicionales.md`, `flujoDePagosCasoFallaWebhook.md`, `definicionDomainServices.md`, `SCHEMA BASE v1.md`.

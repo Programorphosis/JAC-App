@@ -1,0 +1,54 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Documentos</mat-card-title>
+    <mat-card-subtitle>Recibos y soportes</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="flex flex-col gap-4 mb-4">
+      <label class="font-medium">Subir documento</label>
+      <div class="flex gap-2 items-center flex-wrap">
+        <select [(ngModel)]="tipoSeleccionado" class="border rounded px-2 py-1">
+          @for (t of tipos; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+        <input
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png"
+          (change)="onFileSelected($event)"
+          [disabled]="subiendo"
+        />
+        @if (subiendo) {
+          <span>Subiendo...</span>
+        }
+      </div>
+    </div>
+
+    @if (loading) {
+      <p>Cargando...</p>
+    } @else if (documentos.length === 0) {
+      <p>No hay documentos</p>
+    } @else {
+      <table class="w-full">
+        <thead>
+          <tr>
+            <th class="text-left">Tipo</th>
+            <th class="text-left">Fecha</th>
+            <th class="text-left">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (d of documentos; track d.id) {
+            <tr>
+              <td>{{ d.tipo }}</td>
+              <td>{{ formatearFecha(d.fechaSubida) }}</td>
+              <td>
+                <button mat-stroked-button (click)="descargar(d)">Descargar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </mat-card-content>
+</mat-card>

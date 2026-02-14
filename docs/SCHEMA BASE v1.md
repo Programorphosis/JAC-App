@@ -36,7 +36,7 @@ enum TipoPago {
   CARTA
 }
 
-enum EstadoAguaTipo {
+enum EstadoRequisitoTipo {
   AL_DIA
   MORA
 }
@@ -47,7 +47,7 @@ enum EstadoCartaTipo {
   RECHAZADA
 }
 
-enum TipoCambioAgua {
+enum TipoCambioRequisito {
   ESTADO
   OBLIGACION
 }
@@ -70,6 +70,7 @@ model Junta {
   tarifas         Tarifa[]
   consecutivos    Consecutivo[]
   pagos           Pago[]
+  requisitos     RequisitoTipo[]
   cartas          Carta[]
   auditorias      Auditoria[]
 }
@@ -97,7 +98,8 @@ model Usuario {
   historialLaboral  HistorialLaboral[]
   pagos             Pago[]
   cartas            Carta[]
-  estadoAgua        EstadoAgua?
+  estadosRequisito  EstadoRequisito[]
+  historialRequisito HistorialRequisito[]
   documentos        Documento[]
 
   @@unique([juntaId, numeroDocumento])
@@ -199,45 +201,65 @@ model Pago {
 }
 
 //////////////////////////////////////////////////////
-// AGUA
+// REQUISITOS ADICIONALES (agua, basura, etc.)
 //////////////////////////////////////////////////////
 
-model EstadoAgua {
-  usuarioId           String   @id
-  usuario             Usuario  @relation(fields: [usuarioId], references: [id])
+model RequisitoTipo {
+  id                   String   @id @default(uuid())
+  juntaId              String
+  junta                Junta    @relation(fields: [juntaId], references: [id])
 
-  estado              EstadoAguaTipo
-  obligacionActiva    Boolean  @default(true)
+  nombre               String
+  modificadorId        String?
+  modificador          Usuario? @relation("RequisitoModificador", fields: [modificadorId], references: [id])
+  tieneCorteAutomatico Boolean  @default(true)
+  activo               Boolean  @default(true)
+  fechaCreacion        DateTime @default(now())
 
-  fechaUltimoCambio   DateTime @default(now())
+  estados              EstadoRequisito[]
+  historial            HistorialRequisito[]
 
-  historial           HistorialAgua[]
-
-  @@index([obligacionActiva])
+  @@index([juntaId])
 }
 
-model HistorialAgua {
+model EstadoRequisito {
+  usuarioId           String
+  usuario             Usuario  @relation(fields: [usuarioId], references: [id])
+  requisitoTipoId     String
+  requisitoTipo       RequisitoTipo @relation(fields: [requisitoTipoId], references: [id], onDelete: Cascade)
+
+  estado              EstadoRequisitoTipo
+  obligacionActiva    Boolean  @default(true)
+  fechaUltimoCambio   DateTime @default(now())
+
+  @@id([usuarioId, requisitoTipoId])
+  @@index([requisitoTipoId])
+}
+
+model HistorialRequisito {
   id                 String           @id @default(uuid())
 
   usuarioId          String
-  usuario            Usuario          @relation(fields: [usuarioId], references: [id])
+  usuario            Usuario         @relation(fields: [usuarioId], references: [id])
+  requisitoTipoId    String
+  requisitoTipo      RequisitoTipo    @relation(fields: [requisitoTipoId], references: [id], onDelete: Cascade)
 
-  tipoCambio         TipoCambioAgua
+  tipoCambio         TipoCambioRequisito
 
-  estadoAnterior     EstadoAguaTipo?
-  estadoNuevo        EstadoAguaTipo?
+  estadoAnterior     EstadoRequisitoTipo?
+  estadoNuevo        EstadoRequisitoTipo?
 
   obligacionAnterior Boolean?
   obligacionNueva    Boolean?
 
   cambiadoPorId      String?
-  cambiadoPor        Usuario? @relation("AguaCambiadoPor", fields: [cambiadoPorId], references: [id])
+  cambiadoPor        Usuario? @relation("RequisitoCambiadoPor", fields: [cambiadoPorId], references: [id])
 
   cambioAutomatico   Boolean  @default(false)
-
   fechaCambio        DateTime @default(now())
 
   @@index([usuarioId])
+  @@index([requisitoTipoId])
 }
 
 //////////////////////////////////////////////////////
@@ -365,7 +387,7 @@ No se mezclan responsabilidades
 - Usuario.passwordHash: añadido para autenticación (bcrypt). Requerido para login.
 - Pago.referenciaExterna: anotación explícita para idempotencia de pagos online.
 
-**Nota EstadoAgua/HistorialAgua:** En Prisma, HistorialAgua se relaciona con Usuario (usuarioId). El historial de agua de un usuario se consulta vía Usuario.historialAgua. No se usa relación directa EstadoAgua→HistorialAgua para evitar conflictos de FK.
+**Nota RequisitoTipo/EstadoRequisito/HistorialRequisito:** Cada junta puede tener varios requisitos (agua, basura, etc.). EstadoRequisito tiene PK compuesta (usuarioId, requisitoTipoId). HistorialRequisito registra cada cambio de estado u obligación. Referencia: `flujoRequisitosAdicionales.md`.
 
 ---
 

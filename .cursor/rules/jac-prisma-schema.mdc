@@ -14,7 +14,7 @@ El modelo oficial está definido en `SCHEMA BASE v1.md`. No agregar campos sin j
 - En **Pago**: `consecutivo Int` es obligatorio (obtenido de tabla Consecutivo o lógica por junta/tipo/anio); `referenciaExterna String? @unique` para idempotencia (Wompi o número de transferencia). Método puede ser EFECTIVO, TRANSFERENCIA u ONLINE.
 - En **Carta**: campos opcionales `rutaPdf String?` (URL/ruta S3 del PDF), `hashDocumento String?` (integridad PDF), `motivoRechazo String?` (para rechazadas). Campos obligatorios: `qrToken`, `emitidaPorId`, `fechaEmision` (al aprobar).
 - No existe tabla "deudas". La deuda se calcula, no se persiste.
-- Historial laboral y historial agua: solo INSERT; no UPDATE/DELETE de registros históricos.
+- Historial laboral y historial requisito: solo INSERT; no UPDATE/DELETE de registros históricos.
 
 ## Consultas
 

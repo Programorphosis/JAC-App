@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { createHash } from 'crypto';
 import { PagosService } from '../pagos/pagos.service';
 import { PagoDuplicadoError } from '../../domain/errors/domain.errors';
@@ -38,6 +39,7 @@ interface WompiEventBody {
  * Verificación por firma HMAC con WOMPI_EVENTS_SECRET.
  */
 @Controller('webhooks')
+@SkipThrottle() // Wompi envía webhooks; no aplicar rate limit
 export class WebhooksController {
   constructor(private readonly pagos: PagosService) {}
 

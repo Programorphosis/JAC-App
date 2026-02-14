@@ -1,0 +1,60 @@
+<!-- Layout: solo Tailwind en contenedores -->
+<div class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+  <div class="w-full max-w-md">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>JAC App</mat-card-title>
+        <mat-card-subtitle>Iniciar sesión</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Tipo documento</mat-label>
+            <mat-select formControlName="tipoDocumento">
+              <mat-option value="CC">Cédula de ciudadanía</mat-option>
+              <mat-option value="CE">Cédula de extranjería</mat-option>
+              <mat-option value="TI">Tarjeta de identidad</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Número de documento</mat-label>
+            <input matInput formControlName="numeroDocumento" type="text" />
+            @if (form.get('numeroDocumento')?.hasError('required')) {
+              <mat-error>Requerido</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Contraseña</mat-label>
+            <input matInput formControlName="password" type="password" />
+            @if (form.get('password')?.hasError('required')) {
+              <mat-error>Requerido</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-checkbox formControlName="platformAdmin">
+            Acceso Platform Admin
+          </mat-checkbox>
+
+          @if (error) {
+            <div class="mt-4" role="alert">
+              <span class="form-error">{{ error }}</span>
+            </div>
+          }
+
+          <div class="w-full">
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              [disabled]="loading || form.invalid"
+            >
+              {{ loading ? 'Entrando...' : 'Entrar' }}
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

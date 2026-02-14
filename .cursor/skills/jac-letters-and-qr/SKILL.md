@@ -15,7 +15,7 @@ description: Implements or reviews the letters module (request, validation, PDF,
 ## Requisitos para emitir carta
 
 - Deuda junta = 0 (calculada, no almacenada).
-- Estado agua = AL_DIA según EstadoAgua (o usuario exento: obligacionActiva = false). La validación de "agua al día" se hace solo por EstadoAgua, no por estado en Documento (los documentos son solo soporte, no determinan el estado).
+- Requisitos adicionales = AL_DIA según EstadoRequisito (o usuario exento: obligacionActiva = false). La validación se hace por getRequisitosParaCarta; los documentos son solo soporte, no determinan el estado.
 - Pago tipo CARTA registrado.
 - Carta en estado PENDIENTE (no duplicar solicitudes pendientes).
 
@@ -24,7 +24,7 @@ Validación dentro de una **transacción**; si algo falla, no actualizar la cart
 ## Flujo unificado
 
 - No hay dos flujos (digital vs presencial); mismo backend, mismas tablas. Solo cambia quién ejecuta (usuario o secretaría).
-- Estado general del usuario: `GET /usuarios/:id/estado-general` devuelve deuda calculada, estado agua, existencia de pago carta (sin almacenar estados derivados).
+- Estado general del usuario: `GET /usuarios/:id/estado-general` devuelve deuda calculada, requisitos adicionales (estado por RequisitoTipo), existencia de pago carta (sin almacenar estados derivados).
 
 ## QR y validación pública
 

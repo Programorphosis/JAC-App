@@ -6,6 +6,7 @@
 
 import type { DebtResult } from '../types/debt.types';
 import type { RegisterAuditEventParams } from '../types/audit.types';
+import type { RequisitoParaCarta } from '../types/requisito.types';
 
 export interface CartaParaEmitir {
   id: string;
@@ -17,16 +18,11 @@ export interface CartaParaEmitir {
   usuarioDocumento?: string;
 }
 
-export interface EstadoAguaParaCarta {
-  obligacionActiva: boolean;
-  estado: 'AL_DIA' | 'MORA';
-}
-
 export interface ILetterEmissionContext {
   calculateDebt(usuarioId: string, juntaId: string): Promise<DebtResult>;
   getCarta(cartaId: string, juntaId: string): Promise<CartaParaEmitir | null>;
   hasPagoCarta(usuarioId: string, juntaId: string): Promise<boolean>;
-  getEstadoAgua(usuarioId: string, juntaId: string): Promise<EstadoAguaParaCarta | null>;
+  getRequisitosParaCarta(usuarioId: string, juntaId: string): Promise<RequisitoParaCarta[]>;
   getNextConsecutivoCarta(juntaId: string): Promise<number>;
   updateCartaAprobada(data: {
     cartaId: string;
@@ -40,6 +36,8 @@ export interface ILetterEmissionContext {
   }): Promise<void>;
   registerAudit(params: RegisterAuditEventParams): Promise<void>;
   generateCartaPdf?(data: {
+    juntaId: string;
+    usuarioId: string;
     qrToken: string;
     consecutivo: number;
     anio: number;

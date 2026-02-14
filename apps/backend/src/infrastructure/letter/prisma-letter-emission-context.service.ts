@@ -1,9 +1,14 @@
 import { TipoPago } from '@prisma/client';
-import type { ILetterEmissionContext, CartaParaEmitir, EstadoAguaParaCarta } from '../../domain/ports/letter-emission-context.port';
+import type {
+  ILetterEmissionContext,
+  CartaParaEmitir,
+} from '../../domain/ports/letter-emission-context.port';
+import type { RequisitoParaCarta } from '../../domain/types/requisito.types';
 import type { DebtResult } from '../../domain/types/debt.types';
 import type { RegisterAuditEventParams } from '../../domain/types/audit.types';
 import { DebtService } from '../../domain/services/debt.service';
 import { PrismaDebtDataProvider } from '../debt/prisma-debt-data-provider.service';
+import type { CartaPdfService } from './carta-pdf.service';
 
 /** Cliente Prisma o transacción. */
 type PrismaTx = Omit<
@@ -11,12 +16,21 @@ type PrismaTx = Omit<
   '$on' | '$connect' | '$disconnect' | '$transaction' | '$extends'
 >;
 
+export interface PrismaLetterEmissionContextOptions {
+  pdfService?: CartaPdfService;
+}
+
 export class PrismaLetterEmissionContext implements ILetterEmissionContext {
   private readonly debtService: DebtService;
+  private readonly pdfService?: CartaPdfService;
 
-  constructor(private readonly client: PrismaTx) {
+  constructor(
+    private readonly client: PrismaTx,
+    options?: PrismaLetterEmissionContextOptions,
+  ) {
     const provider = new PrismaDebtDataProvider(client);
     this.debtService = new DebtService(provider);
+    this.pdfService = options?.pdfService;
   }
 
   async calculateDebt(usuarioId: string, juntaId: string): Promise<DebtResult> {
@@ -51,19 +65,29 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
     return count > 0;
   }
 
-  async getEstadoAgua(usuarioId: string, juntaId: string): Promise<EstadoAguaParaCarta | null> {
-    const estado = await this.client.estadoAgua.findFirst({
-      where: {
-        usuarioId,
-        usuario: { juntaId },
+  async getRequisitosParaCarta(
+    usuarioId: string,
+    juntaId: string,
+  ): Promise<RequisitoParaCarta[]> {
+    const requisitos = await this.client.requisitoTipo.findMany({
+      where: { juntaId, activo: true },
+      include: {
+        estados: {
+          where: { usuarioId },
+          take: 1,
+        },
       },
-      select: { estado: true, obligacionActiva: true },
     });
-    if (!estado) return null;
-    return {
-      obligacionActiva: estado.obligacionActiva,
-      estado: estado.estado as 'AL_DIA' | 'MORA',
-    };
+
+    return requisitos.map((rt) => {
+      const estado = rt.estados[0];
+      return {
+        requisitoTipoId: rt.id,
+        nombre: rt.nombre,
+        obligacionActiva: estado?.obligacionActiva ?? true,
+        estado: (estado?.estado ?? 'MORA') as RequisitoParaCarta['estado'],
+      };
+    });
   }
 
   async getNextConsecutivoCarta(juntaId: string): Promise<number> {
@@ -126,9 +150,10 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
     });
   }
 
-  // generateCartaPdf opcional - no implementado en MVP, retorna null
   async generateCartaPdf(
-    _data: {
+    data: {
+      juntaId: string;
+      usuarioId: string;
       qrToken: string;
       consecutivo: number;
       anio: number;
@@ -137,6 +162,18 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
       usuarioDocumento: string;
     },
   ): Promise<{ rutaPdf: string; hashDocumento?: string } | null> {
-    return null;
+    if (!this.pdfService?.isConfigured()) return null;
+    return this.pdfService.generateAndUpload(
+      {
+        qrToken: data.qrToken,
+        consecutivo: data.consecutivo,
+        anio: data.anio,
+        usuarioNombres: data.usuarioNombres,
+        usuarioApellidos: data.usuarioApellidos,
+        usuarioDocumento: data.usuarioDocumento,
+      },
+      data.juntaId,
+      data.usuarioId,
+    );
   }
 }

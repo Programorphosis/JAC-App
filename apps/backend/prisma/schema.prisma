@@ -39,7 +39,12 @@ enum TipoPago {
   CARTA
 }
 
-enum EstadoAguaTipo {
+enum TipoIntencionPago {
+  JUNTA
+  CARTA
+}
+
+enum EstadoRequisitoTipo {
   AL_DIA
   MORA
 }
@@ -50,7 +55,7 @@ enum EstadoCartaTipo {
   RECHAZADA
 }
 
-enum TipoCambioAgua {
+enum TipoCambioRequisito {
   ESTADO
   OBLIGACION
 }
@@ -71,6 +76,7 @@ model Junta {
   consecutivos     Consecutivo[]
   pagos            Pago[]
   intencionesPago  IntencionPago[]
+  requisitos       RequisitoTipo[]
   cartas           Carta[]
   auditorias       Auditoria[]
 }
@@ -101,9 +107,10 @@ model Usuario {
   pagosRegistrados  Pago[]             @relation("PagoRegistradoPor")
   cartas            Carta[]
   cartasEmitidas    Carta[]            @relation("CartaEmitidaPor")
-  estadoAgua        EstadoAgua?
-  historialAgua     HistorialAgua[]
-  aguaCambiadoPor   HistorialAgua[]    @relation("AguaCambiadoPor")
+  estadosRequisito   EstadoRequisito[]
+  historialRequisito HistorialRequisito[]
+  requisitosModificadosPor HistorialRequisito[] @relation("RequisitoCambiadoPor")
+  requisitosComoModificador RequisitoTipo[]     @relation("RequisitoModificador")
   documentos        Documento[]
   documentosSubidos Documento[]       @relation("DocumentoSubidoPor")
   auditorias        Auditoria[]
@@ -204,65 +211,88 @@ model Pago {
 }
 
 model IntencionPago {
-  id             String   @id @default(uuid())
+  id             String           @id @default(uuid())
 
   usuarioId      String
-  usuario        Usuario  @relation(fields: [usuarioId], references: [id])
+  usuario        Usuario          @relation(fields: [usuarioId], references: [id])
 
   juntaId        String
-  junta          Junta    @relation(fields: [juntaId], references: [id])
+  junta          Junta            @relation(fields: [juntaId], references: [id])
 
+  tipoPago       TipoIntencionPago @default(JUNTA)
   montoCents     Int
-  wompiLinkId    String   @unique
+  wompiLinkId    String           @unique
   referencia     String
 
   iniciadoPorId  String
-  iniciadoPor    Usuario  @relation("IntencionIniciadaPor", fields: [iniciadoPorId], references: [id])
+  iniciadoPor    Usuario          @relation("IntencionIniciadaPor", fields: [iniciadoPorId], references: [id])
 
-  fechaCreacion  DateTime @default(now())
+  fechaCreacion  DateTime         @default(now())
 
   @@index([juntaId])
   @@index([usuarioId])
 }
 
 //////////////////////////////////////////////////////
-// AGUA
+// REQUISITOS ADICIONALES (agua, basura, etc.)
 //////////////////////////////////////////////////////
 
-model EstadoAgua {
-  usuarioId           String   @id
-  usuario             Usuario  @relation(fields: [usuarioId], references: [id])
+model RequisitoTipo {
+  id                   String   @id @default(uuid())
+  juntaId              String
+  junta                Junta    @relation(fields: [juntaId], references: [id])
 
-  estado              EstadoAguaTipo
-  obligacionActiva    Boolean  @default(true)
+  nombre               String
+  modificadorId        String?
+  modificador          Usuario? @relation("RequisitoModificador", fields: [modificadorId], references: [id])
+  tieneCorteAutomatico Boolean @default(true)
+  activo               Boolean  @default(true)
+  fechaCreacion        DateTime @default(now())
 
-  fechaUltimoCambio   DateTime @default(now())
+  estados              EstadoRequisito[]
+  historial            HistorialRequisito[]
 
-  @@index([obligacionActiva])
+  @@index([juntaId])
 }
 
-model HistorialAgua {
+model EstadoRequisito {
+  usuarioId           String
+  usuario             Usuario  @relation(fields: [usuarioId], references: [id])
+  requisitoTipoId     String
+  requisitoTipo       RequisitoTipo @relation(fields: [requisitoTipoId], references: [id], onDelete: Cascade)
+
+  estado              EstadoRequisitoTipo
+  obligacionActiva    Boolean  @default(true)
+  fechaUltimoCambio   DateTime @default(now())
+
+  @@id([usuarioId, requisitoTipoId])
+  @@index([requisitoTipoId])
+}
+
+model HistorialRequisito {
   id                 String           @id @default(uuid())
 
   usuarioId          String
   usuario            Usuario          @relation(fields: [usuarioId], references: [id])
+  requisitoTipoId     String
+  requisitoTipo       RequisitoTipo    @relation(fields: [requisitoTipoId], references: [id], onDelete: Cascade)
 
-  tipoCambio         TipoCambioAgua
+  tipoCambio         TipoCambioRequisito
 
-  estadoAnterior     EstadoAguaTipo?
-  estadoNuevo        EstadoAguaTipo?
+  estadoAnterior     EstadoRequisitoTipo?
+  estadoNuevo        EstadoRequisitoTipo?
 
   obligacionAnterior Boolean?
   obligacionNueva    Boolean?
 
   cambiadoPorId      String?
-  cambiadoPor        Usuario?         @relation("AguaCambiadoPor", fields: [cambiadoPorId], references: [id])
+  cambiadoPor        Usuario?         @relation("RequisitoCambiadoPor", fields: [cambiadoPorId], references: [id])
 
   cambioAutomatico   Boolean  @default(false)
-
   fechaCambio        DateTime @default(now())
 
   @@index([usuarioId])
+  @@index([requisitoTipoId])
 }
 
 //////////////////////////////////////////////////////
@@ -278,11 +308,11 @@ model Carta {
   usuarioId       String
   usuario         Usuario           @relation(fields: [usuarioId], references: [id])
 
-  consecutivo     Int
-  anio            Int
+  consecutivo     Int?              // null = PENDIENTE; asignado al aprobar
+  anio            Int               // año de emisión; al solicitar = año actual
 
   estado          EstadoCartaTipo
-  qrToken         String            @unique
+  qrToken         String            @unique  // UUID; generado al solicitar, usado en QR al aprobar
 
   fechaSolicitud  DateTime          @default(now())
   fechaEmision    DateTime?

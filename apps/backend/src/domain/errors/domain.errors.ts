@@ -79,7 +79,7 @@ export class CartaNoPendienteError extends DomainError {
   }
 }
 
-// WaterService
+// RequisitoService
 export class UsuarioNoEncontradoError extends DomainError {
   constructor(usuarioId: string) {
     super(`Usuario ${usuarioId} no encontrado`, 'USUARIO_NO_ENCONTRADO');
@@ -87,22 +87,22 @@ export class UsuarioNoEncontradoError extends DomainError {
   }
 }
 
-export class EstadoAguaMismoEstadoError extends DomainError {
-  constructor(usuarioId: string, estado: string) {
+export class EstadoRequisitoMismoEstadoError extends DomainError {
+  constructor(usuarioId: string, requisitoTipoId: string, estado: string) {
     super(
-      `Usuario ${usuarioId} ya tiene estado ${estado}. No se requiere cambio.`,
-      'ESTADO_AGUA_MISMO_ESTADO',
+      `Usuario ${usuarioId} ya tiene estado ${estado} en el requisito. No se requiere cambio.`,
+      'ESTADO_REQUISITO_MISMO_ESTADO',
     );
-    this.name = 'EstadoAguaMismoEstadoError';
+    this.name = 'EstadoRequisitoMismoEstadoError';
   }
 }
 
-export class EstadoAguaMismaObligacionError extends DomainError {
-  constructor(usuarioId: string) {
+export class EstadoRequisitoMismaObligacionError extends DomainError {
+  constructor(usuarioId: string, requisitoTipoId: string) {
     super(
-      `Usuario ${usuarioId} ya tiene esa obligación. No se requiere cambio.`,
-      'ESTADO_AGUA_MISMA_OBLIGACION',
+      `Usuario ${usuarioId} ya tiene esa obligación en el requisito. No se requiere cambio.`,
+      'ESTADO_REQUISITO_MISMA_OBLIGACION',
     );
-    this.name = 'EstadoAguaMismaObligacionError';
+    this.name = 'EstadoRequisitoMismaObligacionError';
   }
 }

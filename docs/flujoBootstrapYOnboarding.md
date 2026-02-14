@@ -134,9 +134,10 @@ Base: `/api/platform`. Todos exigen JWT con rol `PLATFORM_ADMIN`.
 
 ### 5.2 Tecnología
 
-- Misma app React (Vite, Tailwind) que el resto.
+- Misma app Angular (Angular Material, Tailwind) que el resto.
 - Rutas bajo `/platform/*` con guard que compruebe rol PLATFORM_ADMIN.
 - Si el usuario no es platform admin, redirigir a la app normal de junta o a login.
+- Referencia: `ARQUITECTURA_FRONTEND_ANGULAR.md`.
 
 ### 5.3 Sin complejidad extra por ahora
 

@@ -73,7 +73,7 @@ WOMPI_EVENTS_SECRET=test_events_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 # URL de retorno (donde Wompi redirige al usuario tras pagar)
 # Debe ser una URL pública de tu frontend
-WOMPI_REDIRECT_URL=http://localhost:5173/pagos/retorno
+WOMPI_REDIRECT_URL=http://localhost:4200/pagos/retorno
 ```
 
 ---

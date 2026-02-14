@@ -68,8 +68,15 @@ export class PrismaPaymentRegistrationContext implements IPaymentRegistrationCon
   }
 
   async getNextConsecutivoPagoJunta(juntaId: string): Promise<number> {
+    return this.getNextConsecutivo(juntaId, 'PAGO_JUNTA');
+  }
+
+  async getNextConsecutivoPagoCarta(juntaId: string): Promise<number> {
+    return this.getNextConsecutivo(juntaId, 'PAGO_CARTA');
+  }
+
+  private async getNextConsecutivo(juntaId: string, tipo: string): Promise<number> {
     const anio = new Date().getFullYear();
-    const tipo = 'PAGO_JUNTA';
 
     const existente = await this.client.consecutivo.findUnique({
       where: {
@@ -89,5 +96,30 @@ export class PrismaPaymentRegistrationContext implements IPaymentRegistrationCon
       data: { valorActual: { increment: 1 } },
     });
     return actualizado.valorActual;
+  }
+
+  async createCartaPayment(data: {
+    usuarioId: string;
+    juntaId: string;
+    monto: number;
+    metodo: 'EFECTIVO' | 'TRANSFERENCIA' | 'ONLINE';
+    registradoPorId: string;
+    referenciaExterna?: string;
+    consecutivo: number;
+  }): Promise<{ pagoId: string }> {
+    const pago = await this.client.pago.create({
+      data: {
+        juntaId: data.juntaId,
+        usuarioId: data.usuarioId,
+        tipo: TipoPago.CARTA,
+        metodo: data.metodo as MetodoPago,
+        monto: data.monto,
+        consecutivo: data.consecutivo,
+        referenciaExterna: data.referenciaExterna ?? null,
+        registradoPorId: data.registradoPorId,
+      },
+      select: { id: true },
+    });
+    return { pagoId: pago.id };
   }
 }

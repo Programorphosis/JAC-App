@@ -22,11 +22,11 @@ El schema de referencia es **SCHEMA BASE v1.md**. No agregar campos sin justific
 - **Pago**: Incluir `consecutivo Int` (obligatorio, obtenido de tabla Consecutivo o lógica por junta/tipo/anio) y `@@unique([juntaId, tipo, consecutivo])`. `referenciaExterna String? @unique` para idempotencia (Wompi o número de transferencia). Método puede ser EFECTIVO, TRANSFERENCIA u ONLINE.
 - **Carta**: Campos opcionales `rutaPdf String?` (URL/ruta S3 del PDF generado al aprobar), `hashDocumento String?` (SHA256 del PDF, integridad), `motivoRechazo String?` (para cartas rechazadas). Campos obligatorios al aprobar: qrToken, fechaEmision, emitidaPorId.
 - **Deuda**: No existe tabla "deudas"; la deuda se calcula en backend, no se persiste.
-- **Historial**: historial_laboral e historial_agua son solo INSERT; no se editan ni borran registros históricos para “corregir”; correcciones vía nuevo registro si el proyecto lo define.
+- **Historial**: historial_laboral e historial_requisito son solo INSERT; no se editan ni borran registros históricos para “corregir”; correcciones vía nuevo registro si el proyecto lo define.
 
 ## Consultas
 
-Toda consulta sobre entidades de junta debe incluir filtro por juntaId (del token). Para entidades que no tienen juntaId pero pertenecen a un usuario (ej. EstadoAgua), filtrar vía relación Usuario.juntaId.
+Toda consulta sobre entidades de junta debe incluir filtro por juntaId (del token). Para entidades que no tienen juntaId pero pertenecen a un usuario (ej. EstadoRequisito), filtrar vía relación Usuario.juntaId o RequisitoTipo.juntaId.
 
 ## Migraciones
 

@@ -1,0 +1,62 @@
+<!-- Layout: solo Tailwind en contenedores div -->
+<div class="flex flex-col h-screen">
+  <div class="flex-none">
+    <mat-toolbar color="primary">
+      <button mat-icon-button (click)="menuOpen = !menuOpen" aria-label="Toggle menu">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="flex-1">JAC App</span>
+      <span class="layout-user-name">{{ auth.currentUser()?.nombres }} {{ auth.currentUser()?.apellidos }}</span>
+      <button mat-icon-button (click)="logout()" aria-label="Cerrar sesión">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </mat-toolbar>
+  </div>
+
+  <div class="flex flex-1 overflow-hidden">
+    <div class="flex-1 flex overflow-hidden">
+      <mat-sidenav-container class="flex-1">
+        <mat-sidenav [(opened)]="menuOpen" mode="side">
+          <mat-nav-list>
+            @if (auth.isPlatformAdmin()) {
+              <a mat-list-item routerLink="/platform/juntas" routerLinkActive="active">
+                <mat-icon matListItemIcon>business</mat-icon>
+                <span matListItemTitle>Juntas</span>
+              </a>
+            } @else {
+              <a mat-list-item routerLink="/" routerLinkActive="active">
+                <mat-icon matListItemIcon>dashboard</mat-icon>
+                <span matListItemTitle>Inicio</span>
+              </a>
+              <a mat-list-item routerLink="/usuarios" routerLinkActive="active">
+                <mat-icon matListItemIcon>people</mat-icon>
+                <span matListItemTitle>Usuarios</span>
+              </a>
+              <a mat-list-item routerLink="/pagos" routerLinkActive="active">
+                <mat-icon matListItemIcon>payment</mat-icon>
+                <span matListItemTitle>Pagos</span>
+              </a>
+              <a mat-list-item routerLink="/requisitos" routerLinkActive="active">
+                <mat-icon matListItemIcon>assignment</mat-icon>
+                <span matListItemTitle>Requisitos</span>
+              </a>
+              <a mat-list-item routerLink="/cartas" routerLinkActive="active">
+                <mat-icon matListItemIcon>mail</mat-icon>
+                <span matListItemTitle>Cartas</span>
+              </a>
+              <a mat-list-item routerLink="/tarifas" routerLinkActive="active">
+                <mat-icon matListItemIcon>attach_money</mat-icon>
+                <span matListItemTitle>Tarifas</span>
+              </a>
+            }
+          </mat-nav-list>
+        </mat-sidenav>
+        <mat-sidenav-content>
+          <div class="p-4 overflow-auto">
+            <router-outlet />
+          </div>
+        </mat-sidenav-content>
+      </mat-sidenav-container>
+    </div>
+  </div>
+</div>

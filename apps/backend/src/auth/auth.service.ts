@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditService } from '../domain/services/audit.service';
 import * as bcrypt from 'bcrypt';
 import { RolNombre } from '@prisma/client';
 
@@ -37,6 +38,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly audit: AuditService,
   ) {}
 
   async login(dto: LoginInput): Promise<AuthResult> {
@@ -85,6 +87,17 @@ export class AuthService {
       expiresIn: 604800, // 7 días en segundos
       secret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
     });
+
+    if (usuario.juntaId) {
+      await this.audit.registerEvent({
+        juntaId: usuario.juntaId,
+        entidad: 'Auth',
+        entidadId: usuario.id,
+        accion: 'LOGIN_EXITOSO',
+        metadata: { numeroDocumento: usuario.numeroDocumento },
+        ejecutadoPorId: usuario.id,
+      });
+    }
 
     return {
       accessToken,

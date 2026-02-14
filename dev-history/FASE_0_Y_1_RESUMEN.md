@@ -44,7 +44,7 @@ Monorepo, Docker, proyectos inicializados, bootstrap y platform admin.
 JAC App/
 ├── apps/
 │   ├── backend/     # NestJS + Prisma + PostgreSQL
-│   └── frontend/    # React + Vite + Tailwind
+│   └── frontend/    # Angular + Angular Material + Tailwind (antes: React + Vite)
 ├── docker/
 │   └── scripts/     # init-db.sh
 ├── docs/            # Documentación

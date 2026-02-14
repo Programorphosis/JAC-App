@@ -1,0 +1,9 @@
+<div class="flex flex-col gap-4">
+  <div class="flex items-center gap-2">
+    <button mat-icon-button (click)="volver()" aria-label="Volver">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>Nuevo usuario</h2>
+  </div>
+  <app-usuario-form (guardar)="onGuardar($event)" />
+</div>

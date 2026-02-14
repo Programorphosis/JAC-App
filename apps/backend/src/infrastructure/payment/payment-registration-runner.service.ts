@@ -1,13 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  UsuarioNoEncontradoError,
+  PagoDuplicadoError,
+} from '../../domain/errors/domain.errors';
 import { PaymentService } from '../../domain/services/payment.service';
 import { PrismaPaymentRegistrationContext } from './prisma-payment-registration-context.service';
 import type { RegisterJuntaPaymentParams } from '../../domain/types/payment.types';
 import type { RegisterJuntaPaymentResult } from '../../domain/types/payment.types';
 
+export interface RegistrarPagoCartaParams {
+  usuarioId: string;
+  juntaId: string;
+  metodo: 'EFECTIVO' | 'TRANSFERENCIA' | 'ONLINE';
+  registradoPorId: string;
+  referenciaExterna?: string;
+}
+
 /**
- * Orquesta el registro de pago JUNTA dentro de una transacción serializable.
- * Referencia: flujoDePagosCondicionDeCarrera.md
+ * Orquesta el registro de pago JUNTA o CARTA dentro de una transacción.
+ * Referencia: flujoDePagosCondicionDeCarrera.md, flujoSolicitudCarta.md
  */
 @Injectable()
 export class PaymentRegistrationRunner {
@@ -24,5 +36,80 @@ export class PaymentRegistrationRunner {
       },
       { isolationLevel: 'Serializable' },
     );
+  }
+
+  /**
+   * Registra pago tipo CARTA. Monto desde Junta.montoCarta (nunca desde frontend).
+   * Idempotente por referenciaExterna. Serializable para consistencia con JUNTA.
+   */
+  async registerCartaPayment(params: RegistrarPagoCartaParams): Promise<{
+    pagoId: string;
+    monto: number;
+    consecutivo: number;
+  }> {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const ctx = new PrismaPaymentRegistrationContext(tx);
+
+        if (params.referenciaExterna) {
+          const existente = await ctx.findPagoByReferenciaExterna(
+            params.referenciaExterna,
+          );
+          if (existente) {
+            throw new PagoDuplicadoError(params.referenciaExterna);
+          }
+        }
+
+        const [junta, usuario] = await Promise.all([
+          tx.junta.findUnique({
+            where: { id: params.juntaId },
+            select: { montoCarta: true },
+          }),
+          tx.usuario.findFirst({
+            where: { id: params.usuarioId, juntaId: params.juntaId },
+          }),
+        ]);
+
+        if (!usuario) {
+          throw new UsuarioNoEncontradoError(params.usuarioId);
+        }
+        if (!junta?.montoCarta || junta.montoCarta <= 0) {
+          throw new Error('La junta no tiene monto de carta configurado');
+        }
+
+        const consecutivo = await ctx.getNextConsecutivoPagoCarta(params.juntaId);
+        const { pagoId } = await ctx.createCartaPayment({
+          usuarioId: params.usuarioId,
+          juntaId: params.juntaId,
+          monto: junta.montoCarta,
+          metodo: params.metodo,
+          registradoPorId: params.registradoPorId,
+          referenciaExterna: params.referenciaExterna,
+          consecutivo,
+        });
+
+        await ctx.registerAudit({
+          juntaId: params.juntaId,
+          entidad: 'Pago',
+          entidadId: pagoId,
+          accion: 'REGISTRO_PAGO_CARTA',
+          metadata: {
+            usuarioId: params.usuarioId,
+            monto: junta.montoCarta,
+            metodo: params.metodo,
+            consecutivo,
+            referenciaExterna: params.referenciaExterna ?? null,
+          },
+          ejecutadoPorId: params.registradoPorId,
+        });
+
+        return {
+          pagoId,
+          monto: junta.montoCarta,
+          consecutivo,
+        };
+      },
+    { isolationLevel: 'Serializable' },
+  );
   }
 }

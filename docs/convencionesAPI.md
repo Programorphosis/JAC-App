@@ -79,8 +79,8 @@ Toda respuesta de error sigue el formato:
 | MONTO_INCORRECTO | 422 | Monto no coincide con deuda calculada |
 | PAGO_DUPLICADO | 409 | referenciaExterna ya registrada |
 | CARTA_PENDIENTE_EXISTE | 409 | Usuario ya tiene carta pendiente |
-| REQUISITOS_CARTA_NO_CUMPLIDOS | 422 | Deuda, agua o pago carta faltante |
-| AGUA_NO_AL_DIA | 422 | Estado agua no permite emitir carta |
+| REQUISITOS_CARTA_NO_CUMPLIDOS | 422 | Deuda, requisitos adicionales o pago carta faltante |
+| REQUISITOS_NO_AL_DIA | 422 | Algún requisito con obligacionActiva=true no está AL_DIA |
 
 ---
 

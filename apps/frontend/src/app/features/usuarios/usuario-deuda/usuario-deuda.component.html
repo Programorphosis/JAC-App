@@ -1,0 +1,34 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Deuda calculada</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    @if (loading) {
+      <p>Cargando...</p>
+    } @else if (deuda) {
+      <p class="text-xl font-semibold">Total: {{ formatearMoneda(deuda.total) }}</p>
+      @if (deuda.detalle && deuda.detalle.length > 0) {
+        <table class="w-full mt-4">
+          <thead>
+            <tr>
+              <th class="text-left">Mes</th>
+              <th class="text-left">Estado</th>
+              <th class="text-right">Tarifa</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of deuda.detalle; track d.year + '-' + d.month) {
+              <tr>
+                <td>{{ formatearMes(d.year, d.month) }}</td>
+                <td>{{ d.estadoLaboral }}</td>
+                <td class="text-right">{{ formatearMoneda(d.tarifaAplicada) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    } @else {
+      <p>No se pudo cargar la deuda</p>
+    }
+  </mat-card-content>
+</mat-card>

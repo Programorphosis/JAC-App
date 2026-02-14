@@ -1,6 +1,6 @@
 ---
 name: jac-audit-and-auditoria
-description: Implements or reviews audit logging and immutability of critical data. Use when working on the Auditoria table, audit interceptor, logging of payments/letters/water/historial changes, or when ensuring no UPDATE/DELETE on critical tables. References plan.md §10, investigacionImplementacionDeSeguridadDeLaApp.
+description: Implements or reviews audit logging and immutability of critical data. Use when working on the Auditoria table, audit interceptor, logging of payments/letters/requisitos/historial changes, or when ensuring no UPDATE/DELETE on critical tables. References plan.md §10, investigacionImplementacionDeSeguridadDeLaApp.
 ---
 
 # Auditoría JAC
@@ -9,7 +9,7 @@ description: Implements or reviews audit logging and immutability of critical da
 
 - Implementar o modificar el registro en la tabla `Auditoria`.
 - Crear interceptor global NestJS que registre acciones críticas.
-- Revisar que pagos, cartas, agua e historial laboral generen evento de auditoría.
+- Revisar que pagos, cartas, requisitos e historial laboral generen evento de auditoría.
 - Garantizar inmutabilidad de tablas críticas (solo INSERT donde aplique).
 
 ## Tabla Auditoria (modelo del proyecto)
@@ -20,7 +20,7 @@ Campos: id, juntaId, entidad, entidadId, accion, metadata (JSON), ejecutadoPorId
 
 - Registro de pago (efectivo u online).
 - Emisión o validación de carta.
-- Cambio de estado de agua o de obligación de agua.
+- Cambio de estado de requisito o de obligación de requisito.
 - Cambio de historial laboral.
 - (Opcional) Login exitoso/fallido, acceso a datos sensibles.
 
@@ -28,7 +28,7 @@ Cada evento debe incluir juntaId, entidad, entidadId, accion, metadata relevante
 
 ## Inmutabilidad de datos críticos
 
-Tablas que no deben actualizarse ni borrarse para corregir: pagos, historial_laboral, historial_agua, auditoría. Si algo se registró mal, se corrige con un nuevo registro (ajuste/corrección documentado), no editando el anterior. En Prisma/PostgreSQL considerar restringir DELETE/UPDATE en roles de aplicación si el proyecto lo define así.
+Tablas que no deben actualizarse ni borrarse para corregir: pagos, historial_laboral, historial_requisito, auditoría. Si algo se registró mal, se corrige con un nuevo registro (ajuste/corrección documentado), no editando el anterior. En Prisma/PostgreSQL considerar restringir DELETE/UPDATE en roles de aplicación si el proyecto lo define así.
 
 ## Interceptor global
 

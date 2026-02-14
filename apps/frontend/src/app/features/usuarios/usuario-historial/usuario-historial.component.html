@@ -1,0 +1,55 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Historial laboral</mat-card-title>
+    <mat-card-subtitle>Registros de estado laboral (trabajando / no trabajando)</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Estado</mat-label>
+          <mat-select formControlName="estado">
+            <mat-option value="TRABAJANDO">Trabajando</mat-option>
+            <mat-option value="NO_TRABAJANDO">No trabajando</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Fecha inicio</mat-label>
+          <input matInput type="date" formControlName="fechaInicio" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Fecha fin (opcional)</mat-label>
+          <input matInput type="date" formControlName="fechaFin" />
+        </mat-form-field>
+      </div>
+      <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+        Agregar registro
+      </button>
+    </form>
+
+    @if (loading) {
+      <p>Cargando...</p>
+    } @else if (items.length === 0) {
+      <p>No hay registros de historial laboral</p>
+    } @else {
+      <table class="w-full">
+        <thead>
+          <tr>
+            <th class="text-left">Estado</th>
+            <th class="text-left">Desde</th>
+            <th class="text-left">Hasta</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items; track item.id) {
+            <tr>
+              <td>{{ item.estado }}</td>
+              <td>{{ formatearFecha(item.fechaInicio) }}</td>
+              <td>{{ formatearFecha(item.fechaFin) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </mat-card-content>
+</mat-card>

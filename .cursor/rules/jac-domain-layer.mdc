@@ -20,7 +20,7 @@ Los servicios en `domain/` contienen solo lógica de negocio. No conocen HTTP, N
 - **DebtService**: calcular deuda bajo demanda. Nunca guarda. Solo lectura + cálculo.
 - **PaymentService**: registrar pago validando monto = deuda calculada (dentro de transacción).
 - **LetterService**: validar requisitos y emitir carta (consecutivo, QR, PDF). Todo en transacción.
-- **WaterService**: cambio estado/obligación agua + historial; job mensual día 1 (MORA).
+- **RequisitoService**: cambio estado/obligación por requisito + historial; job mensual día 1 (MORA) para requisitos con corte automático.
 - **AuditService**: registrar evento en tabla Auditoria.
 
 ## Ejemplo – DebtService

@@ -40,11 +40,11 @@ export class LetterService {
       throw new RequisitosCartaNoCumplidosError('No existe pago tipo CARTA');
     }
 
-    const estadoAgua = await ctx.getEstadoAgua(carta.usuarioId, juntaId);
-    if (estadoAgua) {
-      if (estadoAgua.obligacionActiva && estadoAgua.estado !== 'AL_DIA') {
+    const requisitos = await ctx.getRequisitosParaCarta(carta.usuarioId, juntaId);
+    for (const req of requisitos) {
+      if (req.obligacionActiva && req.estado !== 'AL_DIA') {
         throw new RequisitosCartaNoCumplidosError(
-          'Usuario con obligación de agua debe estar AL_DIA',
+          `Requisito "${req.nombre}" debe estar AL_DIA para emitir carta`,
         );
       }
     }
@@ -59,6 +59,8 @@ export class LetterService {
 
     if (ctx.generateCartaPdf && carta.usuarioNombres && carta.usuarioApellidos && carta.usuarioDocumento) {
       const pdfResult = await ctx.generateCartaPdf({
+        juntaId,
+        usuarioId: carta.usuarioId,
         qrToken,
         consecutivo,
         anio,

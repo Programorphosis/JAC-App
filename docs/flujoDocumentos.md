@@ -26,8 +26,8 @@ Nunca consultar Documento sin validar que el usuario pertenezca a la junta del t
 
 | Tipo | Uso | Validación para carta |
 |------|-----|------------------------|
-| RECIBO_AGUA | Comprobante de pago de agua | No determina estado. El estado de agua se valida solo por EstadoAgua (RECEPTOR_AGUA marca AL_DIA). |
-| SOPORTE_CARTA | Documento adjunto a solicitud de carta | Soporte administrativo; la emisión de carta depende de deuda=0, EstadoAgua AL_DIA y pago carta. |
+| RECIBO_AGUA | Comprobante de pago de agua | No determina estado. El estado se valida por EstadoRequisito (el modificador del RequisitoTipo marca AL_DIA). |
+| SOPORTE_CARTA | Documento adjunto a solicitud de carta | Soporte administrativo; la emisión de carta depende de deuda=0, requisitos adicionales AL_DIA y pago carta. |
 
 ---
 
@@ -46,17 +46,17 @@ Documento:
 
 ## 4. Estructura en S3
 
-**Recomendación de naming:**
+Los objetos se organizan por prefijo según el tipo de contenido:
 
-```
-{bucket}/{juntaId}/{usuarioId}/{tipo}/{uuid}.{extension}
-```
+| Prefijo | Estructura | Ejemplo |
+|---------|------------|---------|
+| `documentos/` | `documentos/{juntaId}/{usuarioId}/{tipo}/{uuid}.{ext}` | `documentos/junta-123/user-456/RECIBO_AGUA/a1b2c3d4.pdf` |
+| `cartas/` | `cartas/{juntaId}/{usuarioId}/{anio}-{consecutivo}.pdf` | `cartas/junta-123/user-456/2025-1.pdf` |
 
-Ejemplo: `jac-docs/junta-123/user-456/RECIBO_AGUA/a1b2c3d4.pdf`
-
+- **documentos/**: recibos, soportes (RECIBO_AGUA, SOPORTE_CARTA).
+- **cartas/**: PDFs de cartas laborales emitidas (consecutivo anual).
 - **juntaId** y **usuarioId** permiten organización y limpieza por junta.
-- **uuid** evita colisiones y nombres predecibles.
-- **tipo** facilita políticas de retención o auditoría.
+- **uuid** en documentos evita colisiones; **consecutivo** en cartas facilita identificación.
 
 ---
 
@@ -89,7 +89,7 @@ Ejemplo: `jac-docs/junta-123/user-456/RECIBO_AGUA/a1b2c3d4.pdf`
 | Rol | Subir documento | Ver documentos |
 |-----|-----------------|----------------|
 | CIUDADANO | Propios (usuarioId = self) | Propios |
-| SECRETARIA, TESORERA, RECEPTOR_AGUA | En nombre de usuarios de su junta | Usuarios de su junta |
+| SECRETARIA, TESORERA, modificador de requisito | En nombre de usuarios de su junta | Usuarios de su junta |
 | ADMIN | En nombre de cualquier usuario de su junta | Usuarios de su junta |
 
 Toda operación debe validar `juntaId` del token.
@@ -99,8 +99,8 @@ Toda operación debe validar `juntaId` del token.
 ## 8. Integración con Cartas
 
 - Los documentos tipo RECIBO_AGUA o SOPORTE_CARTA son **soporte administrativo**.
-- La decisión de emitir carta depende de: deuda=0, EstadoAgua AL_DIA (o exento), pago tipo CARTA.
-- El documento no determina el estado de agua; solo el RECEPTOR_AGUA actualiza EstadoAgua.
+- La decisión de emitir carta depende de: deuda=0, requisitos adicionales AL_DIA (o exento), pago tipo CARTA.
+- El documento no determina el estado; solo el modificador del RequisitoTipo actualiza EstadoRequisito.
 
 ---
 

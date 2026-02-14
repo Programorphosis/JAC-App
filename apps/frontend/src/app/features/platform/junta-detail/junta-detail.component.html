@@ -1,0 +1,39 @@
+<div class="flex flex-col gap-4">
+  <div class="flex items-center gap-2">
+    <button mat-icon-button (click)="volver()" aria-label="Volver">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>Detalle de junta</h2>
+  </div>
+
+  @if (loading) {
+    <p>Cargando...</p>
+  } @else if (junta) {
+    @if (editando) {
+      <app-junta-form
+        [modoEdicion]="true"
+        [valoresIniciales]="{
+          nombre: junta.nombre,
+          nit: junta.nit || '',
+          montoCarta: junta.montoCarta
+        }"
+        (guardar)="onGuardar($event)"
+      />
+    } @else {
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>{{ junta.nombre }}</mat-card-title>
+          <mat-card-subtitle>NIT: {{ junta.nit || '-' }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <p>Monto carta: {{ junta.montoCarta != null ? (junta.montoCarta | number) + ' COP' : '-' }}</p>
+          <p>Fecha creación: {{ formatearFecha(junta.fechaCreacion) }}</p>
+          <p>Usuarios: {{ junta._count.usuarios }}</p>
+          <p>Pagos: {{ junta._count.pagos }}</p>
+          <p>Cartas: {{ junta._count.cartas }}</p>
+          <button mat-raised-button color="primary" (click)="editar()">Editar</button>
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</div>

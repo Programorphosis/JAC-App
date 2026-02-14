@@ -18,7 +18,7 @@ STACK OBLIGATORIO
 - Auth: JWT (access + refresh tokens rotativos)
 - Archivos: Multer + AWS S3
 - Pagos online: Wompi
-- Frontend: React JS (sin TypeScript)
+- Frontend: Angular 19+ (Angular Material, Tailwind, TypeScript)
 - Infraestructura: VPS Linux + HTTPS
 
 ━━━━━━━━━━━━━━━━━━━━━━

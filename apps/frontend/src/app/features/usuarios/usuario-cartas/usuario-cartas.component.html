@@ -1,0 +1,51 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Estado para carta</mat-card-title>
+    <mat-card-subtitle>Deuda, requisitos y pago carta</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    @if (loading) {
+      <p>Cargando...</p>
+    } @else if (estado) {
+      <p><strong>Deuda junta:</strong> {{ formatearMoneda(estado.deuda_junta) }}</p>
+      <p><strong>Pago carta:</strong> {{ estado.pago_carta ? 'Sí' : 'No' }}</p>
+      @if (estado.requisitos.length > 0) {
+        <p><strong>Requisitos:</strong></p>
+        <ul>
+          @for (r of estado.requisitos; track r.requisitoTipoId) {
+            <li>{{ r.nombre }}: {{ r.estado }} (obligación: {{ r.obligacionActiva ? 'Sí' : 'No' }})</li>
+          }
+        </ul>
+      }
+      @if (puedeSolicitar()) {
+        <button mat-raised-button color="primary" (click)="solicitar()" [disabled]="solicitando">
+          Solicitar carta
+        </button>
+      } @else {
+        <p class="text-amber-700">No cumple requisitos para solicitar carta.</p>
+      }
+    }
+
+    @if (cartas.length > 0) {
+      <h3 class="mt-4">Cartas del usuario</h3>
+      <table class="w-full mt-2">
+        <thead>
+          <tr>
+            <th class="text-left">Estado</th>
+            <th class="text-left">Fecha solicitud</th>
+            <th class="text-left">Consecutivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of cartas; track c.id) {
+            <tr>
+              <td>{{ c.estado }}</td>
+              <td>{{ formatearFecha(c.fechaSolicitud) }}</td>
+              <td>{{ c.consecutivo ? c.consecutivo + '/' + c.anio : '-' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </mat-card-content>
+</mat-card>

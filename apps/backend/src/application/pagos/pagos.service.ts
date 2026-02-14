@@ -1,9 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { PaymentRegistrationRunner } from '../../infrastructure/payment/payment-registration-runner.service';
+import {
+  PaymentRegistrationRunner,
+  RegistrarPagoCartaParams as RunnerCartaParams,
+} from '../../infrastructure/payment/payment-registration-runner.service';
 import { DebtService } from '../../domain/services/debt.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WompiService } from '../../infrastructure/wompi/wompi.service';
-import { DeudaCeroError, PagoDuplicadoError } from '../../domain/errors/domain.errors';
+import {
+  DeudaCeroError,
+  PagoDuplicadoError,
+  UsuarioNoEncontradoError,
+} from '../../domain/errors/domain.errors';
+import { TipoIntencionPago } from '@prisma/client';
 
 export interface RegistrarPagoEfectivoParams {
   usuarioId: string;
@@ -13,7 +21,21 @@ export interface RegistrarPagoEfectivoParams {
   referenciaExterna?: string;
 }
 
+export interface RegistrarPagoCartaParams {
+  usuarioId: string;
+  juntaId: string;
+  metodo: 'EFECTIVO' | 'TRANSFERENCIA' | 'ONLINE';
+  registradoPorId: string;
+  referenciaExterna?: string;
+}
+
 export interface CrearIntencionPagoParams {
+  usuarioId: string;
+  juntaId: string;
+  iniciadoPorId: string;
+}
+
+export interface CrearIntencionPagoCartaParams {
   usuarioId: string;
   juntaId: string;
   iniciadoPorId: string;
@@ -38,6 +60,15 @@ export class PagosService {
     });
   }
 
+  /**
+   * Registra pago tipo CARTA. Monto desde Junta.montoCarta.
+   */
+  async registrarPagoCarta(params: RegistrarPagoCartaParams) {
+    return this.paymentRunner.registerCartaPayment(
+      params as RunnerCartaParams,
+    );
+  }
+
   private generarReferencia(): string {
     return `JAC-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   }
@@ -53,7 +84,7 @@ export class PagosService {
 
     const montoCents = deuda.total * 100;
     const referencia = this.generarReferencia();
-    const redirectUrl = process.env.WOMPI_REDIRECT_URL || 'http://localhost:5173/pagos/retorno';
+    const redirectUrl = process.env.WOMPI_REDIRECT_URL || 'http://localhost:4200/pagos/retorno';
 
     const link = await this.wompi.crearPaymentLink({
       name: `Pago cuota junta - ${referencia}`,
@@ -69,6 +100,7 @@ export class PagosService {
       data: {
         usuarioId,
         juntaId,
+        tipoPago: TipoIntencionPago.JUNTA,
         montoCents,
         wompiLinkId: link.id,
         referencia,
@@ -80,6 +112,63 @@ export class PagosService {
       checkoutUrl: `https://checkout.wompi.co/l/${link.id}`,
       referencia,
       monto: deuda.total,
+      montoCents,
+    };
+  }
+
+  /**
+   * Crea intención de pago CARTA online. Monto desde Junta.montoCarta.
+   */
+  async crearIntencionPagoCartaOnline(params: CrearIntencionPagoCartaParams) {
+    const { usuarioId, juntaId, iniciadoPorId } = params;
+
+    const [junta, usuario] = await Promise.all([
+      this.prisma.junta.findUnique({
+        where: { id: juntaId },
+        select: { montoCarta: true },
+      }),
+      this.prisma.usuario.findFirst({
+        where: { id: usuarioId, juntaId },
+      }),
+    ]);
+
+    if (!usuario) {
+      throw new UsuarioNoEncontradoError(usuarioId);
+    }
+    if (!junta?.montoCarta || junta.montoCarta <= 0) {
+      throw new Error('La junta no tiene monto de carta configurado');
+    }
+
+    const montoCents = junta.montoCarta * 100;
+    const referencia = this.generarReferencia();
+    const redirectUrl = process.env.WOMPI_REDIRECT_URL || 'http://localhost:4200/pagos/retorno';
+
+    const link = await this.wompi.crearPaymentLink({
+      name: `Pago carta laboral - ${referencia}`,
+      description: 'Pago de carta laboral - Junta de Acción Comunal',
+      amountInCents: montoCents,
+      currency: 'COP',
+      singleUse: true,
+      redirectUrl,
+      sku: referencia,
+    });
+
+    await this.prisma.intencionPago.create({
+      data: {
+        usuarioId,
+        juntaId,
+        tipoPago: TipoIntencionPago.CARTA,
+        montoCents,
+        wompiLinkId: link.id,
+        referencia,
+        iniciadoPorId,
+      },
+    });
+
+    return {
+      checkoutUrl: `https://checkout.wompi.co/l/${link.id}`,
+      referencia,
+      monto: junta.montoCarta,
       montoCents,
     };
   }
@@ -103,6 +192,7 @@ export class PagosService {
           select: {
             usuarioId: true,
             juntaId: true,
+            tipoPago: true,
             montoCents: true,
             iniciadoPorId: true,
           },
@@ -113,6 +203,7 @@ export class PagosService {
             select: {
               usuarioId: true,
               juntaId: true,
+              tipoPago: true,
               montoCents: true,
               iniciadoPorId: true,
             },
@@ -123,13 +214,19 @@ export class PagosService {
       throw new Error('IntencionPago no encontrada o monto no coincide');
     }
 
-    return this.paymentRunner.registerJuntaPayment({
+    const baseParams = {
       usuarioId: intencion.usuarioId,
       juntaId: intencion.juntaId,
-      metodo: 'ONLINE',
+      metodo: 'ONLINE' as const,
       registradoPorId: intencion.iniciadoPorId,
       referenciaExterna: transactionId,
-    });
+    };
+
+    if (intencion.tipoPago === 'CARTA') {
+      return this.paymentRunner.registerCartaPayment(baseParams);
+    }
+
+    return this.paymentRunner.registerJuntaPayment(baseParams);
   }
 
   /**

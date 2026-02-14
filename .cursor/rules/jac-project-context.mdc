@@ -11,7 +11,7 @@ Sistema digital para Juntas de Acción Comunal en Colombia. Multi-tenant, audita
 
 - Backend: Node.js + NestJS. ORM: Prisma. DB: PostgreSQL.
 - Auth: JWT (userId, juntaId, roles). Archivos: Multer + AWS S3. Pagos online: Wompi.
-- Frontend: React (Vite) + Tailwind + Axios. Sin TypeScript en MVP si así está definido.
+- Frontend: Angular 19+ + Angular Material + Tailwind + HttpClient. TypeScript obligatorio.
 
 ## Documentos de referencia (raíz del proyecto)
 
@@ -19,8 +19,9 @@ Sistema digital para Juntas de Acción Comunal en Colombia. Multi-tenant, audita
 - `00_ARQUITECTURA_RECTOR copy.md` – Multi-tenant y seguridad base.
 - `ROADMAP.md` – Fases y orden de desarrollo.
 - `chatModeCursor.md` – Reglas de implementación completas.
-- `definicionDomainServices.md` – Servicios de dominio (Debt, Payment, Letter, Water, Audit).
-- Flujos: `flujoDePagos.md`, `flujoDePagosCasoFallaWebhook.md`, `flujoDePagosCondicionDeCarrera.md`, `flujoReceptorDeAgua.md`, `flujoSolicitudCarta.md`, `validacionesDeCartaQR.md`, `flujoDocumentos.md`, `flujoBootstrapYOnboarding.md`.
+- `definicionDomainServices.md` – Servicios de dominio (Debt, Payment, Letter, Requisito, Audit).
+- Flujos: `flujoDePagos.md`, `flujoDePagosCasoFallaWebhook.md`, `flujoDePagosCondicionDeCarrera.md`, `flujoRequisitosAdicionales.md`, `flujoSolicitudCarta.md`, `validacionesDeCartaQR.md`, `flujoDocumentos.md`, `flujoBootstrapYOnboarding.md`.
+- Frontend: `ARQUITECTURA_FRONTEND_ANGULAR.md`.
 - `calculadoraDeDeuda.md` – Cálculo de deuda. `SCHEMA BASE v1.md` – Modelo Prisma.
 - `convencionesAPI.md` – Contrato de API. `consecutivosYCronJobs.md` – Consecutivos y cron jobs.
 

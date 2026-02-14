@@ -1,0 +1,96 @@
+<div class="flex flex-col gap-6">
+  <h2>Pagos</h2>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Registrar pago efectivo (cuota junta)</mat-card-title>
+      <mat-card-subtitle>El monto se calcula en el backend según la deuda</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="formEfectivo" (ngSubmit)="registrarEfectivo()" class="flex flex-col gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Usuario</mat-label>
+          <mat-select formControlName="usuarioId">
+            @for (u of usuarios; track u.id) {
+              <mat-option [value]="u.id">{{ nombreUsuario(u) }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Método</mat-label>
+          <mat-select formControlName="metodo">
+            <mat-option value="EFECTIVO">Efectivo</mat-option>
+            <mat-option value="TRANSFERENCIA">Transferencia</mat-option>
+          </mat-select>
+        </mat-form-field>
+        @if (formEfectivo.get('metodo')?.value === 'TRANSFERENCIA') {
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Referencia / Número transferencia</mat-label>
+            <input matInput formControlName="referenciaExterna" />
+          </mat-form-field>
+        }
+        <button mat-raised-button color="primary" type="submit" [disabled]="formEfectivo.invalid || loading">
+          Registrar pago
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Registrar pago carta (efectivo)</mat-card-title>
+      <mat-card-subtitle>Monto desde configuración de la junta</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="formCarta" (ngSubmit)="registrarCarta()" class="flex flex-col gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Usuario</mat-label>
+          <mat-select formControlName="usuarioId">
+            @for (u of usuarios; track u.id) {
+              <mat-option [value]="u.id">{{ nombreUsuario(u) }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Método</mat-label>
+          <mat-select formControlName="metodo">
+            <mat-option value="EFECTIVO">Efectivo</mat-option>
+            <mat-option value="TRANSFERENCIA">Transferencia</mat-option>
+          </mat-select>
+        </mat-form-field>
+        @if (formCarta.get('metodo')?.value === 'TRANSFERENCIA') {
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Referencia / Número transferencia</mat-label>
+            <input matInput formControlName="referenciaExterna" />
+          </mat-form-field>
+        }
+        <button mat-raised-button color="primary" type="submit" [disabled]="formCarta.invalid || loading">
+          Registrar pago carta
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Pago online (Wompi)</mat-card-title>
+      <mat-card-subtitle>Crear intención y redirigir a Wompi</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <p class="mb-4">Selecciona un usuario y el tipo de pago para generar el link de pago online.</p>
+      <div class="flex flex-wrap gap-2">
+        @for (u of usuarios; track u.id) {
+          <div class="flex gap-2 items-center">
+            <span>{{ u.nombres }} {{ u.apellidos }}</span>
+            <button mat-stroked-button (click)="pagarOnlineJunta(u.id)" [disabled]="loading">
+              Pagar cuota
+            </button>
+            <button mat-stroked-button (click)="pagarOnlineCarta(u.id)" [disabled]="loading">
+              Pagar carta
+            </button>
+          </div>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -94,9 +94,11 @@ tarifas
 
 pagos
 
-estado_agua
+requisito_tipo
 
-historial_agua
+estado_requisito
+
+historial_requisito
 
 cartas
 
@@ -108,7 +110,7 @@ auditoria
 
 No existe tabla “deudas”.
 
-**Regla de juntaId:** Toda consulta debe pasar por la validación de juntaId. Las entidades sin juntaId directo (Documento, EstadoAgua) se filtran vía Usuario: `where: { usuario: { juntaId: authUser.juntaId } }`. No hay excepciones.
+**Regla de juntaId:** Toda consulta debe pasar por la validación de juntaId. Las entidades sin juntaId directo (Documento, EstadoRequisito vía Usuario) se filtran vía Usuario o RequisitoTipo: `where: { usuario: { juntaId: authUser.juntaId } }` o `where: { requisitoTipo: { juntaId: authUser.juntaId } }`. No hay excepciones.
 
 6. Aislamiento Multi-Tenant (Regla Técnica Crítica)
 6.1 Regla Absoluta
@@ -174,13 +176,13 @@ Ejemplos obligatorios:
 
 Registro de pago
 
-Cambio de estado de agua
+Cambio de estado de requisito
 
 Emisión de carta
 
 Cambio de historial laboral
 
-Cambio de obligación de agua
+Cambio de obligación de requisito
 
 La auditoría debe contener:
 
@@ -214,17 +216,17 @@ Ser generados únicamente en backend
 
 Nunca depender del frontend
 
-10. Estado del Agua (Regla Oficial)
+10. Requisitos Adicionales (Regla Oficial)
 
-El sistema cambia a MORA automáticamente el día 1 de cada mes.
+El sistema cambia a MORA automáticamente el día 1 de cada mes (requisitos con tieneCorteAutomatico=true).
 
 No existen pagos adelantados.
 
-Si el usuario no paga antes del 1 → queda en MORA.
+Si el usuario no cumple antes del 1 → queda en MORA.
 
-Solo el rol RECEPTOR_AGUA puede cambiar a AL_DIA.
+Solo el modificador del RequisitoTipo (o ADMIN) puede cambiar a AL_DIA.
 
-Usuarios con obligacionActiva = false omiten validación de agua.
+Usuarios con obligacionActiva = false omiten validación de ese requisito.
 
 11. Escalabilidad Futura
 

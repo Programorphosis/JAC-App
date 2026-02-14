@@ -8,5 +8,5 @@
 export * from './debt.types';
 export * from './payment.types';
 export * from './letter.types';
-export * from './water.types';
+export * from './requisito.types';
 export * from './audit.types';
