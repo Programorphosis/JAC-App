@@ -66,12 +66,13 @@ model Junta {
   fechaCreacion   DateTime @default(now())
   montoCarta      Int?
 
-  usuarios        Usuario[]
-  tarifas         Tarifa[]
-  consecutivos    Consecutivo[]
-  pagos           Pago[]
-  cartas          Carta[]
-  auditorias      Auditoria[]
+  usuarios         Usuario[]
+  tarifas          Tarifa[]
+  consecutivos     Consecutivo[]
+  pagos            Pago[]
+  intencionesPago  IntencionPago[]
+  cartas           Carta[]
+  auditorias       Auditoria[]
 }
 
 //////////////////////////////////////////////////////
@@ -106,6 +107,8 @@ model Usuario {
   documentos        Documento[]
   documentosSubidos Documento[]       @relation("DocumentoSubidoPor")
   auditorias        Auditoria[]
+  intencionesPago   IntencionPago[]
+  intencionesIniciadas IntencionPago[] @relation("IntencionIniciadaPor")
 
   @@unique([juntaId, numeroDocumento])
   @@index([juntaId])
@@ -196,6 +199,28 @@ model Pago {
   fechaPago         DateTime   @default(now())
 
   @@unique([juntaId, tipo, consecutivo])
+  @@index([juntaId])
+  @@index([usuarioId])
+}
+
+model IntencionPago {
+  id             String   @id @default(uuid())
+
+  usuarioId      String
+  usuario        Usuario  @relation(fields: [usuarioId], references: [id])
+
+  juntaId        String
+  junta          Junta    @relation(fields: [juntaId], references: [id])
+
+  montoCents     Int
+  wompiLinkId    String   @unique
+  referencia     String
+
+  iniciadoPorId  String
+  iniciadoPor    Usuario  @relation("IntencionIniciadaPor", fields: [iniciadoPorId], references: [id])
+
+  fechaCreacion  DateTime @default(now())
+
   @@index([juntaId])
   @@index([usuarioId])
 }

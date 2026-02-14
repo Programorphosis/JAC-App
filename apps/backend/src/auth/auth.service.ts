@@ -101,6 +101,32 @@ export class AuthService {
     };
   }
 
+  async getProfile(usuarioId: string) {
+    const usuario = await this.prisma.usuario.findUniqueOrThrow({
+      where: { id: usuarioId },
+      select: {
+        id: true,
+        tipoDocumento: true,
+        numeroDocumento: true,
+        nombres: true,
+        apellidos: true,
+        telefono: true,
+        direccion: true,
+        juntaId: true,
+        activo: true,
+        fechaCreacion: true,
+        junta: { select: { id: true, nombre: true } },
+        roles: { include: { rol: { select: { nombre: true } } } },
+      },
+    });
+
+    return {
+      ...usuario,
+      junta: usuario.junta,
+      roles: usuario.roles.map((ur) => ur.rol.nombre),
+    };
+  }
+
   async validateRefreshToken(refreshToken: string): Promise<AuthResult> {
     try {
       const payload = this.jwtService.verify<JwtPayload>(refreshToken, {

@@ -224,10 +224,10 @@ Cada módulo: DTO → validación → llamada a Domain/Prisma → auditoría cua
 
 **Objetivo:** Exponer cálculo de deuda de forma segura.
 
-- [ ] `GET /usuarios/:id/deuda` (o `/deuda/detalle`) → llama `DebtService.calculateUserDebt`.
-- [ ] Respuesta: `total` y opcionalmente `detalle` por mes.
-- [ ] Filtro por `juntaId` y que el usuario pertenezca a la junta del token.
-- [ ] Sin almacenar resultado; solo cálculo bajo demanda.
+- [x] `GET /usuarios/:id/deuda` (o `/deuda/detalle`) → llama `DebtService.calculateUserDebt`.
+- [x] Respuesta: `total` y opcionalmente `detalle` por mes.
+- [x] Filtro por `juntaId` y que el usuario pertenezca a la junta del token.
+- [x] Sin almacenar resultado; solo cálculo bajo demanda.
 
 **Referencia:** `calculadoraDeDeuda.md`, `flujoDePagos.md`.
 

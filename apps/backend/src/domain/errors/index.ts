@@ -14,4 +14,6 @@ export {
   RequisitosCartaNoCumplidosError,
   CartaNoPendienteError,
   UsuarioNoEncontradoError,
+  EstadoAguaMismoEstadoError,
+  EstadoAguaMismaObligacionError,
 } from './domain.errors';

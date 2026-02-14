@@ -86,3 +86,23 @@ export class UsuarioNoEncontradoError extends DomainError {
     this.name = 'UsuarioNoEncontradoError';
   }
 }
+
+export class EstadoAguaMismoEstadoError extends DomainError {
+  constructor(usuarioId: string, estado: string) {
+    super(
+      `Usuario ${usuarioId} ya tiene estado ${estado}. No se requiere cambio.`,
+      'ESTADO_AGUA_MISMO_ESTADO',
+    );
+    this.name = 'EstadoAguaMismoEstadoError';
+  }
+}
+
+export class EstadoAguaMismaObligacionError extends DomainError {
+  constructor(usuarioId: string) {
+    super(
+      `Usuario ${usuarioId} ya tiene esa obligación. No se requiere cambio.`,
+      'ESTADO_AGUA_MISMA_OBLIGACION',
+    );
+    this.name = 'EstadoAguaMismaObligacionError';
+  }
+}

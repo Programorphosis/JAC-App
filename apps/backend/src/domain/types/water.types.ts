@@ -21,4 +21,6 @@ export interface UpdateWaterObligationParams {
 
 export interface ApplyMonthlyWaterCutoffParams {
   juntaId: string;
+  /** ID de usuario para auditoría (cron: usar usuario sistema/admin). */
+  ejecutadoPorId: string;
 }

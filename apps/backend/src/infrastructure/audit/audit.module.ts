@@ -18,6 +18,6 @@ import { AUDIT_EVENT_STORE } from '../../domain/ports/audit-event-store.port';
       inject: [PrismaAuditEventStore],
     },
   ],
-  exports: [AuditService],
+  exports: [AuditService, PrismaAuditEventStore, AUDIT_EVENT_STORE],
 })
 export class AuditModule {}
