@@ -8,6 +8,8 @@ export interface JwtUser {
   id: string;
   juntaId: string | null;
   roles: RolNombre[];
+  esModificador: boolean;
+  requisitoTipoId: string | null;
 }
 
 interface JwtPayload {
@@ -34,7 +36,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
     const usuario = await this.prisma.usuario.findUnique({
       where: { id: payload.sub },
-      select: { id: true, juntaId: true, activo: true, roles: { include: { rol: true } } },
+      select: {
+        id: true,
+        juntaId: true,
+        activo: true,
+        esModificador: true,
+        requisitoTipoId: true,
+        roles: { include: { rol: true } },
+      },
     });
 
     if (!usuario || !usuario.activo) {
@@ -45,6 +54,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       id: usuario.id,
       juntaId: usuario.juntaId,
       roles: usuario.roles.map((ur) => ur.rol.nombre),
+      esModificador: usuario.esModificador ?? false,
+      requisitoTipoId: usuario.requisitoTipoId ?? null,
     };
   }
 }

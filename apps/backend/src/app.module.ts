@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
@@ -24,6 +24,7 @@ import { EstadoGeneralModule } from './application/estado-general/estado-general
 import { DocumentosModule } from './application/documentos/documentos.module';
 import { CartasModule } from './application/cartas/cartas.module';
 import { PublicModule } from './application/public/public.module';
+import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 
 @Module({
   imports: [
@@ -58,6 +59,10 @@ import { PublicModule } from './application/public/public.module';
   controllers: [AppController],
   providers: [
     AppService,
+    {
+      provide: APP_FILTER,
+      useClass: DomainExceptionFilter,
+    },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

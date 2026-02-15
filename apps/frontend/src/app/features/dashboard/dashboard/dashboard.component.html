@@ -4,6 +4,45 @@
     <mat-card-subtitle>Panel de la Junta de Acción Comunal</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
-    <p>Selecciona una opción del menú para comenzar.</p>
+    @if (esCiudadano()) {
+      @if (loading) {
+        <p>Cargando...</p>
+      } @else {
+        @if (cartasAprobadas().length > 0) {
+          <div class="mb-4 p-4 rounded-lg bg-green-50 border border-green-200">
+            <p class="font-semibold text-green-800 mb-2">¡Su carta laboral está lista!</p>
+            <p class="text-sm text-green-700 mb-3">Puede descargar el PDF en Mi cuenta, pestaña Cartas.</p>
+            <a
+              mat-raised-button
+              color="primary"
+              [routerLink]="linkMiCuentaCartas()"
+              [queryParams]="{ tab: 'cartas' }"
+            >
+              Ir a descargar carta
+            </a>
+          </div>
+        }
+        <p class="mb-4">Resumen de su estado:</p>
+        <ul class="space-y-2 mb-4">
+          <li>
+            <strong>Su deuda:</strong>
+            @if (deuda) {
+              {{ deuda.total > 0 ? formatearMoneda(deuda.total) : 'Sin deuda' }}
+            } @else {
+              —
+            }
+          </li>
+          <li>
+            <strong>Estado para carta:</strong>
+            {{ mensajeEstadoCarta() }}
+          </li>
+        </ul>
+        <a mat-raised-button color="primary" [routerLink]="['/usuarios', myId]">
+          Ir a Mi cuenta
+        </a>
+      }
+    } @else {
+      <p>Selecciona una opción del menú para comenzar.</p>
+    }
   </mat-card-content>
 </mat-card>

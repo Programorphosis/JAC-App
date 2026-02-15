@@ -7,6 +7,19 @@
       <p>Cargando...</p>
     } @else if (deuda) {
       <p class="text-xl font-semibold">Total: {{ formatearMoneda(deuda.total) }}</p>
+      @if (deuda.total > 0) {
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="pagarDeudaOnline()"
+          [disabled]="pagando"
+          class="mt-4"
+        >
+          {{ pagando ? 'Redirigiendo...' : 'Pagar deuda online' }}
+        </button>
+      } @else {
+        <p class="text-green-700 mt-2">Sin deuda. Está al día con la junta.</p>
+      }
       @if (deuda.detalle && deuda.detalle.length > 0) {
         <table class="w-full mt-4">
           <thead>

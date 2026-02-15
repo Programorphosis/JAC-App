@@ -7,7 +7,11 @@
   </div>
 
   @if (mostrandoForm) {
-    <app-requisito-form (guardar)="onGuardar($event)" (cancelar)="cancelarForm()" />
+    <app-requisito-form
+      [valoresIniciales]="editandoRequisito ?? undefined"
+      (guardar)="onGuardar($event)"
+      (cancelar)="cancelarForm()"
+    />
   }
 
   <div class="mat-elevation-z2 overflow-hidden rounded">
@@ -26,7 +30,14 @@
       </ng-container>
       <ng-container matColumnDef="acciones">
         <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let r"></td>
+        <td mat-cell *matCellDef="let r">
+          <button mat-icon-button (click)="editar(r)" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="eliminar(r)" matTooltip="Eliminar">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

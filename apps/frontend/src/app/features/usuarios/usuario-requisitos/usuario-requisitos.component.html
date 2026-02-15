@@ -1,12 +1,14 @@
 <mat-card>
   <mat-card-header>
-    <mat-card-title>Requisitos adicionales</mat-card-title>
-    <mat-card-subtitle>Estado y obligación por requisito</mat-card-subtitle>
+    <mat-card-title>{{ soloRequisitosModificables ? 'Obligaciones' : 'Requisitos adicionales' }}</mat-card-title>
+    <mat-card-subtitle>
+      {{ soloRequisitosModificables ? 'Estado de los requisitos que puede modificar' : 'Estado y obligación por requisito' }}
+    </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     @if (loading) {
       <p>Cargando...</p>
-    } @else if (estado && estado.requisitos.length > 0) {
+    }     @else if (estado && requisitosVisibles().length > 0) {
       <table class="w-full">
         <thead>
           <tr>
@@ -17,28 +19,38 @@
           </tr>
         </thead>
         <tbody>
-          @for (r of estado.requisitos; track r.requisitoTipoId) {
+          @for (r of requisitosVisibles(); track r.requisitoTipoId) {
             <tr>
               <td>{{ r.nombre }}</td>
               <td>{{ r.estado }}</td>
               <td>{{ r.obligacionActiva ? 'Sí' : 'No' }}</td>
               <td>
-                <div class="flex gap-2">
-                  <button mat-stroked-button (click)="cambiarEstado(r.requisitoTipoId, 'AL_DIA')" [disabled]="r.estado === 'AL_DIA'">
-                    Al día
-                  </button>
-                  <button mat-stroked-button (click)="cambiarEstado(r.requisitoTipoId, 'MORA')" [disabled]="r.estado === 'MORA'">
-                    Mora
-                  </button>
-                  <button mat-stroked-button (click)="cambiarObligacion(r.requisitoTipoId, !r.obligacionActiva)">
-                    {{ r.obligacionActiva ? 'Exentar' : 'Activar' }}
-                  </button>
-                </div>
+                @if (r.puedeModificarEstado || r.puedeModificarObligacion) {
+                  <div class="flex gap-2">
+                    @if (r.puedeModificarEstado) {
+                      <button mat-stroked-button (click)="cambiarEstado(r.requisitoTipoId, 'AL_DIA')" [disabled]="r.estado === 'AL_DIA'">
+                        Al día
+                      </button>
+                      <button mat-stroked-button (click)="cambiarEstado(r.requisitoTipoId, 'MORA')" [disabled]="r.estado === 'MORA'">
+                        Mora
+                      </button>
+                    }
+                    @if (r.puedeModificarObligacion) {
+                      <button mat-stroked-button (click)="cambiarObligacion(r.requisitoTipoId, !r.obligacionActiva)">
+                        {{ r.obligacionActiva ? 'Exentar' : 'Activar' }}
+                      </button>
+                    }
+                  </div>
+                } @else {
+                  <span class="text-gray-500">—</span>
+                }
               </td>
             </tr>
           }
         </tbody>
       </table>
+    } @else if (estado && requisitosVisibles().length === 0 && soloRequisitosModificables) {
+      <p>No tiene requisitos asignados para modificar.</p>
     } @else {
       <p>No hay requisitos configurados para la junta.</p>
     }

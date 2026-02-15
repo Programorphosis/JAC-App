@@ -26,6 +26,7 @@ export interface ILetterEmissionContext {
   getNextConsecutivoCarta(juntaId: string): Promise<number>;
   updateCartaAprobada(data: {
     cartaId: string;
+    juntaId: string;
     consecutivo: number;
     anio: number;
     qrToken: string;
@@ -34,6 +35,8 @@ export interface ILetterEmissionContext {
     rutaPdf?: string | null;
     hashDocumento?: string | null;
   }): Promise<void>;
+  /** Consumir pago tipo CARTA (vigencia → false) al aprobar la carta. */
+  consumePagoCarta(usuarioId: string, juntaId: string): Promise<void>;
   registerAudit(params: RegisterAuditEventParams): Promise<void>;
   generateCartaPdf?(data: {
     juntaId: string;

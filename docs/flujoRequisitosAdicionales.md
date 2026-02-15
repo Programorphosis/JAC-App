@@ -15,6 +15,7 @@ El sistema de requisitos adicionales gestiona estados administrativos configurab
 - Permite corte automático mensual (solo para requisitos con `tieneCorteAutomatico=true`)
 - Permite excepción mediante `obligacionActiva`
 - El permiso de actualización viene de `modificadorId` del RequisitoTipo (no del rol)
+- Usuario tiene `esModificador` y `requisitoTipoId` sincronizados: un usuario solo puede ser modificador de un requisito a la vez
 
 ---
 
@@ -29,7 +30,7 @@ Define un requisito configurable por junta.
 | id | UUID | PK |
 | juntaId | UUID | FK Junta |
 | nombre | String | Ej: "agua", "basura" |
-| modificadorId | UUID? | Usuario autorizado a actualizar estado (null = nadie asignado) |
+| modificadorId | UUID? | Usuario autorizado a actualizar estado (null = nadie asignado). Un usuario solo puede ser modificador de un requisito. |
 | tieneCorteAutomatico | Boolean | Si true, el cron día 1 aplica MORA a usuarios con obligacionActiva |
 | activo | Boolean | Requisito activo para la junta |
 | fechaCreacion | DateTime | |
@@ -80,7 +81,7 @@ Registro inmutable de cada cambio.
 | Cambiar obligación (exento) | Solo ADMIN |
 | CRUD RequisitoTipo | Solo ADMIN |
 
-El rol RECEPTOR_AGUA se mantiene por compatibilidad con bootstrap/usuarios existentes. En el nuevo modelo, el permiso viene de `modificadorId`. ADMIN puede asignar cualquier usuario como modificador.
+El rol RECEPTOR_AGUA se mantiene por compatibilidad con bootstrap/usuarios existentes. En el nuevo modelo, el permiso viene de `modificadorId`. ADMIN puede asignar cualquier usuario como modificador. Usuario tiene `esModificador` y `requisitoTipoId` para que el frontend sepa qué mostrar; se sincronizan al asignar/retirar modificador.
 
 ---
 

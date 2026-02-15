@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { PlatformService, CreateJuntaBody, CreateJuntaResult } from '../services/platform.service';
 import { JuntaFormComponent } from '../junta-form/junta-form.component';
+import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
   selector: 'app-junta-nueva',
@@ -34,11 +35,7 @@ export class JuntaNuevaComponent {
         this.snackBar.open('Junta creada. Guarda las credenciales.', 'Cerrar', { duration: 5000 });
       },
       error: (err) => {
-        this.snackBar.open(
-          err.error?.error?.message || err.error?.message || 'Error al crear junta',
-          'Cerrar',
-          { duration: 5000 }
-        );
+        this.snackBar.open(getApiErrorMessage(err) || 'Error al crear junta', 'Cerrar', { duration: 5000 });
       },
     });
   }

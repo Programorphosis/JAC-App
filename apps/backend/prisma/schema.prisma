@@ -65,11 +65,12 @@ enum TipoCambioRequisito {
 //////////////////////////////////////////////////////
 
 model Junta {
-  id              String   @id @default(uuid())
-  nombre          String
-  nit             String?  @unique
-  fechaCreacion   DateTime @default(now())
-  montoCarta      Int?
+  id                  String   @id @default(uuid())
+  nombre              String
+  nit                 String?  @unique
+  fechaCreacion       DateTime @default(now())
+  montoCarta          Int?
+  vigenciaCartaMeses  Int?     @default(3)  // meses de validez de la carta; null = 3 por defecto
 
   usuarios         Usuario[]
   tarifas          Tarifa[]
@@ -99,6 +100,10 @@ model Usuario {
   activo            Boolean  @default(true)
   fechaCreacion     DateTime @default(now())
   passwordHash      String   // bcrypt hash; requerido para login
+
+  esModificador     Boolean  @default(false)
+  requisitoTipoId   String?  @unique
+  requisitoTipo     RequisitoTipo? @relation("UsuarioComoModificador", fields: [requisitoTipoId], references: [id])
 
   roles             UsuarioRol[]
   historialLaboral   HistorialLaboral[]
@@ -205,6 +210,10 @@ model Pago {
 
   fechaPago         DateTime   @default(now())
 
+  /// Solo para tipo CARTA: true = vigente (puede solicitar carta); false = consumido (carta ya emitida).
+  /// null = otros tipos de pago o datos legacy.
+  vigencia          Boolean?
+
   @@unique([juntaId, tipo, consecutivo])
   @@index([juntaId])
   @@index([usuarioId])
@@ -245,6 +254,7 @@ model RequisitoTipo {
   nombre               String
   modificadorId        String?
   modificador          Usuario? @relation("RequisitoModificador", fields: [modificadorId], references: [id])
+  usuarioComoModificador Usuario? @relation("UsuarioComoModificador")
   tieneCorteAutomatico Boolean @default(true)
   activo               Boolean  @default(true)
   fechaCreacion        DateTime @default(now())
@@ -316,6 +326,7 @@ model Carta {
 
   fechaSolicitud  DateTime          @default(now())
   fechaEmision    DateTime?
+  vigenciaHasta   DateTime?         // fecha límite de validez; null = legacy o sin config
 
   emitidaPorId    String?
   emitidaPor      Usuario?          @relation("CartaEmitidaPor", fields: [emitidaPorId], references: [id])

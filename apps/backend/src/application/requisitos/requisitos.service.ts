@@ -13,6 +13,9 @@ import {
 } from '../../domain/errors/domain.errors';
 import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 
+/** Un usuario solo puede ser modificador de un requisito a la vez. */
+const MSG_YA_ES_MODIFICADOR = 'El usuario ya es modificador de otro requisito. Retírele primero.';
+
 @Injectable()
 export class RequisitosService {
   constructor(
@@ -38,6 +41,10 @@ export class RequisitosService {
     juntaId: string,
     creadoPorId: string,
   ) {
+    if (dto.modificadorId) {
+      await this.validarUsuarioPuedeSerModificador(dto.modificadorId, juntaId, null);
+    }
+
     const created = await this.prisma.requisitoTipo.create({
       data: {
         juntaId,
@@ -46,6 +53,10 @@ export class RequisitosService {
         tieneCorteAutomatico: dto.tieneCorteAutomatico ?? true,
       },
     });
+
+    if (dto.modificadorId) {
+      await this.syncUsuarioComoModificador(dto.modificadorId, created.id);
+    }
 
     await this.audit.registerEvent({
       juntaId,
@@ -75,17 +86,31 @@ export class RequisitosService {
       throw new NotFoundException('Requisito no encontrado');
     }
 
+    const nuevoModificadorId = dto.modificadorId !== undefined ? dto.modificadorId : existente.modificadorId;
+    if (nuevoModificadorId) {
+      await this.validarUsuarioPuedeSerModificador(nuevoModificadorId, juntaId, id);
+    }
+
     const updated = await this.prisma.requisitoTipo.update({
       where: { id },
       data: {
         ...(dto.nombre !== undefined && { nombre: dto.nombre }),
-        ...(dto.modificadorId !== undefined && { modificadorId: dto.modificadorId }),
+        ...(dto.modificadorId !== undefined && { modificadorId: dto.modificadorId ?? null }),
         ...(dto.tieneCorteAutomatico !== undefined && {
           tieneCorteAutomatico: dto.tieneCorteAutomatico,
         }),
         ...(dto.activo !== undefined && { activo: dto.activo }),
       },
     });
+
+    if (dto.modificadorId !== undefined) {
+      if (existente.modificadorId) {
+        await this.syncUsuarioRetirarModificador(existente.modificadorId);
+      }
+      if (dto.modificadorId) {
+        await this.syncUsuarioComoModificador(dto.modificadorId, id);
+      }
+    }
 
     await this.audit.registerEvent({
       juntaId,
@@ -97,6 +122,68 @@ export class RequisitosService {
     });
 
     return updated;
+  }
+
+  async eliminarRequisitoTipo(id: string, juntaId: string, eliminadoPorId: string) {
+    const existente = await this.prisma.requisitoTipo.findFirst({
+      where: { id, juntaId },
+    });
+    if (!existente) {
+      throw new NotFoundException('Requisito no encontrado');
+    }
+
+    if (existente.modificadorId) {
+      await this.syncUsuarioRetirarModificador(existente.modificadorId);
+    }
+
+    await this.prisma.requisitoTipo.delete({
+      where: { id },
+    });
+
+    await this.audit.registerEvent({
+      juntaId,
+      entidad: 'RequisitoTipo',
+      entidadId: id,
+      accion: 'BAJA_REQUISITO_TIPO',
+      metadata: { nombre: existente.nombre },
+      ejecutadoPorId: eliminadoPorId,
+    });
+
+    return { ok: true };
+  }
+
+  /**
+   * Valida que el usuario pueda ser asignado como modificador.
+   * Regla: un usuario solo puede ser modificador de un requisito a la vez.
+   */
+  private async validarUsuarioPuedeSerModificador(
+    usuarioId: string,
+    juntaId: string,
+    requisitoTipoIdExcluir: string | null,
+  ): Promise<void> {
+    const usuario = await this.prisma.usuario.findFirst({
+      where: { id: usuarioId, juntaId },
+    });
+    if (!usuario) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+    if (usuario.esModificador && usuario.requisitoTipoId && usuario.requisitoTipoId !== requisitoTipoIdExcluir) {
+      throw new UnprocessableEntityException(MSG_YA_ES_MODIFICADOR);
+    }
+  }
+
+  private async syncUsuarioComoModificador(usuarioId: string, requisitoTipoId: string): Promise<void> {
+    await this.prisma.usuario.update({
+      where: { id: usuarioId },
+      data: { esModificador: true, requisitoTipoId },
+    });
+  }
+
+  private async syncUsuarioRetirarModificador(usuarioId: string): Promise<void> {
+    await this.prisma.usuario.update({
+      where: { id: usuarioId },
+      data: { esModificador: false, requisitoTipoId: null },
+    });
   }
 
   private async puedeActualizarEstado(

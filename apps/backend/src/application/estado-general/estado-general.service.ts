@@ -7,7 +7,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { DebtService } from '../../domain/services/debt.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { TipoPago } from '@prisma/client';
+import { TipoPago, RolNombre } from '@prisma/client';
 import type { IRequisitoRepository } from '../../domain/ports/requisito-repository.port';
 import { REQUISITO_REPOSITORY } from '../../domain/ports/requisito-repository.port';
 import {
@@ -19,7 +19,14 @@ import {
 
 export interface EstadoGeneralResult {
   deuda_junta: number;
-  requisitos: Array<{ nombre: string; obligacionActiva: boolean; estado: string }>;
+  requisitos: Array<{
+    requisitoTipoId: string;
+    nombre: string;
+    obligacionActiva: boolean;
+    estado: string;
+    puedeModificarEstado: boolean;
+    puedeModificarObligacion: boolean;
+  }>;
   pago_carta: boolean;
 }
 
@@ -31,7 +38,11 @@ export class EstadoGeneralService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async getEstadoGeneral(usuarioId: string, juntaId: string): Promise<EstadoGeneralResult> {
+  async getEstadoGeneral(
+    usuarioId: string,
+    juntaId: string,
+    actor?: { id: string; roles: string[] },
+  ): Promise<EstadoGeneralResult> {
     const usuario = await this.prisma.usuario.findFirst({
       where: { id: usuarioId, juntaId },
     });
@@ -65,9 +76,12 @@ export class EstadoGeneralService {
         usuarioId,
         juntaId,
         tipo: TipoPago.CARTA,
+        vigencia: true, // solo vigente = true permite solicitar carta; null/false = inválido
       },
     });
     const pago_carta = pagoCartaCount > 0;
+
+    const esAdmin = actor?.roles?.includes(RolNombre.ADMIN) ?? false;
 
     return {
       deuda_junta,
@@ -76,6 +90,8 @@ export class EstadoGeneralService {
         nombre: r.nombre,
         obligacionActiva: r.obligacionActiva,
         estado: r.estado,
+        puedeModificarEstado: esAdmin || (actor != null && r.modificadorId === actor.id),
+        puedeModificarObligacion: esAdmin,
       })),
       pago_carta,
     };

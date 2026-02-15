@@ -1,6 +1,14 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 import { platformAdminGuard } from './core/auth/platform-admin.guard';
+import {
+  pagosGuard,
+  tarifasGuard,
+  cartasGuard,
+  requisitosGuard,
+  usuariosGuard,
+  crearUsuarioGuard,
+} from './core/auth/permission.guard';
 
 export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/auth/login/login.component').then((m) => m.LoginComponent) },
@@ -16,11 +24,13 @@ export const routes: Routes = [
       },
       {
         path: 'usuarios',
+        canActivate: [usuariosGuard],
         loadComponent: () =>
           import('./features/usuarios/usuarios-list/usuarios-list.component').then((m) => m.UsuariosListComponent),
       },
       {
         path: 'usuarios/nuevo',
+        canActivate: [crearUsuarioGuard],
         loadComponent: () =>
           import('./features/usuarios/usuario-nuevo/usuario-nuevo.component').then((m) => m.UsuarioNuevoComponent),
       },
@@ -31,6 +41,7 @@ export const routes: Routes = [
       },
       {
         path: 'pagos',
+        canActivate: [pagosGuard],
         loadComponent: () =>
           import('./features/pagos/pagos/pagos.component').then((m) => m.PagosComponent),
       },
@@ -41,16 +52,19 @@ export const routes: Routes = [
       },
       {
         path: 'requisitos',
+        canActivate: [requisitosGuard],
         loadComponent: () =>
           import('./features/requisitos/requisitos-list/requisitos-list.component').then((m) => m.RequisitosListComponent),
       },
       {
         path: 'cartas',
+        canActivate: [cartasGuard],
         loadComponent: () =>
           import('./features/cartas/cartas/cartas.component').then((m) => m.CartasComponent),
       },
       {
         path: 'tarifas',
+        canActivate: [tarifasGuard],
         loadComponent: () =>
           import('./features/tarifas/tarifas-list/tarifas-list.component').then((m) => m.TarifasListComponent),
       },

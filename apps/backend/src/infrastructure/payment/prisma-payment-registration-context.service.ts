@@ -117,6 +117,7 @@ export class PrismaPaymentRegistrationContext implements IPaymentRegistrationCon
         consecutivo: data.consecutivo,
         referenciaExterna: data.referenciaExterna ?? null,
         registradoPorId: data.registradoPorId,
+        vigencia: true, // vigente hasta que se apruebe la carta
       },
       select: { id: true },
     });

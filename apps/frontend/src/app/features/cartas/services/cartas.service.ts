@@ -15,8 +15,10 @@ export interface CartaItem {
   estado: string;
   fechaSolicitud: string;
   fechaEmision: string | null;
+  vigenciaHasta?: string | null;
   consecutivo: number | null;
   anio: number;
+  rutaPdf?: string | null;
 }
 
 export interface CartaPendienteItem {
@@ -84,6 +86,12 @@ export class CartasService {
   getUrlDescarga(documentoId: string): Observable<{ url: string }> {
     return this.http
       .get<{ data: { url: string } }>(`${this.documentosBase}/${documentoId}/descargar`)
+      .pipe(map((r) => r.data));
+  }
+
+  getUrlDescargaCarta(cartaId: string): Observable<{ url: string }> {
+    return this.http
+      .get<{ data: { url: string } }>(`${this.base}/${cartaId}/descargar`)
       .pipe(map((r) => r.data));
   }
 }

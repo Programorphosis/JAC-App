@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CartasService, CartaPendienteItem } from '../services/cartas.service';
+import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
   selector: 'app-cartas',
@@ -44,9 +45,7 @@ export class CartasComponent implements OnInit {
         this.cargar();
       },
       error: (err) => {
-        this.snackBar.open(err.error?.error?.message || err.error?.message || 'Error al validar', 'Cerrar', {
-          duration: 5000,
-        });
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
       },
     });
   }

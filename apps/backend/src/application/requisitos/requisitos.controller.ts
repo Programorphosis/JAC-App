@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   UseGuards,
@@ -62,6 +63,22 @@ export class RequisitosController {
     const data = await this.requisitos.actualizarRequisitoTipo(
       id,
       dto,
+      juntaId,
+      req.user.id,
+    );
+    return { data, meta: { timestamp: new Date().toISOString() } };
+  }
+
+  @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(RolNombre.ADMIN)
+  async eliminar(
+    @Param('id') id: string,
+    @Request() req: { user: JwtUser },
+  ) {
+    const juntaId = req.user.juntaId!;
+    const data = await this.requisitos.eliminarRequisitoTipo(
+      id,
       juntaId,
       req.user.id,
     );

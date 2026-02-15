@@ -48,7 +48,8 @@ export class DeudaController {
     const puedeConsultarOtro =
       user.roles.includes(RolNombre.ADMIN) ||
       user.roles.includes(RolNombre.SECRETARIA) ||
-      user.roles.includes(RolNombre.TESORERA);
+      user.roles.includes(RolNombre.TESORERA) ||
+      (user.esModificador && !!user.juntaId);
 
     if (!puedeConsultarOtro && usuarioId !== user.id) {
       throw new ForbiddenException('Solo puede consultar su propia deuda');

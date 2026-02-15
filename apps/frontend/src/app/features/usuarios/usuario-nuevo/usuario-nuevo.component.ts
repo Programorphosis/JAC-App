@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { UsuariosService, CreateUserBody, UpdateUserBody } from '../services/usuarios.service';
 import { UsuarioFormComponent } from '../usuario-form/usuario-form.component';
+import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
   selector: 'app-usuario-nuevo',
@@ -32,11 +33,7 @@ export class UsuarioNuevoComponent {
         this.router.navigate(['/usuarios', created.id]);
       },
       error: (err) => {
-        this.snackBar.open(
-          err.error?.error?.message || err.error?.message || 'Error al crear usuario',
-          'Cerrar',
-          { duration: 5000 }
-        );
+        this.snackBar.open(getApiErrorMessage(err) || 'Error al crear usuario', 'Cerrar', { duration: 5000 });
       },
     });
   }

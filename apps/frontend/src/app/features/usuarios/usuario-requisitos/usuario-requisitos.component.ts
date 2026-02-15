@@ -3,6 +3,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RequisitosService, EstadoGeneralResult } from '../../requisitos/services/requisitos.service';
+import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
   selector: 'app-usuario-requisitos',
@@ -13,6 +14,8 @@ import { RequisitosService, EstadoGeneralResult } from '../../requisitos/service
 })
 export class UsuarioRequisitosComponent implements OnInit {
   @Input() usuarioId!: string;
+  /** Si true (modificador): solo muestra requisitos que el usuario puede modificar */
+  @Input() soloRequisitosModificables = false;
   estado: EstadoGeneralResult | null = null;
   loading = false;
 
@@ -45,9 +48,18 @@ export class UsuarioRequisitosComponent implements OnInit {
         this.cargar();
       },
       error: (err) => {
-        this.snackBar.open(err.error?.error?.message || err.error?.message || 'Error', 'Cerrar', { duration: 5000 });
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
       },
     });
+  }
+
+  /** Requisitos a mostrar: si soloRequisitosModificables, solo los que puede modificar */
+  requisitosVisibles() {
+    if (!this.estado?.requisitos) return [];
+    if (!this.soloRequisitosModificables) return this.estado.requisitos;
+    return this.estado.requisitos.filter(
+      (r) => r.puedeModificarEstado || r.puedeModificarObligacion
+    );
   }
 
   cambiarObligacion(requisitoTipoId: string, obligacionActiva: boolean): void {
@@ -57,7 +69,7 @@ export class UsuarioRequisitosComponent implements OnInit {
         this.cargar();
       },
       error: (err) => {
-        this.snackBar.open(err.error?.error?.message || err.error?.message || 'Error', 'Cerrar', { duration: 5000 });
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
       },
     });
   }

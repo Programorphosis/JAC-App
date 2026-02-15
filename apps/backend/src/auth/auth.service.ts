@@ -30,6 +30,8 @@ export interface AuthResult {
     numeroDocumento: string;
     juntaId: string | null;
     roles: RolNombre[];
+    esModificador: boolean;
+    requisitoTipoId: string | null;
   };
 }
 
@@ -110,6 +112,8 @@ export class AuthService {
         numeroDocumento: usuario.numeroDocumento,
         juntaId: usuario.juntaId,
         roles,
+        esModificador: usuario.esModificador ?? false,
+        requisitoTipoId: usuario.requisitoTipoId ?? null,
       },
     };
   }
@@ -128,6 +132,8 @@ export class AuthService {
         juntaId: true,
         activo: true,
         fechaCreacion: true,
+        esModificador: true,
+        requisitoTipoId: true,
         junta: { select: { id: true, nombre: true } },
         roles: { include: { rol: { select: { nombre: true } } } },
       },
@@ -137,6 +143,8 @@ export class AuthService {
       ...usuario,
       junta: usuario.junta,
       roles: usuario.roles.map((ur) => ur.rol.nombre),
+      esModificador: usuario.esModificador ?? false,
+      requisitoTipoId: usuario.requisitoTipoId ?? null,
     };
   }
 
@@ -189,6 +197,8 @@ export class AuthService {
           numeroDocumento: usuario.numeroDocumento,
           juntaId: usuario.juntaId,
           roles,
+          esModificador: usuario.esModificador ?? false,
+          requisitoTipoId: usuario.requisitoTipoId ?? null,
         },
       };
     } catch {

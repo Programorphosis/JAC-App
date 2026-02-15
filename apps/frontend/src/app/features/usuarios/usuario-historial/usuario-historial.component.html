@@ -4,6 +4,7 @@
     <mat-card-subtitle>Registros de estado laboral (trabajando / no trabajando)</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
+    @if (puedeCrearHistorial()) {
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4 mb-4">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <mat-form-field appearance="outline" class="w-full">
@@ -26,6 +27,7 @@
         Agregar registro
       </button>
     </form>
+    }
 
     @if (loading) {
       <p>Cargando...</p>

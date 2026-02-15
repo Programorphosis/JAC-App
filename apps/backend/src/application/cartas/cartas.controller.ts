@@ -112,8 +112,45 @@ export class CartasController {
         if (err.message.includes('Ya existe')) {
           throw new UnprocessableEntityException(err.message);
         }
+        if (err.message.includes('Tiene una carta vigente')) {
+          throw new UnprocessableEntityException(err.message);
+        }
         if (err.message.includes('no encontrado')) {
           throw new BadRequestException(err.message);
+        }
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * GET /cartas/:id/descargar - Obtener URL firmada para descargar PDF.
+   * CIUDADANO: solo propias. ADMIN, SECRETARIA: cualquiera de la junta.
+   */
+  @Get(':id/descargar')
+  @UseGuards(RolesGuard)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.CIUDADANO)
+  async descargar(
+    @Param('id') cartaId: string,
+    @Request() req: { user: JwtUser },
+  ) {
+    const juntaId = req.user.juntaId!;
+    const user = req.user;
+
+    const puedeVerOtro =
+      user.roles.includes(RolNombre.ADMIN) || user.roles.includes(RolNombre.SECRETARIA);
+    const soloPropios = puedeVerOtro ? undefined : user.id;
+
+    try {
+      const url = await this.cartas.getUrlDescargaCarta(cartaId, juntaId, soloPropios);
+      return { data: { url } };
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.message.includes('no encontrada') || err.message.includes('sin PDF')) {
+          throw new BadRequestException(err.message);
+        }
+        if (err.message.includes('no está configurado')) {
+          throw new BadRequestException('Servicio de almacenamiento no disponible');
         }
       }
       throw err;

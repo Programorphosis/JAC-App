@@ -76,6 +76,7 @@ export class LetterService {
 
     await ctx.updateCartaAprobada({
       cartaId,
+      juntaId,
       consecutivo,
       anio,
       qrToken,
@@ -84,6 +85,8 @@ export class LetterService {
       rutaPdf,
       hashDocumento,
     });
+
+    await ctx.consumePagoCarta(carta.usuarioId, juntaId);
 
     await ctx.registerAudit({
       juntaId,

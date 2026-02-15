@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UsuariosService, HistorialLaboralItem, CreateHistorialBody } from '../services/usuarios.service';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-usuario-historial',
@@ -29,7 +30,8 @@ export class UsuarioHistorialComponent implements OnInit {
 
   constructor(
     private readonly usuarios: UsuariosService,
-    private readonly fb: FormBuilder
+    private readonly fb: FormBuilder,
+    private readonly auth: AuthService
   ) {
     this.form = this.fb.group({
       estado: ['TRABAJANDO', Validators.required],
@@ -64,6 +66,10 @@ export class UsuarioHistorialComponent implements OnInit {
         this.cargar();
       },
     });
+  }
+
+  puedeCrearHistorial(): boolean {
+    return this.auth.hasRole('ADMIN') || this.auth.hasRole('SECRETARIA');
   }
 
   formatearFecha(f: string | null): string {

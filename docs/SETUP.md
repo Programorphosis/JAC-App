@@ -55,6 +55,8 @@ CORS_ORIGIN=http://localhost:4200
 DATABASE_URL=postgresql://jac_user:jac_password_dev@localhost:5432/jac_db_dev?schema=public
 ```
 
+**Zona horaria (Colombia):** PostgreSQL guarda fechas en UTC. Si quieres que las fechas se interpreten en hora de Bogotá al usar `now()` o literales, añade a la URL: `&options=-c%20timezone%3DAmerica%2FBogota`. El backend también ejecuta `SET time zone 'America/Bogota'` al conectar. Al consultar la BD con un cliente (pgAdmin, DBeaver), configura la zona horaria del cliente a America/Bogota para ver las horas en hora local.
+
 **Para cartas con QR** (opcional en desarrollo): si usas S3 y generas PDF con QR, define `APP_PUBLIC_URL` como la URL base del API (donde está `/api/public/validar-carta`). En local: `http://localhost:3000`. En producción: `https://api.tudominio.com`. Por defecto usa `http://localhost:3000` si no está definida.
 
 **Si tu contraseña tiene caracteres especiales** (`@`, `#`, `:`, etc.), codifícalos en URL:

@@ -28,26 +28,40 @@
                 <mat-icon matListItemIcon>dashboard</mat-icon>
                 <span matListItemTitle>Inicio</span>
               </a>
-              <a mat-list-item routerLink="/usuarios" routerLinkActive="active">
-                <mat-icon matListItemIcon>people</mat-icon>
-                <span matListItemTitle>Usuarios</span>
+              @if (auth.puedeVerUsuarios()) {
+                <a mat-list-item routerLink="/usuarios" routerLinkActive="active">
+                  <mat-icon matListItemIcon>people</mat-icon>
+                  <span matListItemTitle>Usuarios</span>
+                </a>
+              }
+              <a mat-list-item [routerLink]="['/usuarios', auth.currentUser()?.id]" routerLinkActive="active">
+                <mat-icon matListItemIcon>person</mat-icon>
+                <span matListItemTitle>Mi cuenta</span>
               </a>
-              <a mat-list-item routerLink="/pagos" routerLinkActive="active">
-                <mat-icon matListItemIcon>payment</mat-icon>
-                <span matListItemTitle>Pagos</span>
-              </a>
-              <a mat-list-item routerLink="/requisitos" routerLinkActive="active">
-                <mat-icon matListItemIcon>assignment</mat-icon>
-                <span matListItemTitle>Requisitos</span>
-              </a>
-              <a mat-list-item routerLink="/cartas" routerLinkActive="active">
-                <mat-icon matListItemIcon>mail</mat-icon>
-                <span matListItemTitle>Cartas</span>
-              </a>
-              <a mat-list-item routerLink="/tarifas" routerLinkActive="active">
-                <mat-icon matListItemIcon>attach_money</mat-icon>
-                <span matListItemTitle>Tarifas</span>
-              </a>
+              @if (auth.puedeVerPagos()) {
+                <a mat-list-item routerLink="/pagos" routerLinkActive="active">
+                  <mat-icon matListItemIcon>payment</mat-icon>
+                  <span matListItemTitle>Pagos</span>
+                </a>
+              }
+              @if (auth.puedeVerRequisitos()) {
+                <a mat-list-item routerLink="/requisitos" routerLinkActive="active">
+                  <mat-icon matListItemIcon>assignment</mat-icon>
+                  <span matListItemTitle>Requisitos</span>
+                </a>
+              }
+              @if (auth.puedeVerCartasPendientes()) {
+                <a mat-list-item routerLink="/cartas" routerLinkActive="active">
+                  <mat-icon matListItemIcon>mail</mat-icon>
+                  <span matListItemTitle>Cartas</span>
+                </a>
+              }
+              @if (auth.puedeVerTarifas()) {
+                <a mat-list-item routerLink="/tarifas" routerLinkActive="active">
+                  <mat-icon matListItemIcon>attach_money</mat-icon>
+                  <span matListItemTitle>Tarifas</span>
+                </a>
+              }
             }
           </mat-nav-list>
         </mat-sidenav>

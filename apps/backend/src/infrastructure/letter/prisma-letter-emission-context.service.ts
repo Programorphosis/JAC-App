@@ -1,4 +1,10 @@
 import { TipoPago } from '@prisma/client';
+
+function addMonths(date: Date, months: number): Date {
+  const result = new Date(date);
+  result.setMonth(result.getMonth() + months);
+  return result;
+}
 import type {
   ILetterEmissionContext,
   CartaParaEmitir,
@@ -60,7 +66,7 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
 
   async hasPagoCarta(usuarioId: string, juntaId: string): Promise<boolean> {
     const count = await this.client.pago.count({
-      where: { usuarioId, juntaId, tipo: TipoPago.CARTA },
+      where: { usuarioId, juntaId, tipo: TipoPago.CARTA, vigencia: true },
     });
     return count > 0;
   }
@@ -114,6 +120,7 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
 
   async updateCartaAprobada(data: {
     cartaId: string;
+    juntaId: string;
     consecutivo: number;
     anio: number;
     qrToken: string;
@@ -122,6 +129,13 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
     rutaPdf?: string | null;
     hashDocumento?: string | null;
   }): Promise<void> {
+    const junta = await this.client.junta.findUnique({
+      where: { id: data.juntaId },
+      select: { vigenciaCartaMeses: true },
+    });
+    const meses = junta?.vigenciaCartaMeses ?? 3;
+    const vigenciaHasta = addMonths(data.fechaEmision, meses);
+
     await this.client.carta.update({
       where: { id: data.cartaId },
       data: {
@@ -130,11 +144,26 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
         anio: data.anio,
         qrToken: data.qrToken,
         fechaEmision: data.fechaEmision,
+        vigenciaHasta,
         emitidaPorId: data.emitidaPorId,
         rutaPdf: data.rutaPdf ?? null,
         hashDocumento: data.hashDocumento ?? null,
       },
     });
+  }
+
+  async consumePagoCarta(usuarioId: string, juntaId: string): Promise<void> {
+    const pago = await this.client.pago.findFirst({
+      where: { usuarioId, juntaId, tipo: TipoPago.CARTA, vigencia: true },
+      orderBy: { fechaPago: 'desc' },
+      select: { id: true },
+    });
+    if (pago) {
+      await this.client.pago.update({
+        where: { id: pago.id },
+        data: { vigencia: false },
+      });
+    }
   }
 
   async registerAudit(params: RegisterAuditEventParams): Promise<void> {

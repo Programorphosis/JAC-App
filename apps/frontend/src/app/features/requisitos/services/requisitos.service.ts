@@ -33,6 +33,8 @@ export interface EstadoGeneralResult {
     nombre: string;
     obligacionActiva: boolean;
     estado: string;
+    puedeModificarEstado: boolean;
+    puedeModificarObligacion: boolean;
   }>;
   pago_carta: boolean;
 }
@@ -57,7 +59,15 @@ export class RequisitosService {
   }
 
   actualizar(id: string, body: UpdateRequisitoTipoBody): Observable<RequisitoTipoItem> {
-    return this.http.patch<RequisitoTipoItem>(`${this.base}/${id}`, body);
+    return this.http
+      .patch<{ data: RequisitoTipoItem }>(`${this.base}/${id}`, body)
+      .pipe(map((r) => r.data));
+  }
+
+  eliminar(id: string): Observable<{ ok: boolean }> {
+    return this.http
+      .delete<{ data: { ok: boolean } }>(`${this.base}/${id}`)
+      .pipe(map((r) => r.data));
   }
 
   getEstadoGeneral(usuarioId: string): Observable<EstadoGeneralResult> {

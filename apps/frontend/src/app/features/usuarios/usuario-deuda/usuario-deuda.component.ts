@@ -1,11 +1,15 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { UsuariosService, DeudaResult } from '../services/usuarios.service';
+import { PagosService } from '../../pagos/services/pagos.service';
+import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
   selector: 'app-usuario-deuda',
   standalone: true,
-  imports: [MatCardModule],
+  imports: [MatCardModule, MatButtonModule],
   templateUrl: './usuario-deuda.component.html',
   styleUrl: './usuario-deuda.component.scss',
 })
@@ -13,8 +17,13 @@ export class UsuarioDeudaComponent implements OnInit {
   @Input() usuarioId!: string;
   deuda: DeudaResult | null = null;
   loading = false;
+  pagando = false;
 
-  constructor(private readonly usuarios: UsuariosService) {}
+  constructor(
+    private readonly usuarios: UsuariosService,
+    private readonly pagos: PagosService,
+    private readonly snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     if (this.usuarioId) {
@@ -30,6 +39,25 @@ export class UsuarioDeudaComponent implements OnInit {
         this.loading = false;
       },
       error: () => (this.loading = false),
+    });
+  }
+
+  pagarDeudaOnline(): void {
+    if (!this.usuarioId || this.pagando) return;
+    this.pagando = true;
+    this.pagos.crearIntencionOnline(this.usuarioId).subscribe({
+      next: (r) => {
+        this.pagando = false;
+        if (r.checkoutUrl) {
+          window.location.href = r.checkoutUrl;
+        } else {
+          this.snackBar.open('No se obtuvo URL de pago', 'Cerrar', { duration: 3000 });
+        }
+      },
+      error: (err) => {
+        this.pagando = false;
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
+      },
     });
   }
 

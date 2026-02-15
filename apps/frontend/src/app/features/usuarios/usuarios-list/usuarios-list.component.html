@@ -1,7 +1,9 @@
 <div class="flex flex-col gap-4">
   <div class="flex items-center justify-between">
     <h2>Usuarios</h2>
-    <button mat-raised-button color="primary" (click)="crear()">Nuevo usuario</button>
+    @if (puedeCrearUsuario()) {
+      <button mat-raised-button color="primary" (click)="crear()">Nuevo usuario</button>
+    }
   </div>
 
   <div class="mat-elevation-z2 overflow-hidden rounded">

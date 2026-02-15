@@ -24,6 +24,7 @@ import { CrearIntencionPagoDto } from './dto/crear-intencion-pago.dto';
 import {
   DeudaCeroError,
   PagoDuplicadoError,
+  PagoCartaPendienteError,
   UsuarioNoEncontradoError,
 } from '../../domain/errors/domain.errors';
 import {
@@ -124,6 +125,15 @@ export class PagosController {
       if (err instanceof UsuarioNoEncontradoError) {
         throw new NotFoundException(err.message);
       }
+      if (err instanceof PagoCartaPendienteError) {
+        throw new UnprocessableEntityException(err.message);
+      }
+      if (
+        err instanceof Error &&
+        err.message.includes('Tiene una carta vigente')
+      ) {
+        throw new UnprocessableEntityException(err.message);
+      }
       if (
         err instanceof Error &&
         err.message.includes('monto de carta configurado')
@@ -169,6 +179,15 @@ export class PagosController {
     } catch (err) {
       if (err instanceof UsuarioNoEncontradoError) {
         throw new NotFoundException(err.message);
+      }
+      if (err instanceof PagoCartaPendienteError) {
+        throw new UnprocessableEntityException(err.message);
+      }
+      if (
+        err instanceof Error &&
+        err.message.includes('Tiene una carta vigente')
+      ) {
+        throw new UnprocessableEntityException(err.message);
       }
       if (
         err instanceof Error &&

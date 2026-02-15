@@ -12,6 +12,14 @@ import { UsuarioHistorialComponent } from '../usuario-historial/usuario-historia
 import { UsuarioRequisitosComponent } from '../usuario-requisitos/usuario-requisitos.component';
 import { UsuarioCartasComponent } from '../usuario-cartas/usuario-cartas.component';
 import { UsuarioDocumentosComponent } from '../usuario-documentos/usuario-documentos.component';
+import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
+import { AuthService } from '../../../core/auth/auth.service';
+
+const TAB_DEUDA = 0;
+const TAB_HISTORIAL = 1;
+const TAB_REQUISITOS = 2;
+const TAB_CARTAS = 3;
+const TAB_DOCUMENTOS = 4;
 
 @Component({
   selector: 'app-usuario-detail',
@@ -35,12 +43,14 @@ export class UsuarioDetailComponent implements OnInit {
   usuario: UsuarioListItem | null = null;
   loading = false;
   editando = false;
+  tabSeleccionado = 0;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly usuarios: UsuariosService,
-    private readonly snackBar: MatSnackBar
+    private readonly snackBar: MatSnackBar,
+    private readonly auth: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -48,6 +58,10 @@ export class UsuarioDetailComponent implements OnInit {
     if (id && id !== 'nuevo') {
       this.cargar(id);
     }
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab === 'cartas') this.tabSeleccionado = TAB_CARTAS;
+    else if (tab === 'deuda') this.tabSeleccionado = TAB_DEUDA;
+    else if (tab === 'documentos') this.tabSeleccionado = TAB_DOCUMENTOS;
   }
 
   cargar(id: string): void {
@@ -57,16 +71,31 @@ export class UsuarioDetailComponent implements OnInit {
         this.usuario = u;
         this.loading = false;
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
-        this.snackBar.open('Error al cargar usuario', 'Cerrar', { duration: 3000 });
-        this.router.navigate(['/usuarios']);
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
+        this.router.navigate(this.auth.puedeVerUsuarios() ? ['/usuarios'] : ['/']);
       },
     });
   }
 
   volver(): void {
-    this.router.navigate(['/usuarios']);
+    if (this.usuario && this.usuario.id === this.auth.currentUser()?.id && !this.auth.puedeVerUsuarios()) {
+      this.router.navigate(['/']);
+    } else {
+      this.router.navigate(['/usuarios']);
+    }
+  }
+
+  puedeEditarUsuario(): boolean {
+    return this.auth.hasRole('ADMIN') || this.auth.hasRole('SECRETARIA');
+  }
+
+  /** Modificador viendo a OTRO usuario: solo tab Requisitos (obligaciones). En Mi cuenta ve todo. */
+  esModificadorViendoOtro(): boolean {
+    const u = this.auth.currentUser();
+    if (!u?.esModificador || !u?.juntaId || !this.usuario) return false;
+    return this.usuario.id !== u.id;
   }
 
   editar(): void {
@@ -81,8 +110,8 @@ export class UsuarioDetailComponent implements OnInit {
         this.editando = false;
         this.snackBar.open('Usuario actualizado', 'Cerrar', { duration: 2000 });
       },
-      error: () => {
-        this.snackBar.open('Error al actualizar', 'Cerrar', { duration: 3000 });
+      error: (err) => {
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
       },
     });
   }

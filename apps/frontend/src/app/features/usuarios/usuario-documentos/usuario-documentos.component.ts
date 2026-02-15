@@ -4,6 +4,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DocumentosService, DocumentoItem } from '../../cartas/services/documentos.service';
+import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
+import { AuthService } from '../../../core/auth/auth.service';
 
 const TIPOS = [
   { value: 'RECIBO_AGUA', label: 'Recibo agua' },
@@ -28,7 +30,8 @@ export class UsuarioDocumentosComponent implements OnInit {
 
   constructor(
     private readonly documentosSvc: DocumentosService,
-    private readonly snackBar: MatSnackBar
+    private readonly snackBar: MatSnackBar,
+    private readonly auth: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -62,9 +65,7 @@ export class UsuarioDocumentosComponent implements OnInit {
       },
       error: (err) => {
         this.subiendo = false;
-        this.snackBar.open(err.error?.error?.message || err.error?.message || 'Error', 'Cerrar', {
-          duration: 5000,
-        });
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
       },
     });
   }
@@ -72,8 +73,15 @@ export class UsuarioDocumentosComponent implements OnInit {
   descargar(d: DocumentoItem): void {
     this.documentosSvc.getUrlDescarga(d.id).subscribe({
       next: (r) => window.open(r.url, '_blank'),
-      error: () => this.snackBar.open('Error al obtener enlace', 'Cerrar', { duration: 3000 }),
+      error: (err) => this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 }),
     });
+  }
+
+  puedeSubirDocumento(): boolean {
+    const u = this.auth.currentUser();
+    if (!u) return false;
+    if (this.usuarioId === u.id) return true;
+    return u.roles?.includes('ADMIN') || u.roles?.includes('SECRETARIA') || u.roles?.includes('TESORERA') || false;
   }
 
   formatearFecha(f: string): string {

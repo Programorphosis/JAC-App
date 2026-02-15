@@ -47,10 +47,14 @@ export class PrismaRequisitoRepository implements IRequisitoRepository {
   ): Promise<RequisitoParaCarta[]> {
     const requisitos = await this.prisma.requisitoTipo.findMany({
       where: { juntaId, activo: true },
-      include: {
+      select: {
+        id: true,
+        nombre: true,
+        modificadorId: true,
         estados: {
           where: { usuarioId },
           take: 1,
+          select: { obligacionActiva: true, estado: true },
         },
       },
     });
@@ -62,6 +66,7 @@ export class PrismaRequisitoRepository implements IRequisitoRepository {
         nombre: rt.nombre,
         obligacionActiva: estado?.obligacionActiva ?? true,
         estado: (estado?.estado ?? 'MORA') as RequisitoParaCarta['estado'],
+        modificadorId: rt.modificadorId,
       };
     });
   }

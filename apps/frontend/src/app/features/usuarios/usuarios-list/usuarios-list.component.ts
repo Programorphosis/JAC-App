@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { UsuariosService, UsuarioListItem } from '../services/usuarios.service';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-usuarios-list',
@@ -23,7 +24,8 @@ export class UsuariosListComponent implements OnInit {
 
   constructor(
     private readonly usuarios: UsuariosService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly auth: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -58,6 +60,10 @@ export class UsuariosListComponent implements OnInit {
 
   documento(u: UsuarioListItem): string {
     return `${u.tipoDocumento} ${u.numeroDocumento}`;
+  }
+
+  puedeCrearUsuario(): boolean {
+    return this.auth.hasRole('ADMIN') || this.auth.hasRole('SECRETARIA');
   }
 
   roles(u: UsuarioListItem): string {

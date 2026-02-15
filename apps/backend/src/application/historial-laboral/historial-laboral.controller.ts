@@ -6,6 +6,7 @@ import {
   Param,
   UseGuards,
   Request,
+  ForbiddenException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { HistorialLaboralService } from './historial-laboral.service';
@@ -23,12 +24,23 @@ export class HistorialLaboralController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
   async listar(
     @Param('usuarioId') usuarioId: string,
     @Request() req: { user: JwtUser },
   ) {
-    const juntaId = req.user.juntaId!;
+    const user = req.user;
+    const juntaId = user.juntaId!;
+
+    const puedeVerOtro =
+      user.roles.includes(RolNombre.ADMIN) ||
+      user.roles.includes(RolNombre.SECRETARIA) ||
+      user.roles.includes(RolNombre.TESORERA);
+
+    if (!puedeVerOtro && usuarioId !== user.id) {
+      throw new ForbiddenException('Solo puede consultar su propio historial');
+    }
+
     return this.historial.listar(usuarioId, juntaId);
   }
 

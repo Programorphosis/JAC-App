@@ -24,7 +24,9 @@
             <p>Estado en Wompi: {{ resultado.status }}</p>
           }
         }
-        <button mat-raised-button color="primary" (click)="volver()" class="mt-4">Volver a pagos</button>
+        <button mat-raised-button color="primary" (click)="volver()" class="mt-4">
+          {{ auth.puedeVerPagos() ? 'Volver a pagos' : 'Volver a Mi cuenta' }}
+        </button>
       }
     </mat-card-content>
   </mat-card>

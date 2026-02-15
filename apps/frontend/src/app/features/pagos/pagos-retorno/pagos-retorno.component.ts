@@ -4,6 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { PagosService } from '../services/pagos.service';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-pagos-retorno',
@@ -19,7 +20,8 @@ export class PagosRetornoComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly pagos: PagosService
+    private readonly pagos: PagosService,
+    readonly auth: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -42,7 +44,12 @@ export class PagosRetornoComponent implements OnInit {
   }
 
   volver(): void {
-    this.router.navigate(['/pagos']);
+    const user = this.auth.currentUser();
+    if (user && !this.auth.puedeVerPagos()) {
+      this.router.navigate(['/usuarios', user.id]);
+    } else {
+      this.router.navigate(['/pagos']);
+    }
   }
 
   formatearMoneda(v: number): string {

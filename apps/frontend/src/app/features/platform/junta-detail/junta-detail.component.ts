@@ -7,6 +7,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { PlatformService, JuntaDetalle } from '../services/platform.service';
 import { JuntaFormComponent } from '../junta-form/junta-form.component';
+import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
   selector: 'app-junta-detail',
@@ -41,9 +42,9 @@ export class JuntaDetailComponent implements OnInit {
         this.junta = j;
         this.loading = false;
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
-        this.snackBar.open('Error al cargar junta', 'Cerrar', { duration: 3000 });
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
         this.router.navigate(['/platform', 'juntas']);
       },
     });
@@ -69,8 +70,8 @@ export class JuntaDetailComponent implements OnInit {
         this.editando = false;
         this.snackBar.open('Junta actualizada', 'Cerrar', { duration: 2000 });
       },
-      error: () => {
-        this.snackBar.open('Error al actualizar', 'Cerrar', { duration: 3000 });
+      error: (err) => {
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
       },
     });
   }

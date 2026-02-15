@@ -8,6 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PagosService } from '../services/pagos.service';
 import { UsuariosService, UsuarioListItem } from '../../usuarios/services/usuarios.service';
+import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
   selector: 'app-pagos',
@@ -73,7 +74,7 @@ export class PagosComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.snackBar.open(err.error?.error?.message || err.error?.message || 'Error', 'Cerrar', { duration: 5000 });
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
       },
     });
   }
@@ -98,7 +99,7 @@ export class PagosComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.snackBar.open(err.error?.error?.message || err.error?.message || 'Error', 'Cerrar', { duration: 5000 });
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
       },
     });
   }
@@ -112,7 +113,7 @@ export class PagosComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.snackBar.open(err.error?.error?.message || err.error?.message || 'Error', 'Cerrar', { duration: 5000 });
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
       },
     });
   }
@@ -126,7 +127,7 @@ export class PagosComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.snackBar.open(err.error?.error?.message || err.error?.message || 'Error', 'Cerrar', { duration: 5000 });
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
       },
     });
   }

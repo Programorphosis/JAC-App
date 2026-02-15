@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import {
   UsuarioNoEncontradoError,
   PagoDuplicadoError,
+  PagoCartaPendienteError,
 } from '../../domain/errors/domain.errors';
 import { PaymentService } from '../../domain/services/payment.service';
 import { PrismaPaymentRegistrationContext } from './prisma-payment-registration-context.service';
@@ -75,6 +76,40 @@ export class PaymentRegistrationRunner {
         }
         if (!junta?.montoCarta || junta.montoCarta <= 0) {
           throw new Error('La junta no tiene monto de carta configurado');
+        }
+
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const [cartaPendiente, tienePagoVigente, cartaVigente] = await Promise.all([
+          tx.carta.findFirst({
+            where: {
+              usuarioId: params.usuarioId,
+              juntaId: params.juntaId,
+              estado: 'PENDIENTE',
+            },
+          }),
+          tx.pago.findFirst({
+            where: {
+              usuarioId: params.usuarioId,
+              juntaId: params.juntaId,
+              tipo: 'CARTA',
+              vigencia: true,
+            },
+          }),
+          tx.carta.findFirst({
+            where: {
+              usuarioId: params.usuarioId,
+              juntaId: params.juntaId,
+              estado: 'APROBADA',
+              vigenciaHasta: { gte: hoy },
+            },
+          }),
+        ]);
+        if (cartaPendiente || tienePagoVigente) {
+          throw new PagoCartaPendienteError(params.usuarioId);
+        }
+        if (cartaVigente) {
+          throw new Error('Tiene una carta vigente. Debe esperar a que venza para poder pagar otra.');
         }
 
         const consecutivo = await ctx.getNextConsecutivoPagoCarta(params.juntaId);

@@ -15,6 +15,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JuntaGuard } from '../../auth/guards/junta.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
+import { ModificadorOAdminGuard } from '../../auth/guards/modificador-o-admin.guard';
+import { UsuarioPropioOAdminGuard } from '../../auth/guards/usuario-propio-o-admin.guard';
 import { RolNombre } from '@prisma/client';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { JwtUser } from '../../auth/strategies/jwt.strategy';
@@ -25,8 +27,7 @@ export class UsersController {
   constructor(private readonly users: UsersService) {}
 
   @Get()
-  @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA)
+  @UseGuards(ModificadorOAdminGuard)
   async listar(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -39,8 +40,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA)
+  @UseGuards(UsuarioPropioOAdminGuard)
   async obtener(
     @Param('id') id: string,
     @Request() req: { user: JwtUser },

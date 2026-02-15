@@ -64,6 +64,17 @@ export class PagoDuplicadoError extends DomainError {
   }
 }
 
+/** No permitir nuevo pago carta si ya existe uno sin usar (carta PENDIENTE). */
+export class PagoCartaPendienteError extends DomainError {
+  constructor(usuarioId: string) {
+    super(
+      `Ya existe un pago de carta pendiente de usar para este usuario. No se puede registrar otro pago hasta que se expida o rechace la carta.`,
+      'PAGO_CARTA_PENDIENTE',
+    );
+    this.name = 'PagoCartaPendienteError';
+  }
+}
+
 // LetterService
 export class RequisitosCartaNoCumplidosError extends DomainError {
   constructor(motivo: string) {

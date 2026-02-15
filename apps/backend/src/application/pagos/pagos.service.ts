@@ -9,6 +9,7 @@ import { WompiService } from '../../infrastructure/wompi/wompi.service';
 import {
   DeudaCeroError,
   PagoDuplicadoError,
+  PagoCartaPendienteError,
   UsuarioNoEncontradoError,
 } from '../../domain/errors/domain.errors';
 import { TipoIntencionPago } from '@prisma/client';
@@ -137,6 +138,31 @@ export class PagosService {
     }
     if (!junta?.montoCarta || junta.montoCarta <= 0) {
       throw new Error('La junta no tiene monto de carta configurado');
+    }
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const [cartaPendiente, tienePagoVigente, cartaVigente] = await Promise.all([
+      this.prisma.carta.findFirst({
+        where: { usuarioId, juntaId, estado: 'PENDIENTE' },
+      }),
+      this.prisma.pago.findFirst({
+        where: { usuarioId, juntaId, tipo: 'CARTA', vigencia: true },
+      }),
+      this.prisma.carta.findFirst({
+        where: {
+          usuarioId,
+          juntaId,
+          estado: 'APROBADA',
+          vigenciaHasta: { gte: hoy },
+        },
+      }),
+    ]);
+    if (cartaPendiente || tienePagoVigente) {
+      throw new PagoCartaPendienteError(usuarioId);
+    }
+    if (cartaVigente) {
+      throw new Error('Tiene una carta vigente. Debe esperar a que venza para poder pagar otra.');
     }
 
     const montoCents = junta.montoCarta * 100;

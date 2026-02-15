@@ -17,8 +17,16 @@ export class PublicController {
   @Get('validar-carta/:qrToken')
   @Throttle({ default: { limit: 30, ttl: 60_000 } }) // 30 consultas/min por IP
   async validarCarta(@Param('qrToken') qrToken: string) {
-    const carta = await this.prisma.carta.findUnique({
-      where: { qrToken, estado: 'APROBADA' },
+    const ahora = new Date();
+    const carta = await this.prisma.carta.findFirst({
+      where: {
+        qrToken,
+        estado: 'APROBADA',
+        OR: [
+          { vigenciaHasta: null },
+          { vigenciaHasta: { gte: ahora } },
+        ],
+      },
       include: {
         usuario: {
           select: {
@@ -34,6 +42,17 @@ export class PublicController {
     });
 
     if (!carta) {
+      const cartaExiste = await this.prisma.carta.findUnique({
+        where: { qrToken },
+        select: { estado: true, vigenciaHasta: true },
+      });
+      const ahora = new Date();
+      if (cartaExiste?.estado === 'APROBADA' && cartaExiste.vigenciaHasta && cartaExiste.vigenciaHasta < ahora) {
+        return {
+          valida: false,
+          mensaje: 'Carta vencida',
+        };
+      }
       return {
         valida: false,
         mensaje: 'Carta no encontrada o no válida',
@@ -61,6 +80,7 @@ export class PublicController {
       nombre: `${carta.usuario.nombres} ${carta.usuario.apellidos}`,
       documentoParcial,
       fechaEmision: carta.fechaEmision,
+      vigenciaHasta: (carta as { vigenciaHasta?: Date }).vigenciaHasta ?? null,
       junta: carta.junta.nombre,
       consecutivo: carta.consecutivo,
       anio: carta.anio,

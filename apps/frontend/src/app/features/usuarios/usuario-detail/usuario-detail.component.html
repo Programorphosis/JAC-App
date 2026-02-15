@@ -9,51 +9,66 @@
   @if (loading) {
     <p>Cargando...</p>
   } @else if (usuario) {
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>{{ usuario.nombres }} {{ usuario.apellidos }}</mat-card-title>
-        <mat-card-subtitle>
-          {{ usuario.tipoDocumento }} {{ usuario.numeroDocumento }} · {{ roles() }}
-        </mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        @if (editando) {
-          <app-usuario-form
-            [modoEdicion]="true"
-            [valoresIniciales]="{
-              nombres: usuario.nombres,
-              apellidos: usuario.apellidos,
-              telefono: usuario.telefono ?? '',
-              direccion: usuario.direccion ?? '',
-              activo: usuario.activo
-            }"
-            (guardar)="onGuardar($event)"
-          />
-        } @else {
-          <p><strong>Teléfono:</strong> {{ usuario.telefono || '-' }}</p>
-          <p><strong>Dirección:</strong> {{ usuario.direccion || '-' }}</p>
-          <p><strong>Activo:</strong> {{ usuario.activo ? 'Sí' : 'No' }}</p>
-          <button mat-raised-button (click)="editar()">Editar</button>
-        }
-      </mat-card-content>
-    </mat-card>
+    @if (!esModificadorViendoOtro()) {
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>{{ usuario.nombres }} {{ usuario.apellidos }}</mat-card-title>
+          <mat-card-subtitle>
+            {{ usuario.tipoDocumento }} {{ usuario.numeroDocumento }} · {{ roles() }}
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (editando) {
+            <app-usuario-form
+              [modoEdicion]="true"
+              [valoresIniciales]="{
+                nombres: usuario.nombres,
+                apellidos: usuario.apellidos,
+                telefono: usuario.telefono ?? '',
+                direccion: usuario.direccion ?? '',
+                activo: usuario.activo
+              }"
+              (guardar)="onGuardar($event)"
+            />
+          } @else {
+            <p><strong>Teléfono:</strong> {{ usuario.telefono || '-' }}</p>
+            <p><strong>Dirección:</strong> {{ usuario.direccion || '-' }}</p>
+            <p><strong>Activo:</strong> {{ usuario.activo ? 'Sí' : 'No' }}</p>
+            @if (puedeEditarUsuario()) {
+              <button mat-raised-button (click)="editar()">Editar</button>
+            }
+          }
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>{{ usuario.nombres }} {{ usuario.apellidos }}</mat-card-title>
+          <mat-card-subtitle>{{ usuario.tipoDocumento }} {{ usuario.numeroDocumento }}</mat-card-subtitle>
+        </mat-card-header>
+      </mat-card>
+    }
 
-    <mat-tab-group>
-      <mat-tab label="Deuda">
-        <app-usuario-deuda [usuarioId]="usuario.id" />
-      </mat-tab>
-      <mat-tab label="Historial laboral">
-        <app-usuario-historial [usuarioId]="usuario.id" />
-      </mat-tab>
-      <mat-tab label="Requisitos">
-        <app-usuario-requisitos [usuarioId]="usuario.id" />
-      </mat-tab>
-      <mat-tab label="Cartas">
-        <app-usuario-cartas [usuarioId]="usuario.id" />
-      </mat-tab>
-      <mat-tab label="Documentos">
-        <app-usuario-documentos [usuarioId]="usuario.id" />
-      </mat-tab>
-    </mat-tab-group>
+    @if (esModificadorViendoOtro()) {
+      <app-usuario-requisitos [usuarioId]="usuario.id" [soloRequisitosModificables]="true" />
+    } @else {
+      <mat-tab-group [selectedIndex]="tabSeleccionado">
+        <mat-tab label="Deuda">
+          <app-usuario-deuda [usuarioId]="usuario.id" />
+        </mat-tab>
+        <mat-tab label="Historial laboral">
+          <app-usuario-historial [usuarioId]="usuario.id" />
+        </mat-tab>
+        <mat-tab label="Requisitos">
+          <app-usuario-requisitos [usuarioId]="usuario.id" />
+        </mat-tab>
+        <mat-tab label="Cartas">
+          <app-usuario-cartas [usuarioId]="usuario.id" />
+        </mat-tab>
+        <mat-tab label="Documentos">
+          <app-usuario-documentos [usuarioId]="usuario.id" />
+        </mat-tab>
+      </mat-tab-group>
+    }
   }
 </div>

@@ -22,6 +22,7 @@ export interface RequisitoParaCarta {
   nombre: string;
   obligacionActiva: boolean;
   estado: EstadoRequisitoTipo;
+  modificadorId?: string | null;
 }
 
 export interface IRequisitoRepository {

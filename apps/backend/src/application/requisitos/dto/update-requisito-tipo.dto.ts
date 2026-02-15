@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsUUID, ValidateIf } from 'class-validator';
 
 export class UpdateRequisitoTipoDto {
   @IsOptional()
@@ -6,8 +6,9 @@ export class UpdateRequisitoTipoDto {
   nombre?: string;
 
   @IsOptional()
+  @ValidateIf((_, v) => v != null)
   @IsUUID()
-  modificadorId?: string;
+  modificadorId?: string | null;
 
   @IsOptional()
   @IsBoolean()
