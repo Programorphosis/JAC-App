@@ -9,7 +9,7 @@ export interface JwtUser {
   juntaId: string | null;
   roles: RolNombre[];
   esModificador: boolean;
-  requisitoTipoId: string | null;
+  requisitoTipoIds: string[];
 }
 
 interface JwtPayload {
@@ -40,9 +40,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         id: true,
         juntaId: true,
         activo: true,
-        esModificador: true,
-        requisitoTipoId: true,
         roles: { include: { rol: true } },
+        requisitosComoModificador: { select: { id: true } },
       },
     });
 
@@ -50,12 +49,15 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('Usuario no encontrado o inactivo');
     }
 
+    const requisitoTipoIds = usuario.requisitosComoModificador?.map((r) => r.id) ?? [];
+    const esModificador = requisitoTipoIds.length > 0;
+
     return {
       id: usuario.id,
       juntaId: usuario.juntaId,
       roles: usuario.roles.map((ur) => ur.rol.nombre),
-      esModificador: usuario.esModificador ?? false,
-      requisitoTipoId: usuario.requisitoTipoId ?? null,
+      esModificador,
+      requisitoTipoIds,
     };
   }
 }

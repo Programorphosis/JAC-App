@@ -101,10 +101,6 @@ model Usuario {
   fechaCreacion     DateTime @default(now())
   passwordHash      String   // bcrypt hash; requerido para login
 
-  esModificador     Boolean  @default(false)
-  requisitoTipoId   String?  @unique
-  requisitoTipo     RequisitoTipo? @relation("UsuarioComoModificador", fields: [requisitoTipoId], references: [id])
-
   roles             UsuarioRol[]
   historialLaboral   HistorialLaboral[]
   historialCreadoPor HistorialLaboral[] @relation("HistorialCreadoPor")
@@ -254,7 +250,6 @@ model RequisitoTipo {
   nombre               String
   modificadorId        String?
   modificador          Usuario? @relation("RequisitoModificador", fields: [modificadorId], references: [id])
-  usuarioComoModificador Usuario? @relation("UsuarioComoModificador")
   tieneCorteAutomatico Boolean @default(true)
   activo               Boolean  @default(true)
   fechaCreacion        DateTime @default(now())

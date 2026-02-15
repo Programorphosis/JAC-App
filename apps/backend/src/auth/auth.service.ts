@@ -31,7 +31,7 @@ export interface AuthResult {
     juntaId: string | null;
     roles: RolNombre[];
     esModificador: boolean;
-    requisitoTipoId: string | null;
+    requisitoTipoIds: string[];
   };
 }
 
@@ -55,7 +55,10 @@ export class AuthService {
 
     const usuario = await this.prisma.usuario.findFirst({
       where,
-      include: { roles: { include: { rol: true } } },
+      include: {
+        roles: { include: { rol: true } },
+        requisitosComoModificador: { select: { id: true } },
+      },
     });
 
     if (!usuario || !usuario.activo) {
@@ -112,8 +115,8 @@ export class AuthService {
         numeroDocumento: usuario.numeroDocumento,
         juntaId: usuario.juntaId,
         roles,
-        esModificador: usuario.esModificador ?? false,
-        requisitoTipoId: usuario.requisitoTipoId ?? null,
+        esModificador: (usuario.requisitosComoModificador?.length ?? 0) > 0,
+        requisitoTipoIds: usuario.requisitosComoModificador?.map((r) => r.id) ?? [],
       },
     };
   }
@@ -132,19 +135,21 @@ export class AuthService {
         juntaId: true,
         activo: true,
         fechaCreacion: true,
-        esModificador: true,
-        requisitoTipoId: true,
         junta: { select: { id: true, nombre: true } },
         roles: { include: { rol: { select: { nombre: true } } } },
+        requisitosComoModificador: { select: { id: true } },
       },
     });
+
+    const requisitoTipoIds = usuario.requisitosComoModificador?.map((r) => r.id) ?? [];
+    const esModificador = requisitoTipoIds.length > 0;
 
     return {
       ...usuario,
       junta: usuario.junta,
       roles: usuario.roles.map((ur) => ur.rol.nombre),
-      esModificador: usuario.esModificador ?? false,
-      requisitoTipoId: usuario.requisitoTipoId ?? null,
+      esModificador,
+      requisitoTipoIds,
     };
   }
 
@@ -160,7 +165,10 @@ export class AuthService {
 
       const usuario = await this.prisma.usuario.findUniqueOrThrow({
         where: { id: payload.sub },
-        include: { roles: { include: { rol: true } } },
+        include: {
+          roles: { include: { rol: true } },
+          requisitosComoModificador: { select: { id: true } },
+        },
       });
 
       if (!usuario.activo) {
@@ -168,6 +176,8 @@ export class AuthService {
       }
 
       const roles = usuario.roles.map((ur) => ur.rol.nombre);
+      const requisitoTipoIds = usuario.requisitosComoModificador?.map((r) => r.id) ?? [];
+      const esModificador = requisitoTipoIds.length > 0;
 
       const newPayload: JwtPayload = {
         sub: usuario.id,
@@ -197,8 +207,8 @@ export class AuthService {
           numeroDocumento: usuario.numeroDocumento,
           juntaId: usuario.juntaId,
           roles,
-          esModificador: usuario.esModificador ?? false,
-          requisitoTipoId: usuario.requisitoTipoId ?? null,
+          esModificador,
+          requisitoTipoIds,
         },
       };
     } catch {

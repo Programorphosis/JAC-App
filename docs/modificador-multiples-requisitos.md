@@ -1,12 +1,14 @@
 # Modificador de múltiples requisitos – Especificación técnica
 
+**Estado:** Implementado (2026-02-15)
+
 **Objetivo:** Permitir que un usuario sea modificador de varios requisitos a la vez (ej. Agua y Basura).
 
 **Referencia:** flujoRequisitosAdicionales.md, análisis de JAC reales.
 
 ---
 
-## 1. Estado actual
+## 1. Estado anterior (antes de implementar)
 
 | Elemento | Implementación actual |
 |----------|------------------------|
@@ -18,7 +20,7 @@
 
 ---
 
-## 2. Cambios propuestos
+## 2. Cambios implementados
 
 ### 2.1 Schema (Prisma)
 
@@ -131,10 +133,8 @@ return {
 
 ---
 
-## 5. Documentación a actualizar
+## 5. Documentación actualizada
 
-Tras implementar, actualizar `flujoRequisitosAdicionales.md`:
-- Línea 18: "un usuario solo puede ser modificador de un requisito a la vez" → "un usuario puede ser modificador de uno o varios requisitos".
-- Línea 32: "Un usuario solo puede ser modificador de un requisito" → "Un usuario puede ser modificador de varios requisitos".
+- `flujoRequisitosAdicionales.md`: actualizado con la nueva regla de múltiples requisitos por modificador.
 <｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
 StrReplace

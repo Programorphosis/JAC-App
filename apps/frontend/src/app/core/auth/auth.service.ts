@@ -20,6 +20,9 @@ export interface AuthUser {
   juntaId: string | null;
   roles: RolNombre[];
   esModificador?: boolean;
+  /** IDs de requisitos que puede modificar. Reemplaza requisitoTipoId (deprecado). */
+  requisitoTipoIds?: string[];
+  /** @deprecated Usar requisitoTipoIds. Mantenido para compatibilidad con sesiones antiguas. */
   requisitoTipoId?: string | null;
 }
 
@@ -119,7 +122,10 @@ export class AuthService {
     const u = this.userSignal();
     if (!u) return false;
     if (u.roles?.includes('ADMIN') || u.roles?.includes('SECRETARIA')) return true;
-    return !!(u.esModificador && u.juntaId);
+    const esMod =
+      u.esModificador ??
+      ((u.requisitoTipoIds?.length ?? 0) > 0 || !!u.requisitoTipoId);
+    return !!(esMod && u.juntaId);
   }
 
   /** true si puede ver la configuración de requisitos (solo ADMIN crea/edita) */
