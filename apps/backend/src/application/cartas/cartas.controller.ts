@@ -40,11 +40,11 @@ export class CartasController {
 
   /**
    * GET /cartas - Listar cartas.
-   * ?usuarioId=xxx → cartas del usuario. ?estado=PENDIENTE → solo pendientes (ADMIN, SECRETARIA).
+   * ?usuarioId=xxx → cartas del usuario. ?estado=PENDIENTE → solo pendientes (SECRETARIA).
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
   async listar(
     @Query('usuarioId') usuarioId: string | undefined,
     @Query('estado') estado: string | undefined,
@@ -54,8 +54,7 @@ export class CartasController {
     const user = req.user;
 
     if (usuarioId?.trim()) {
-      const puedeVerOtro =
-        user.roles.includes(RolNombre.ADMIN) || user.roles.includes(RolNombre.SECRETARIA);
+      const puedeVerOtro = user.roles.includes(RolNombre.SECRETARIA);
       if (!puedeVerOtro && usuarioId !== user.id) {
         throw new ForbiddenException('Solo puede listar sus propias cartas');
       }
@@ -64,10 +63,9 @@ export class CartasController {
     }
 
     if (estado === 'PENDIENTE') {
-      const puedeVer =
-        user.roles.includes(RolNombre.ADMIN) || user.roles.includes(RolNombre.SECRETARIA);
+      const puedeVer = user.roles.includes(RolNombre.SECRETARIA);
       if (!puedeVer) {
-        throw new ForbiddenException('Solo ADMIN o SECRETARIA pueden listar cartas pendientes');
+        throw new ForbiddenException('Solo SECRETARIA puede listar cartas pendientes');
       }
       const data = await this.cartas.listarPendientes(juntaId);
       return { data, meta: { timestamp: new Date().toISOString() } };
@@ -78,11 +76,11 @@ export class CartasController {
 
   /**
    * POST /cartas/solicitar - Crear carta en estado PENDIENTE.
-   * CIUDADANO: solo para sí mismo. ADMIN, SECRETARIA: para cualquier usuario de la junta.
+   * CIUDADANO: solo para sí mismo. SECRETARIA: para cualquier usuario de la junta.
    */
   @Post('solicitar')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.SECRETARIA, RolNombre.CIUDADANO)
   async solicitar(
     @Body('usuarioId') usuarioId: string,
     @Request() req: { user: JwtUser },
@@ -94,8 +92,7 @@ export class CartasController {
     const user = req.user;
     const juntaId = user.juntaId!;
 
-    const puedeSolicitarParaOtro =
-      user.roles.includes(RolNombre.ADMIN) || user.roles.includes(RolNombre.SECRETARIA);
+    const puedeSolicitarParaOtro = user.roles.includes(RolNombre.SECRETARIA);
 
     if (!puedeSolicitarParaOtro && usuarioId !== user.id) {
       throw new ForbiddenException('Solo puede solicitar carta para sí mismo');
@@ -125,11 +122,11 @@ export class CartasController {
 
   /**
    * GET /cartas/:id/descargar - Obtener URL firmada para descargar PDF.
-   * CIUDADANO: solo propias. ADMIN, SECRETARIA: cualquiera de la junta.
+   * CIUDADANO: solo propias. SECRETARIA: cualquiera de la junta.
    */
   @Get(':id/descargar')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.SECRETARIA, RolNombre.CIUDADANO)
   async descargar(
     @Param('id') cartaId: string,
     @Request() req: { user: JwtUser },
@@ -137,8 +134,7 @@ export class CartasController {
     const juntaId = req.user.juntaId!;
     const user = req.user;
 
-    const puedeVerOtro =
-      user.roles.includes(RolNombre.ADMIN) || user.roles.includes(RolNombre.SECRETARIA);
+    const puedeVerOtro = user.roles.includes(RolNombre.SECRETARIA);
     const soloPropios = puedeVerOtro ? undefined : user.id;
 
     try {
@@ -159,11 +155,11 @@ export class CartasController {
 
   /**
    * POST /cartas/:id/validar - Validar y aprobar carta.
-   * Solo SECRETARIA, ADMIN.
+   * Solo SECRETARIA.
    */
   @Post(':id/validar')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA)
+  @Roles(RolNombre.SECRETARIA)
   async validar(
     @Param('id') cartaId: string,
     @Request() req: { user: JwtUser },

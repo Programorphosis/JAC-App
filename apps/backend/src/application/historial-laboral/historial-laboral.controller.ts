@@ -46,7 +46,7 @@ export class HistorialLaboralController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA)
+  @Roles(RolNombre.SECRETARIA)
   async crear(
     @Param('usuarioId') usuarioId: string,
     @Body() dto: CreateHistorialLaboralDto,

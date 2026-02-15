@@ -133,11 +133,9 @@ export class AuthService {
     return this.hasRole('ADMIN');
   }
 
-  /** true si puede registrar pagos y ver módulo Pagos (ADMIN, SECRETARIA, TESORERA) */
+  /** true si puede registrar pagos y ver módulo Pagos (SECRETARIA, TESORERA) */
   puedeVerPagos(): boolean {
-    return (
-      this.hasRole('ADMIN') || this.hasRole('SECRETARIA') || this.hasRole('TESORERA')
-    );
+    return this.hasRole('SECRETARIA') || this.hasRole('TESORERA');
   }
 
   /** true si puede ver Tarifas (ADMIN, SECRETARIA, TESORERA) */
@@ -147,9 +145,9 @@ export class AuthService {
     );
   }
 
-  /** true si puede ver Cartas pendientes y validar (solo ADMIN, SECRETARIA) */
+  /** true si puede ver Cartas pendientes y validar (solo SECRETARIA) */
   puedeVerCartasPendientes(): boolean {
-    return this.hasRole('ADMIN') || this.hasRole('SECRETARIA');
+    return this.hasRole('SECRETARIA');
   }
 
   private handleAuthSuccess(result: AuthResult): void {

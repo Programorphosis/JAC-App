@@ -128,7 +128,7 @@ export class RequisitosService {
     requisitoTipoId: string,
     juntaId: string,
   ): Promise<void> {
-    if (user.roles.includes(RolNombre.ADMIN)) return;
+    if (user.roles.includes(RolNombre.SECRETARIA)) return;
 
     const rt = await this.prisma.requisitoTipo.findFirst({
       where: { id: requisitoTipoId, juntaId },
@@ -138,7 +138,7 @@ export class RequisitosService {
     }
     if (rt.modificadorId !== user.id) {
       throw new ForbiddenException(
-        'Solo el modificador asignado o ADMIN puede actualizar el estado',
+        'Solo el modificador asignado o SECRETARIA puede actualizar el estado',
       );
     }
   }
@@ -188,8 +188,8 @@ export class RequisitosService {
   ) {
     const juntaId = user.juntaId!;
 
-    if (!user.roles.includes(RolNombre.ADMIN)) {
-      throw new ForbiddenException('Solo ADMIN puede cambiar la obligación');
+    if (!user.roles.includes(RolNombre.SECRETARIA)) {
+      throw new ForbiddenException('Solo SECRETARIA puede cambiar la obligación');
     }
 
     const usuario = await this.prisma.usuario.findFirst({

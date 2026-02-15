@@ -45,11 +45,11 @@ export class PagosController {
 
   /**
    * POST /pagos – Registrar pago efectivo o transferencia.
-   * Solo TESORERA, ADMIN, SECRETARIA. El monto se calcula en backend.
+   * Solo TESORERA, SECRETARIA. El monto se calcula en backend.
    */
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA)
+  @Roles(RolNombre.TESORERA, RolNombre.SECRETARIA)
   @HttpCode(HttpStatus.CREATED)
   async registrarEfectivo(
     @Body() dto: RegistrarPagoEfectivoDto,
@@ -91,11 +91,11 @@ export class PagosController {
 
   /**
    * POST /pagos/carta – Registrar pago tipo CARTA (efectivo o transferencia).
-   * Monto desde Junta.montoCarta. Solo TESORERA, ADMIN, SECRETARIA.
+   * Monto desde Junta.montoCarta. Solo TESORERA, SECRETARIA.
    */
   @Post('carta')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA)
+  @Roles(RolNombre.TESORERA, RolNombre.SECRETARIA)
   @HttpCode(HttpStatus.CREATED)
   async registrarCarta(
     @Body() dto: RegistrarPagoCartaDto,
@@ -146,18 +146,17 @@ export class PagosController {
 
   /**
    * POST /pagos/carta/online/intencion – Crear intención de pago CARTA online.
-   * Monto desde Junta.montoCarta. ADMIN, SECRETARIA, TESORERA, CIUDADANO.
+   * Monto desde Junta.montoCarta. SECRETARIA, TESORERA, CIUDADANO.
    */
   @Post('carta/online/intencion')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
   async crearIntencionCarta(
     @Body() dto: CrearIntencionPagoDto,
     @Request() req: { user: JwtUser },
   ) {
     const juntaId = req.user.juntaId!;
     const puedeCrearParaOtro =
-      req.user.roles.includes(RolNombre.ADMIN) ||
       req.user.roles.includes(RolNombre.SECRETARIA) ||
       req.user.roles.includes(RolNombre.TESORERA);
 
@@ -201,19 +200,18 @@ export class PagosController {
 
   /**
    * POST /pagos/online/intencion – Crear intención de pago JUNTA online (link Wompi).
-   * ADMIN, SECRETARIA, TESORERA pueden crear para cualquier usuario.
+   * SECRETARIA, TESORERA pueden crear para cualquier usuario.
    * CIUDADANO solo para sí mismo.
    */
   @Post('online/intencion')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
   async crearIntencion(
     @Body() dto: CrearIntencionPagoDto,
     @Request() req: { user: JwtUser },
   ) {
     const juntaId = req.user.juntaId!;
     const puedeCrearParaOtro =
-      req.user.roles.includes(RolNombre.ADMIN) ||
       req.user.roles.includes(RolNombre.SECRETARIA) ||
       req.user.roles.includes(RolNombre.TESORERA);
 
@@ -249,7 +247,7 @@ export class PagosController {
    */
   @Get('online/verificar')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
   async verificarPagoOnline(@Query('transaction_id') transactionId: string) {
     if (!transactionId?.trim()) {
       throw new BadRequestException('transaction_id es requerido');

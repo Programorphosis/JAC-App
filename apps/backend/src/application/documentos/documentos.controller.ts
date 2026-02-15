@@ -39,7 +39,7 @@ export class DocumentosController {
    */
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
   @UseInterceptors(
     FileInterceptor('file', {
       storage,
@@ -63,7 +63,6 @@ export class DocumentosController {
     const juntaId = user.juntaId!;
 
     const puedeSubirParaOtro =
-      user.roles.includes(RolNombre.ADMIN) ||
       user.roles.includes(RolNombre.SECRETARIA) ||
       user.roles.includes(RolNombre.TESORERA);
 

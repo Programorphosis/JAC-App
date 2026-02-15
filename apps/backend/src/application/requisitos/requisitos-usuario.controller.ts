@@ -24,7 +24,7 @@ export class RequisitosUsuarioController {
 
   @Post(':requisitoTipoId/estado')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.RECEPTOR_AGUA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.RECEPTOR_AGUA, RolNombre.CIUDADANO)
   async actualizarEstado(
     @Param('usuarioId') usuarioId: string,
     @Param('requisitoTipoId') requisitoTipoId: string,
@@ -41,7 +41,7 @@ export class RequisitosUsuarioController {
 
   @Patch(':requisitoTipoId/obligacion')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN)
+  @Roles(RolNombre.SECRETARIA)
   async actualizarObligacion(
     @Param('usuarioId') usuarioId: string,
     @Param('requisitoTipoId') requisitoTipoId: string,

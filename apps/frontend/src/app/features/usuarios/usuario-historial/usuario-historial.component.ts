@@ -69,7 +69,7 @@ export class UsuarioHistorialComponent implements OnInit {
   }
 
   puedeCrearHistorial(): boolean {
-    return this.auth.hasRole('ADMIN') || this.auth.hasRole('SECRETARIA');
+    return this.auth.hasRole('SECRETARIA');
   }
 
   formatearFecha(f: string | null): string {

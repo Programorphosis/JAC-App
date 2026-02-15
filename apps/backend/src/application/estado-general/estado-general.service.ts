@@ -81,7 +81,7 @@ export class EstadoGeneralService {
     });
     const pago_carta = pagoCartaCount > 0;
 
-    const esAdmin = actor?.roles?.includes(RolNombre.ADMIN) ?? false;
+    const esSecretaria = actor?.roles?.includes(RolNombre.SECRETARIA) ?? false;
 
     return {
       deuda_junta,
@@ -90,8 +90,8 @@ export class EstadoGeneralService {
         nombre: r.nombre,
         obligacionActiva: r.obligacionActiva,
         estado: r.estado,
-        puedeModificarEstado: esAdmin || (actor != null && r.modificadorId === actor.id),
-        puedeModificarObligacion: esAdmin,
+        puedeModificarEstado: esSecretaria || (actor != null && r.modificadorId === actor.id),
+        puedeModificarObligacion: esSecretaria,
       })),
       pago_carta,
     };
