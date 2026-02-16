@@ -183,11 +183,11 @@ Solo si la base está vacía (sin juntas).
   "telefono": "3109876543",
   "direccion": "Carrera 5 #10-15",
   "password": "Password123!",
-  "roles": ["CIUDADANO"]
+  "roles": ["AFILIADO"]
 }
 ```
 
-Roles válidos: `ADMIN`, `SECRETARIA`, `TESORERA`, `RECEPTOR_AGUA`, `CIUDADANO`.
+Roles válidos: `ADMIN`, `SECRETARIA`, `TESORERA`, `RECEPTOR_AGUA`, `AFILIADO`.
 
 ---
 
@@ -270,7 +270,7 @@ Roles válidos: `ADMIN`, `SECRETARIA`, `TESORERA`, `RECEPTOR_AGUA`, `CIUDADANO`.
 ## 6. Deuda
 
 **Base:** `{{baseUrl}}/usuarios/{{usuarioId}}/deuda`  
-**Roles:** ADMIN, SECRETARIA, TESORERA, CIUDADANO (CIUDADANO solo su propia deuda)
+**Roles:** ADMIN, SECRETARIA, TESORERA, AFILIADO (AFILIADO solo su propia deuda)
 
 ### 6.1 Obtener deuda
 
@@ -284,7 +284,7 @@ Roles válidos: `ADMIN`, `SECRETARIA`, `TESORERA`, `RECEPTOR_AGUA`, `CIUDADANO`.
 ## 7. Estado General (para carta)
 
 **Base:** `{{baseUrl}}/usuarios/{{usuarioId}}/estado-general`  
-**Roles:** ADMIN, SECRETARIA, TESORERA, CIUDADANO (CIUDADANO solo sí mismo)
+**Roles:** ADMIN, SECRETARIA, TESORERA, AFILIADO (AFILIADO solo sí mismo)
 
 ### 7.1 Obtener estado general
 
@@ -346,7 +346,7 @@ O con `"metodo": "TRANSFERENCIA"` y `"referenciaExterna": "..."`.
 ### 8.3 Intención pago JUNTA online
 
 **POST** `{{baseUrl}}/pagos/online/intencion`  
-**Roles:** ADMIN, SECRETARIA, TESORERA, CIUDADANO
+**Roles:** ADMIN, SECRETARIA, TESORERA, AFILIADO
 
 **Body:**
 
@@ -363,7 +363,7 @@ Respuesta: `checkoutUrl` para redirigir a Wompi.
 ### 8.4 Intención pago CARTA online
 
 **POST** `{{baseUrl}}/pagos/carta/online/intencion`  
-**Roles:** ADMIN, SECRETARIA, TESORERA, CIUDADANO
+**Roles:** ADMIN, SECRETARIA, TESORERA, AFILIADO
 
 **Body:**
 
@@ -378,7 +378,7 @@ Respuesta: `checkoutUrl` para redirigir a Wompi.
 ### 8.5 Verificar pago online (tras retorno de Wompi)
 
 **GET** `{{baseUrl}}/pagos/online/verificar?transaction_id=ID_TRANSACCION_WOMPI`  
-**Roles:** ADMIN, SECRETARIA, TESORERA, CIUDADANO
+**Roles:** ADMIN, SECRETARIA, TESORERA, AFILIADO
 
 ---
 
@@ -432,7 +432,7 @@ Respuesta: `checkoutUrl` para redirigir a Wompi.
 ### 9.4 Cambiar estado de requisito (por usuario)
 
 **POST** `{{baseUrl}}/usuarios/{{usuarioId}}/requisitos/{{requisitoTipoId}}/estado`  
-**Roles:** ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, CIUDADANO
+**Roles:** ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, AFILIADO
 
 **Body:**
 
@@ -464,7 +464,7 @@ Respuesta: `checkoutUrl` para redirigir a Wompi.
 ## 10. Documentos
 
 **Base:** `{{baseUrl}}/documentos`  
-**Roles:** ADMIN, SECRETARIA, TESORERA, CIUDADANO
+**Roles:** ADMIN, SECRETARIA, TESORERA, AFILIADO
 
 ### 10.1 Subir documento
 
@@ -482,7 +482,7 @@ Respuesta: `checkoutUrl` para redirigir a Wompi.
 ### 10.2 Listar documentos de un usuario
 
 **GET** `{{baseUrl}}/usuarios/{{usuarioId}}/documentos`  
-**Roles:** ADMIN, SECRETARIA, TESORERA, CIUDADANO (CIUDADANO solo propios)
+**Roles:** ADMIN, SECRETARIA, TESORERA, AFILIADO (AFILIADO solo propios)
 
 Respuesta: `{ "data": [ { "id", "tipo", "rutaS3", "fechaSubida" }, ... ] }`
 
@@ -491,7 +491,7 @@ Respuesta: `{ "data": [ { "id", "tipo", "rutaS3", "fechaSubida" }, ... ] }`
 ### 10.3 Descargar documento
 
 **GET** `{{baseUrl}}/documentos/{{documentoId}}/descargar`  
-**Roles:** ADMIN, SECRETARIA, TESORERA, CIUDADANO (CIUDADANO solo propios)
+**Roles:** ADMIN, SECRETARIA, TESORERA, AFILIADO (AFILIADO solo propios)
 
 Respuesta: `{ "data": { "url": "URL_FIRMADA_S3" } }`
 
@@ -505,7 +505,7 @@ Respuesta: `{ "data": { "url": "URL_FIRMADA_S3" } }`
 ### 11.1 Solicitar carta
 
 **POST** `{{baseUrl}}/cartas/solicitar`  
-**Roles:** ADMIN, SECRETARIA, CIUDADANO
+**Roles:** ADMIN, SECRETARIA, AFILIADO
 
 **Body:**
 
@@ -639,7 +639,7 @@ if (pm.response.code === 200) {
 3. `POST /auth/login` – Con credenciales del admin de la junta.
 4. `GET /auth/me` – Verificar token.
 5. `GET /usuarios` – Listar usuarios.
-6. `POST /usuarios` – Crear usuario CIUDADANO.
+6. `POST /usuarios` – Crear usuario AFILIADO.
 7. `POST /usuarios/:id/historial-laboral` – Dar historial laboral.
 8. `POST /tarifas` – Crear tarifa vigente.
 9. `GET /usuarios/:id/deuda?detalle=true` – Ver deuda.

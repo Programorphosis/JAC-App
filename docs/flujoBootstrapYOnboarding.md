@@ -54,7 +54,7 @@ Inicializar el sistema cuando está vacío: roles base, primera junta y **primer
    - SECRETARIA
    - TESORERA
    - RECEPTOR_AGUA
-   - CIUDADANO
+   - AFILIADO
 
 2. **Bootstrap:** `POST /api/bootstrap`
    - **Condición:** Solo si `count(juntas) === 0`.

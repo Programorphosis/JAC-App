@@ -17,7 +17,7 @@ enum RolNombre {
   SECRETARIA
   TESORERA
   RECEPTOR_AGUA
-  CIUDADANO
+  AFILIADO
 }
 
 enum EstadoLaboralTipo {

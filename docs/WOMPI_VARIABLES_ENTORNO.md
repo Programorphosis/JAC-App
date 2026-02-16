@@ -6,7 +6,7 @@
 
 ## 1. Producto Wompi a usar
 
-**Recibir pagos** (merchant): el ciudadano paga a la junta. Usamos:
+**Recibir pagos** (merchant): el afiliado paga a la junta. Usamos:
 - **Payment Links** (links de pago) o **Widget/Checkout Web**
 - API para crear links/transacciones
 - Webhooks para confirmar pagos aprobados

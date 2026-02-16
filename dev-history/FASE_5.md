@@ -32,8 +32,8 @@ Implementar pagos totales (efectivo, transferencia y online) con integridad, ide
 | Método | Ruta | Roles | Descripción |
 |--------|------|-------|-------------|
 | POST | /api/pagos | TESORERA, ADMIN, SECRETARIA | Registrar pago efectivo o transferencia |
-| POST | /api/pagos/online/intencion | ADMIN, SECRETARIA, TESORERA, CIUDADANO | Crear intención de pago online (link Wompi) |
-| GET | /api/pagos/online/verificar | ADMIN, SECRETARIA, TESORERA, CIUDADANO | Verificar transacción y registrar si APPROVED |
+| POST | /api/pagos/online/intencion | ADMIN, SECRETARIA, TESORERA, AFILIADO | Crear intención de pago online (link Wompi) |
+| GET | /api/pagos/online/verificar | ADMIN, SECRETARIA, TESORERA, AFILIADO | Verificar transacción y registrar si APPROVED |
 | POST | /api/webhooks/wompi | — (sin JWT) | Webhook de Wompi; verificación por firma |
 
 ### POST /api/pagos
@@ -48,7 +48,7 @@ Implementar pagos totales (efectivo, transferencia y online) con integridad, ide
 ### POST /api/pagos/online/intencion
 
 **Body:** `{ usuarioId }`  
-- CIUDADANO solo puede crear para usuarioId = su propio id.
+- AFILIADO solo puede crear para usuarioId = su propio id.
 
 **Respuesta 200:** `{ data: { checkoutUrl, referencia, monto, montoCents }, meta }`
 

@@ -123,7 +123,7 @@ Tokens sin rotación
 6️⃣ Autorización Estricta (RBAC + ABAC)
 Roles:
 
-CIUDADANO
+AFILIADO
 
 FUNCIONARIO
 

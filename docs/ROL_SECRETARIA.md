@@ -32,7 +32,7 @@ SECRETARIA es un rol **operativo limitado**: valida cartas y edita datos básico
 | Cambiar estado requisitos (AL_DÍA/MORA) | Solo modificador asignado al requisito |
 | Cambiar obligación requisitos | Exclusivo ADMIN |
 | Agregar historial laboral | ADMIN, TESORERA |
-| Subir documentos | ADMIN, TESORERA, CIUDADANO (propios) |
+| Subir documentos | ADMIN, TESORERA, AFILIADO (propios) |
 | Editar roles de usuarios | Exclusivo ADMIN |
 
 ---
@@ -49,4 +49,4 @@ Solo puede haber **una** SECRETARIA por junta (validación en backend).
 - Backend: SECRETARIA agregada a auditorías (solo lectura).
 - Frontend: `puedeGestionarPagos()` = solo TESORERA. SECRETARIA no ve menú Pagos.
 - Frontend: `puedeModificarTarifas()` = solo ADMIN. SECRETARIA ve tarifas pero sin botón crear.
-- Frontend: Botón "Pagar online" en deuda/cartas: TESORERA para cualquiera; CIUDADANO o SECRETARIA solo para su propia cuenta.
+- Frontend: Botón "Pagar online" en deuda/cartas: TESORERA para cualquiera; AFILIADO o SECRETARIA solo para su propia cuenta.

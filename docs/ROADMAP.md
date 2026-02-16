@@ -112,7 +112,7 @@ El roadmap está ordenado por dependencias. No se debe avanzar de fase sin confi
 
 ### 0.5.9 Bootstrap y Platform Admin
 
-- [ ] Migración: roles base (PLATFORM_ADMIN, ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, CIUDADANO); `Usuario.juntaId` opcional
+- [ ] Migración: roles base (PLATFORM_ADMIN, ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, AFILIADO); `Usuario.juntaId` opcional
 - [ ] Servicio `JuntaService.createJunta(...)` reutilizable (Application layer)
 - [ ] Endpoint `POST /api/bootstrap` (crea platform admin + primera junta; solo si no hay juntas)
 - [ ] Endpoints protegidos: GET/POST/PATCH `/api/platform/juntas`, GET `/api/platform/juntas/:id`
@@ -204,7 +204,7 @@ Orden recomendado:
 
 - [ ] JWT con `userId`, `juntaId` (null para Platform Admin), `roles` (nunca `juntaId` desde frontend).
 - [ ] Refresh token rotativo; revocación en DB si se define.
-- [ ] Guards por rol: PLATFORM_ADMIN (solo /api/platform/*), ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, CIUDADANO (operaciones acotadas por junta).
+- [ ] Guards por rol: PLATFORM_ADMIN (solo /api/platform/*), ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, AFILIADO (operaciones acotadas por junta).
 - [ ] Middleware: extraer `juntaId` del token; operaciones de junta exigen juntaId; platform admin solo en rutas de plataforma.
 
 **Referencias:** `00_ARQUITECTURA_RECTOR copy.md`, `investigacionImplementacionDeSeguridadDeLaApp.md`.

@@ -66,7 +66,7 @@ Algunos permisos dependen de si la acción es sobre el propio usuario u otro:
 
 | Permiso | Con usuarioId | Lógica |
 |---------|---------------|--------|
-| `pagos:pagarOnline` | Sí | TESORERA: cualquiera; CIUDADANO/SECRETARIA: solo propio |
+| `pagos:pagarOnline` | Sí | TESORERA: cualquiera; AFILIADO/SECRETARIA: solo propio |
 | `documentos:subir:otros` | Sí | Propio siempre; otros si ADMIN/TESORERA |
 | `cartas:solicitar` | Sí | Solo propio y con permiso |
 
@@ -85,11 +85,11 @@ Usar `*appCan="auth.permissions.X; usuarioId: usuarioId"` para estos casos.
 | `pagos:gestionar` | TESORERA |
 | `pagos:ver` | TESORERA, ADMIN, SECRETARIA |
 | `pagos:pagarOnline` | TESORERA (para cualquiera) |
-| `pagos:pagarOnline:propio` | CIUDADANO, SECRETARIA |
+| `pagos:pagarOnline:propio` | AFILIADO, SECRETARIA |
 | `tarifas:ver` | ADMIN, SECRETARIA, TESORERA |
 | `tarifas:modificar` | ADMIN |
 | `cartas:validar` | SECRETARIA |
-| `cartas:solicitar` | CIUDADANO (solo propio) |
+| `cartas:solicitar` | AFILIADO (solo propio) |
 | `auditorias:ver` | ADMIN, SECRETARIA, TESORERA |
 | `documentos:subir:otros` | ADMIN, TESORERA |
 | `historial:crear` | ADMIN, TESORERA |

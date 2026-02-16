@@ -36,7 +36,7 @@ ADMIN es un rol de **configuración y mantenimiento** de la junta. No realiza ta
 | Cambiar estado requisitos (AL_DÍA/MORA) | Operacional – solo modificador asignado |
 | Cambiar obligación requisitos | Operacional – SECRETARIA |
 | Agregar historial laboral | Operacional – SECRETARIA |
-| Subir documentos | Operacional – SECRETARIA, TESORERA, CIUDADANO |
+| Subir documentos | Operacional – SECRETARIA, TESORERA, AFILIADO |
 
 ---
 
@@ -54,7 +54,7 @@ Las tareas que ADMIN no realiza las ejecutan:
 - **TESORERA:** registrar pagos, crear historial laboral
 - **ADMIN:** cambiar obligación requisitos
 - **Modificador:** cambiar estado requisitos (AL_DÍA/MORA) de sus requisitos asignados
-- **CIUDADANO:** solicitar carta, pagar deuda/carta online
+- **AFILIADO:** solicitar carta, pagar deuda/carta online
 
 ---
 

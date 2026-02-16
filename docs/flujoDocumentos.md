@@ -88,7 +88,7 @@ Los objetos se organizan por prefijo según el tipo de contenido:
 
 | Rol | Subir documento | Ver documentos |
 |-----|-----------------|----------------|
-| CIUDADANO | Propios (usuarioId = self) | Propios |
+| AFILIADO | Propios (usuarioId = self) | Propios |
 | SECRETARIA, TESORERA, modificador de requisito | En nombre de usuarios de su junta | Usuarios de su junta |
 | ADMIN | En nombre de cualquier usuario de su junta | Usuarios de su junta |
 

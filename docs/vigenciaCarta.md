@@ -4,7 +4,7 @@
 
 ## Concepto
 
-La carta laboral tiene un período de validez (por defecto 3 meses). Una vez vencida, el ciudadano debe pagar nuevamente y solicitar otra.
+La carta laboral tiene un período de validez (por defecto 3 meses). Una vez vencida, el afiliado debe pagar nuevamente y solicitar otra.
 
 ## Modelo de datos
 

@@ -26,12 +26,12 @@ Exponer el cálculo de deuda de forma segura. Sin almacenar resultado; solo cál
 
 | Método | Ruta | Roles | Descripción |
 |--------|------|-------|-------------|
-| GET | /api/usuarios/:usuarioId/deuda | ADMIN, SECRETARIA, TESORERA, CIUDADANO | Consultar deuda calculada |
+| GET | /api/usuarios/:usuarioId/deuda | ADMIN, SECRETARIA, TESORERA, AFILIADO | Consultar deuda calculada |
 
 ### Autorización
 
 - **ADMIN, SECRETARIA, TESORERA:** pueden consultar deuda de cualquier usuario de la junta.
-- **CIUDADANO:** solo puede consultar su propia deuda (`usuarioId` debe coincidir con el usuario autenticado).
+- **AFILIADO:** solo puede consultar su propia deuda (`usuarioId` debe coincidir con el usuario autenticado).
 
 ### Query params
 
@@ -94,7 +94,7 @@ application/
 - [x] GET /api/usuarios/:usuarioId/deuda
 - [x] Respuesta con total y detalle opcional
 - [x] Filtro por juntaId (token)
-- [x] Roles: ADMIN, SECRETARIA, TESORERA (cualquier usuario); CIUDADANO (solo propio)
+- [x] Roles: ADMIN, SECRETARIA, TESORERA (cualquier usuario); AFILIADO (solo propio)
 - [x] Errores de dominio mapeados a HTTP
 
 **Fase 4 cerrada.**

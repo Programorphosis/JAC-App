@@ -12,7 +12,7 @@
 | **SECRETARIA** | Cartas (validar), datos básicos usuarios, pago propio online. |
 | **TESORERA** | Pagos (efectivo, transferencia, online para otros), historial laboral, documentos. |
 | **RECEPTOR_AGUA** | Modificador: cambiar estado (AL_DÍA/MORA) de sus requisitos asignados. |
-| **CIUDADANO** | Autogestión: pagar online propio, solicitar carta, subir documentos propios. |
+| **AFILIADO** | Autogestión: pagar online propio, solicitar carta, subir documentos propios. |
 
 ---
 
@@ -20,7 +20,7 @@
 
 Cuando un usuario ve el detalle de otro usuario (GET /usuarios/:id), qué tabs ve:
 
-| Tab | ADMIN (otro) | SECRETARIA (otro) | TESORERA (otro) | Modificador (otro) | CIUDADANO (otro) |
+| Tab | ADMIN (otro) | SECRETARIA (otro) | TESORERA (otro) | Modificador (otro) | AFILIADO (otro) |
 |-----|--------------|-------------------|-----------------|--------------------|--------------------|
 | Deuda | ✓ | ✓ | ✓ | ✗ | ✗ |
 | Historial laboral | ✓ | ✓ | ✓ | ✗ | ✗ |
@@ -42,7 +42,7 @@ Cuando un usuario ve el detalle de otro usuario (GET /usuarios/:id), qué tabs v
 | SECRETARIA | ✗ | ✗ |
 | TESORERA | ✗ | **✗** |
 | RECEPTOR_AGUA (modificador) | ✓ (solo requisitos asignados) | ✓ (solo requisitos asignados) |
-| CIUDADANO | ✗ | ✗ |
+| AFILIADO | ✗ | ✗ |
 
 **Regla:** Solo el **modificador asignado** al RequisitoTipo puede cambiar estado. TESORERA no modifica requisitos.
 
@@ -66,15 +66,15 @@ Cuando un usuario ve el detalle de otro usuario (GET /usuarios/:id), qué tabs v
 |-----|--------------------|--------------|
 | TESORERA | ✓ | ✓ |
 | SECRETARIA | ✗ | ✗ |
-| CIUDADANO | ✗ | ✗ |
+| AFILIADO | ✗ | ✗ |
 
-**Propio:** SECRETARIA y CIUDADANO pueden pagar online su deuda y su carta.
+**Propio:** SECRETARIA y AFILIADO pueden pagar online su deuda y su carta.
 
 **Nota:** TESORERA puede crear link Wompi para que otro usuario pague. Pero si TESORERA no ve el tab Cartas de otros, no verá el botón "Pagar carta online" en ese contexto. El botón "Pagar deuda online" sí aparece en tab Deuda.
 
 ### 3.5 Cartas
 
-| Acción | SECRETARIA | TESORERA | CIUDADANO |
+| Acción | SECRETARIA | TESORERA | AFILIADO |
 |--------|------------|----------|-----------|
 | Listar cartas de otro | ✓ | ✗ | ✗ |
 | Solicitar carta para otro | ✓ | ✗ | ✗ |
@@ -106,7 +106,7 @@ Cuando un usuario ve el detalle de otro usuario (GET /usuarios/:id), qué tabs v
 
 - `PermissionService.puedeVerCartasDeOtro`: solo SECRETARIA ✓
 - `estado-general.service`: `puedeModificarEstado` = solo modificador (quitar TESORERA)
-- `requisitos-usuario.controller`: quitar TESORERA y CIUDADANO de actualizarEstado
+- `requisitos-usuario.controller`: quitar TESORERA y AFILIADO de actualizarEstado
 - `UsuarioPropioOAdminGuard`: TESORERA puede ver detalle usuario ✓
 
 ### Frontend

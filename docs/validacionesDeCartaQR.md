@@ -108,7 +108,7 @@ Muestra:
 
 ✅ Carta válida
 
-Nombre del ciudadano
+Nombre del afiliado
 
 Documento (parcial, ej: ****1234)
 

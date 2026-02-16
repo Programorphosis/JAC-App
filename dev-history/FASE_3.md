@@ -82,7 +82,7 @@ Casos de uso que orquestan dominio, auth y multi-tenant. DTO → validación →
 
 - **Filtro:** Siempre por `juntaId` del token
 - **Auditoría:** CREACION_USUARIO, ACTUALIZACION_USUARIO
-- **CreateUserDto:** roles opcionales; si no se envían, default CIUDADANO. No permite PLATFORM_ADMIN.
+- **CreateUserDto:** roles opcionales; si no se envían, default AFILIADO. No permite PLATFORM_ADMIN.
 - **UpdateUserDto:** No permite cambiar roles (alineado a ROADMAP).
 
 ### 4.2 Historial laboral
@@ -198,7 +198,7 @@ platform/                        # Fase 0.5/1
 | Item | Descripción |
 |------|-------------|
 | Revocación de tokens en DB | ROADMAP: "si se define". No implementado. |
-| RECEPTOR_AGUA, CIUDADANO | Guards por rol definidos; módulos específicos (agua, cartas) en Fases 6 y 7. |
+| RECEPTOR_AGUA, AFILIADO | Guards por rol definidos; módulos específicos (agua, cartas) en Fases 6 y 7. |
 
 ---
 

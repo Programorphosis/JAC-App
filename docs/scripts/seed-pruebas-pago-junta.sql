@@ -16,7 +16,7 @@
 DO $$
 DECLARE
   v_junta_id   TEXT := 'TU_JUNTA_ID';   -- Reemplaza con UUID de tu junta
-  v_usuario_id TEXT := 'TU_USUARIO_ID'; -- Reemplaza con UUID del usuario ciudadano a probar
+  v_usuario_id TEXT := 'TU_USUARIO_ID'; -- Reemplaza con UUID del usuario afiliado a probar
   v_deleted    INT;
 BEGIN
   -- Si dejaste los placeholders, intentar auto-detectar (primera junta, primer usuario)

@@ -25,7 +25,7 @@ Todo dato con impacto legal debe ser inmutable o trazable. El backend es la úni
 
 ## Autorización
 
-- Guards por rol (ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, CIUDADANO). Validar en backend en cada endpoint que toque recursos sensibles.
+- Guards por rol (ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, AFILIADO). Validar en backend en cada endpoint que toque recursos sensibles.
 - Toda operación sobre entidades de junta debe estar acotada por juntaId del token.
 
 ## Webhook (Wompi)

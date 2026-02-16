@@ -321,7 +321,7 @@ Bootstrap (primera vez): Endpoint `POST /api/bootstrap` que crea roles base (inc
 
 Nuevas juntas: Desde el panel de Platform Admin (POST /api/platform/juntas). La lógica está en un servicio reutilizable `JuntaService.createJunta(...)`. Opcional: script CLI como respaldo.
 
-Roles base: Migración crea PLATFORM_ADMIN, ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, CIUDADANO. Los de junta son globales; PLATFORM_ADMIN es el único sin junta.
+Roles base: Migración crea PLATFORM_ADMIN, ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, AFILIADO. Los de junta son globales; PLATFORM_ADMIN es el único sin junta.
 
 Referencia completa: `flujoBootstrapYOnboarding.md`.
 

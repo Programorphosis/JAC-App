@@ -240,7 +240,7 @@ Alineadas al ROADMAP y a la disponibilidad del backend.
 
 ### Fase 10 – Frontend Usuario (Autogestión)
 
-**Objetivo:** Vistas para CIUDADANO (consulta deuda, pago online, solicitud carta).
+**Objetivo:** Vistas para AFILIADO (consulta deuda, pago online, solicitud carta).
 
 - [ ] Consulta deuda propia.
 - [ ] Botón "Pagar ahora" → intención online.
