@@ -12,6 +12,7 @@ import { RequisitosService } from './requisitos.service';
 import { UpdateEstadoRequisitoDto } from './dto/update-estado-requisito.dto';
 import { UpdateObligacionRequisitoDto } from './dto/update-obligacion-requisito.dto';
 import { JuntaGuard } from '../../auth/guards/junta.guard';
+import { ModificadorSoloGuard } from '../../auth/guards/modificador-solo.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { RolNombre } from '@prisma/client';
@@ -23,8 +24,7 @@ export class RequisitosUsuarioController {
   constructor(private readonly requisitos: RequisitosService) {}
 
   @Post(':requisitoTipoId/estado')
-  @UseGuards(RolesGuard)
-  @Roles(RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.RECEPTOR_AGUA, RolNombre.CIUDADANO)
+  @UseGuards(ModificadorSoloGuard)
   async actualizarEstado(
     @Param('usuarioId') usuarioId: string,
     @Param('requisitoTipoId') requisitoTipoId: string,
@@ -41,7 +41,7 @@ export class RequisitosUsuarioController {
 
   @Patch(':requisitoTipoId/obligacion')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.SECRETARIA)
+  @Roles(RolNombre.ADMIN)
   async actualizarObligacion(
     @Param('usuarioId') usuarioId: string,
     @Param('requisitoTipoId') requisitoTipoId: string,

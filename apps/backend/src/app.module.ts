@@ -24,6 +24,7 @@ import { EstadoGeneralModule } from './application/estado-general/estado-general
 import { DocumentosModule } from './application/documentos/documentos.module';
 import { CartasModule } from './application/cartas/cartas.module';
 import { PublicModule } from './application/public/public.module';
+import { AuditoriasModule } from './application/auditorias/auditorias.module';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 
 @Module({
@@ -55,6 +56,7 @@ import { DomainExceptionFilter } from './common/filters/domain-exception.filter'
     DocumentosModule,
     CartasModule,
     PublicModule,
+    AuditoriasModule,
   ],
   controllers: [AppController],
   providers: [

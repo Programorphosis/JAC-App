@@ -1,0 +1,97 @@
+<mat-card class="listado-card">
+  <mat-card-header>
+    <mat-card-title>Auditoría</mat-card-title>
+    <mat-card-subtitle>Registro de eventos de la junta</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <!-- Búsqueda y filtros -->
+    <div class="flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-center mb-3 sm:mb-4">
+      <mat-form-field appearance="outline" class="flex-1 min-w-[200px] search-field-with-icon">
+        <input matInput [formControl]="searchControl" placeholder="Buscar por acción, entidad o ejecutado por" />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full sm:w-48 min-w-0">
+        <mat-label>Entidad</mat-label>
+        <mat-select [(ngModel)]="filtroEntidad" (ngModelChange)="page = 1; cargar()">
+          <mat-option value="">Todas</mat-option>
+          <mat-option value="Usuario">Usuario</mat-option>
+          <mat-option value="RequisitoTipo">Requisito</mat-option>
+          <mat-option value="Tarifa">Tarifa</mat-option>
+          <mat-option value="Pago">Pago</mat-option>
+          <mat-option value="Carta">Carta</mat-option>
+          <mat-option value="HistorialLaboral">Historial laboral</mat-option>
+          <mat-option value="Auth">Auth</mat-option>
+        </mat-select>
+      </mat-form-field>
+      @if (searchControl.value || filtroEntidad) {
+        <button mat-stroked-button (click)="limpiarFiltros()">
+          <mat-icon>clear</mat-icon>
+          Limpiar
+        </button>
+      }
+    </div>
+    <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
+      <div class="table-responsive">
+        <table mat-table [dataSource]="dataSource" class="w-full" style="min-width: 700px">
+          <ng-container matColumnDef="fecha">
+            <th mat-header-cell *matHeaderCellDef>
+              <button mat-button (click)="ordenarPor('fecha')" class="sort-header">
+                Fecha
+                <mat-icon class="sort-icon">{{ iconoOrden('fecha') }}</mat-icon>
+              </button>
+            </th>
+            <td mat-cell *matCellDef="let a">{{ formatearFecha(a.fecha) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="accion">
+            <th mat-header-cell *matHeaderCellDef>
+              <button mat-button (click)="ordenarPor('accion')" class="sort-header">
+                Acción
+                <mat-icon class="sort-icon">{{ iconoOrden('accion') }}</mat-icon>
+              </button>
+            </th>
+            <td mat-cell *matCellDef="let a">{{ a.accion }}</td>
+          </ng-container>
+          <ng-container matColumnDef="entidad">
+            <th mat-header-cell *matHeaderCellDef>
+              <button mat-button (click)="ordenarPor('entidad')" class="sort-header">
+                Entidad
+                <mat-icon class="sort-icon">{{ iconoOrden('entidad') }}</mat-icon>
+              </button>
+            </th>
+            <td mat-cell *matCellDef="let a">{{ a.entidad }}</td>
+          </ng-container>
+          <ng-container matColumnDef="ejecutadoPor">
+            <th mat-header-cell *matHeaderCellDef>Ejecutado por</th>
+            <td mat-cell *matCellDef="let a">{{ a.ejecutadoPor.nombres | formatearNombre }} {{ a.ejecutadoPor.apellidos | formatearNombre }}</td>
+          </ng-container>
+          <ng-container matColumnDef="metadata">
+            <th mat-header-cell *matHeaderCellDef>Detalle</th>
+            <td mat-cell *matCellDef="let a" class="metadata-cell">{{ resumirMetadata(a.metadata) }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+              @if (loading) {
+                Cargando...
+              } @else {
+                No hay registros de auditoría.
+              }
+            </td>
+          </tr>
+        </table>
+      </div>
+      <mat-paginator
+        [length]="total"
+        [pageSize]="limit"
+        [pageIndex]="page - 1"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        (page)="onPage($event)"
+        showFirstLastButtons
+      ></mat-paginator>
+    </div>
+    <p class="mt-2 text-sm text-gray-600">Total: {{ total }} registros</p>
+  </mat-card-content>
+</mat-card>

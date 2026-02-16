@@ -34,7 +34,7 @@ export class TarifasController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA)
+  @Roles(RolNombre.ADMIN)
   async crear(
     @Body() dto: CreateTarifaDto,
     @Request() req: { user: JwtUser },

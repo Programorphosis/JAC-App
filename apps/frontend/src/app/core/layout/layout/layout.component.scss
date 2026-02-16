@@ -1,9 +1,136 @@
 /* Layout: estilos que Material no provee */
 mat-sidenav {
   width: 16rem;
+  max-width: 85vw;
 }
 
-.layout-user-name {
-  font-size: 0.875rem;
-  margin-right: 1rem;
+.layout-sidenav-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0d47a1;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+
+  mat-icon {
+    color: #0d47a1;
+    font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+mat-sidenav-container {
+  min-height: 0;
+}
+
+/* ===== Navbar ===== */
+.layout-navbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 56px;
+  padding: 0 0.5rem 0 0.25rem;
+  background: linear-gradient(135deg, #0d47a1 0%, #0a3d91 50%, #002171 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.layout-navbar-menu-btn {
+  color: rgba(255, 255, 255, 0.95) !important;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+    color: white !important;
+  }
+}
+
+.layout-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+  min-width: 0;
+}
+
+.layout-navbar-logo {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.5rem !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
+.layout-navbar-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.layout-navbar-spacer {
+  flex: 1;
+  min-width: 0.5rem;
+}
+
+.layout-navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  margin-right: 0.25rem;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.1);
+  max-width: min(200px, 45vw);
+}
+
+.layout-navbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 1.125rem;
+    width: 1.125rem;
+    height: 1.125rem;
+    color: rgba(255, 255, 255, 0.95);
+  }
+}
+
+.layout-navbar-user-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.layout-navbar-logout-btn {
+  color: rgba(255, 255, 255, 0.9) !important;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+    color: white !important;
+  }
+}
+
+/* Sidenav: pulir items activos */
+mat-nav-list a.active {
+  background-color: rgba(13, 71, 161, 0.12) !important;
+  color: #0d47a1 !important;
+  font-weight: 500;
+
+  mat-icon {
+    color: #0d47a1 !important;
+  }
 }

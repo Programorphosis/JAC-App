@@ -51,11 +51,23 @@ export class DomainExceptionFilter implements ExceptionFilter {
       PAGO_DUPLICADO: HttpStatus.CONFLICT,
       PAGO_CARTA_PENDIENTE: HttpStatus.UNPROCESSABLE_ENTITY,
       USUARIO_NO_ENCONTRADO: HttpStatus.NOT_FOUND,
+      REQUISITO_TIPO_NO_ENCONTRADO: HttpStatus.NOT_FOUND,
       SIN_HISTORIAL_LABORAL: HttpStatus.UNPROCESSABLE_ENTITY,
       SIN_TARIFA_VIGENTE: HttpStatus.UNPROCESSABLE_ENTITY,
       HISTORIAL_SUPERPUESTO: HttpStatus.UNPROCESSABLE_ENTITY,
       REQUISITOS_CARTA_NO_CUMPLIDOS: HttpStatus.UNPROCESSABLE_ENTITY,
       CARTA_NO_PENDIENTE: HttpStatus.UNPROCESSABLE_ENTITY,
+      CARTA_PENDIENTE_EXISTENTE: HttpStatus.CONFLICT,
+      CARTA_NO_ENCONTRADA: HttpStatus.NOT_FOUND,
+      DOCUMENTO_NO_ENCONTRADO: HttpStatus.NOT_FOUND,
+      TIPO_DOCUMENTO_NO_PERMITIDO: HttpStatus.BAD_REQUEST,
+      MONTO_CARTA_NO_CONFIGURADO: HttpStatus.UNPROCESSABLE_ENTITY,
+      CARTA_VIGENTE: HttpStatus.UNPROCESSABLE_ENTITY,
+      INTENCION_PAGO_NO_ENCONTRADA: HttpStatus.NOT_FOUND,
+      BOOTSTRAP_YA_EJECUTADO: HttpStatus.CONFLICT,
+      ALMACENAMIENTO_NO_CONFIGURADO: HttpStatus.SERVICE_UNAVAILABLE,
+      ARCHIVO_SOBREPASA_TAMANIO: HttpStatus.BAD_REQUEST,
+      FORMATO_ARCHIVO_NO_PERMITIDO: HttpStatus.BAD_REQUEST,
     };
     return map[err.code] ?? HttpStatus.UNPROCESSABLE_ENTITY;
   }
@@ -69,6 +81,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
       409: 'Conflict',
       422: 'Unprocessable Entity',
       429: 'Too Many Requests',
+      503: 'Service Unavailable',
       500: 'Internal Server Error',
     };
     return labels[status] ?? 'Error';

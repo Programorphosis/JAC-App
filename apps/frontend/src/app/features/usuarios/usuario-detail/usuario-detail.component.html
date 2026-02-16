@@ -1,72 +1,172 @@
-<div class="flex flex-col gap-4">
-  <div class="flex items-center gap-2">
-    <button mat-icon-button (click)="volver()" aria-label="Volver">
+<div class="flex flex-col gap-6 w-full max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="flex items-center gap-3">
+    <button mat-icon-button (click)="volver()" aria-label="Volver" class="shrink-0">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h2>Detalle de usuario</h2>
+    <div class="min-w-0">
+      <h1 class="text-xl sm:text-2xl font-bold text-gray-800 truncate">
+        {{ esAdminViendoMiCuenta() ? 'Mi cuenta' : 'Detalle de usuario' }}
+      </h1>
+      @if (usuario) {
+        <p class="text-sm text-gray-500 truncate">{{ usuario.nombres | formatearNombre }} {{ usuario.apellidos | formatearNombre }}</p>
+      }
+    </div>
   </div>
 
   @if (loading) {
-    <p>Cargando...</p>
+    <div class="flex items-center justify-center py-12">
+      <p class="text-gray-500">Cargando...</p>
+    </div>
   } @else if (usuario) {
-    @if (!esModificadorViendoOtro()) {
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>{{ usuario.nombres }} {{ usuario.apellidos }}</mat-card-title>
-          <mat-card-subtitle>
-            {{ usuario.tipoDocumento }} {{ usuario.numeroDocumento }} · {{ roles() }}
-          </mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
+    <!-- Tarjeta de perfil -->
+    <mat-card class="overflow-hidden">
+      <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4 text-white">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <mat-icon class="!text-3xl !w-10 !h-10">person</mat-icon>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold">{{ usuario.nombres | formatearNombre }} {{ usuario.apellidos | formatearNombre }}</h2>
+              <p class="text-blue-100 text-sm">{{ usuario.tipoDocumento }} {{ usuario.numeroDocumento }}</p>
+              @if (usuario.roles?.length) {
+                <div class="flex flex-wrap gap-1 mt-1">
+                  @for (r of usuario.roles; track r) {
+                    <span class="inline-block px-2 py-0.5 rounded text-xs bg-white/20">{{ etiquetaRol(r) }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+          @if (!esAdminViendoMiCuenta() && !esModificadorViendoOtro()) {
+            <div class="flex flex-wrap gap-2 text-sm">
+              @if (usuario.telefono) {
+                <span class="flex items-center gap-1"><mat-icon class="!text-base !w-4 !h-4">phone</mat-icon>{{ usuario.telefono }}</span>
+              }
+              @if (usuario.direccion) {
+                <span class="flex items-center gap-1"><mat-icon class="!text-base !w-4 !h-4">location_on</mat-icon>{{ usuario.direccion }}</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+      <mat-card-content class="p-6">
+        @if (esAdminViendoMiCuenta()) {
+          <p class="text-gray-600 mb-4">Usted es administrador de la junta. No tiene deuda ni requisitos como afiliado.</p>
+          <p class="text-sm font-medium text-gray-700 mb-3">Accesos rápidos</p>
+          <div class="flex flex-wrap gap-2">
+            <a mat-raised-button color="primary" routerLink="/usuarios">Usuarios</a>
+            <a mat-stroked-button routerLink="/requisitos">Requisitos</a>
+            <a mat-stroked-button routerLink="/tarifas">Tarifas</a>
+            <a mat-stroked-button routerLink="/auditorias">Auditorías</a>
+          </div>
+        } @else if (!esModificadorViendoOtro()) {
           @if (editando) {
             <app-usuario-form
               [modoEdicion]="true"
+              [puedeEditarRoles]="auth.can(auth.permissions.USUARIOS_EDITAR_ROLES)"
               [valoresIniciales]="{
                 nombres: usuario.nombres,
                 apellidos: usuario.apellidos,
                 telefono: usuario.telefono ?? '',
                 direccion: usuario.direccion ?? '',
-                activo: usuario.activo
+                activo: usuario.activo,
+                roles: usuario.roles || []
               }"
               (guardar)="onGuardar($event)"
             />
           } @else {
-            <p><strong>Teléfono:</strong> {{ usuario.telefono || '-' }}</p>
-            <p><strong>Dirección:</strong> {{ usuario.direccion || '-' }}</p>
-            <p><strong>Activo:</strong> {{ usuario.activo ? 'Sí' : 'No' }}</p>
-            @if (puedeEditarUsuario()) {
-              <button mat-raised-button (click)="editar()">Editar</button>
-            }
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+              <div class="p-3 rounded-lg bg-gray-50">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Tipo de documento</p>
+                <p class="text-gray-800">{{ usuario.tipoDocumento || '—' }}</p>
+              </div>
+              <div class="p-3 rounded-lg bg-gray-50">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Número de documento</p>
+                <p class="text-gray-800">{{ usuario.numeroDocumento || '—' }}</p>
+              </div>
+              <div class="p-3 rounded-lg bg-gray-50">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Fecha de creación</p>
+                <p class="text-gray-800">{{ formatearFecha(usuario.fechaCreacion) }}</p>
+              </div>
+              <div class="p-3 rounded-lg bg-gray-50">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Estado</p>
+                <p class="text-gray-800">
+                  <span [class]="usuario.activo ? 'text-green-700 font-medium' : 'text-gray-600'">
+                    {{ usuario.activo ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </p>
+              </div>
+              <div class="p-3 rounded-lg bg-gray-50">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Roles</p>
+                <div class="flex flex-wrap gap-1 mt-1">
+                  @if (usuario.roles?.length) {
+                    @for (r of usuario.roles; track r) {
+                      <span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">{{ etiquetaRol(r) }}</span>
+                    }
+                  } @else {
+                    <span class="text-gray-500">—</span>
+                  }
+                </div>
+              </div>
+              <div class="p-3 rounded-lg bg-gray-50">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Teléfono</p>
+                <p class="text-gray-800">{{ usuario.telefono || '—' }}</p>
+              </div>
+              <div class="p-3 rounded-lg bg-gray-50 sm:col-span-2 lg:col-span-3">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Dirección</p>
+                <p class="text-gray-800">{{ usuario.direccion || '—' }}</p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <button mat-raised-button *appCan="auth.permissions.USUARIOS_EDITAR" (click)="editar()" color="primary">
+                Editar datos
+              </button>
+            </div>
           }
-        </mat-card-content>
-      </mat-card>
-    } @else {
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>{{ usuario.nombres }} {{ usuario.apellidos }}</mat-card-title>
-          <mat-card-subtitle>{{ usuario.tipoDocumento }} {{ usuario.numeroDocumento }}</mat-card-subtitle>
-        </mat-card-header>
-      </mat-card>
-    }
+        } @else {
+          <p class="text-gray-600">Requisitos asignados a este usuario.</p>
+        }
+      </mat-card-content>
+    </mat-card>
 
     @if (esModificadorViendoOtro()) {
-      <app-usuario-requisitos [usuarioId]="usuario.id" [soloRequisitosModificables]="true" />
-    } @else {
-      <mat-tab-group [selectedIndex]="tabSeleccionado">
+      <div class="pt-2">
+        <app-usuario-requisitos [usuarioId]="usuario.id" [soloRequisitosModificables]="true" />
+      </div>
+    } @else if (esAdminViendoOtro() || esTesoreraViendoOtro()) {
+      <mat-tab-group [selectedIndex]="tabIndexAdmin()" class="mat-tabs-mi-cuenta">
         <mat-tab label="Deuda">
-          <app-usuario-deuda [usuarioId]="usuario.id" />
+          <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-deuda [usuarioId]="usuario.id" /></div>
         </mat-tab>
         <mat-tab label="Historial laboral">
-          <app-usuario-historial [usuarioId]="usuario.id" />
+          <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-historial [usuarioId]="usuario.id" /></div>
         </mat-tab>
         <mat-tab label="Requisitos">
-          <app-usuario-requisitos [usuarioId]="usuario.id" />
-        </mat-tab>
-        <mat-tab label="Cartas">
-          <app-usuario-cartas [usuarioId]="usuario.id" />
+          <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-requisitos [usuarioId]="usuario.id" /></div>
         </mat-tab>
         <mat-tab label="Documentos">
-          <app-usuario-documentos [usuarioId]="usuario.id" />
+          <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-documentos [usuarioId]="usuario.id" /></div>
+        </mat-tab>
+      </mat-tab-group>
+    } @else if (!esAdminViendoMiCuenta()) {
+      <mat-tab-group [selectedIndex]="tabSeleccionado" class="mat-tabs-mi-cuenta">
+        <mat-tab label="Deuda">
+          <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-deuda [usuarioId]="usuario.id" /></div>
+        </mat-tab>
+        <mat-tab label="Historial laboral">
+          <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-historial [usuarioId]="usuario.id" /></div>
+        </mat-tab>
+        <mat-tab label="Requisitos">
+          <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-requisitos [usuarioId]="usuario.id" /></div>
+        </mat-tab>
+        <mat-tab label="Cartas">
+          <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-cartas [usuarioId]="usuario.id" /></div>
+        </mat-tab>
+        <mat-tab label="Documentos">
+          <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-documentos [usuarioId]="usuario.id" /></div>
         </mat-tab>
       </mat-tab-group>
     }

@@ -1,15 +1,19 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UsuariosService, DeudaResult } from '../services/usuarios.service';
 import { PagosService } from '../../pagos/services/pagos.service';
+import { AuthService } from '../../../core/auth/auth.service';
+import { AppCanDirective } from '../../../core/auth/app-can.directive';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
   selector: 'app-usuario-deuda',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule],
+  imports: [MatCardModule, MatButtonModule, MatIconModule, NgClass, AppCanDirective],
   templateUrl: './usuario-deuda.component.html',
   styleUrl: './usuario-deuda.component.scss',
 })
@@ -22,7 +26,8 @@ export class UsuarioDeudaComponent implements OnInit {
   constructor(
     private readonly usuarios: UsuariosService,
     private readonly pagos: PagosService,
-    private readonly snackBar: MatSnackBar
+    private readonly snackBar: MatSnackBar,
+    readonly auth: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -64,6 +69,7 @@ export class UsuarioDeudaComponent implements OnInit {
   formatearMoneda(v: number): string {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(v);
   }
+
 
   formatearMes(year: number, month: number): string {
     const m = String(month).padStart(2, '0');

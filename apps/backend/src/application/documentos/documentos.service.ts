@@ -7,6 +7,12 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { S3StorageService } from '../../infrastructure/storage/s3-storage.service';
 import type { MulterFile } from './types';
 import { randomUUID } from 'crypto';
+import {
+  UsuarioNoEncontradoError,
+  AlmacenamientoNoConfiguradoError,
+  TipoDocumentoNoPermitidoError,
+  DocumentoNoEncontradoError,
+} from '../../domain/errors';
 
 const TIPOS_PERMITIDOS = ['RECIBO_AGUA', 'SOPORTE_CARTA'];
 
@@ -32,18 +38,18 @@ export class DocumentosService {
     fechaSubida: Date;
   }> {
     if (!this.s3.isConfigured()) {
-      throw new Error('El almacenamiento S3 no está configurado');
+      throw new AlmacenamientoNoConfiguradoError();
     }
 
     if (!TIPOS_PERMITIDOS.includes(params.tipo)) {
-      throw new Error(`Tipo de documento no permitido: ${params.tipo}`);
+      throw new TipoDocumentoNoPermitidoError(params.tipo);
     }
 
     const usuario = await this.prisma.usuario.findFirst({
       where: { id: params.usuarioId, juntaId: params.juntaId },
     });
     if (!usuario) {
-      throw new Error('Usuario no encontrado en la junta');
+      throw new UsuarioNoEncontradoError(params.usuarioId);
     }
 
     this.s3.validateFile(params.file);
@@ -134,7 +140,7 @@ export class DocumentosService {
       },
     });
     if (!doc) {
-      throw new Error('Documento no encontrado');
+      throw new DocumentoNoEncontradoError();
     }
     return this.s3.getSignedDownloadUrl(doc.rutaS3);
   }

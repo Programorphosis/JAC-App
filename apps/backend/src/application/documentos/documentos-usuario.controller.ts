@@ -16,12 +16,16 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { RolNombre } from '@prisma/client';
 import { JwtUser } from '../../auth/strategies/jwt.strategy';
+import { PermissionService } from '../../auth/permission.service';
 import { DocumentosService } from './documentos.service';
 
 @Controller('usuarios/:usuarioId/documentos')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
 export class DocumentosUsuarioController {
-  constructor(private readonly documentos: DocumentosService) {}
+  constructor(
+    private readonly documentos: DocumentosService,
+    private readonly permissions: PermissionService,
+  ) {}
 
   /**
    * GET /usuarios/:usuarioId/documentos - Listar documentos de un usuario.
@@ -38,17 +42,11 @@ export class DocumentosUsuarioController {
     const user = req.user;
     const juntaId = user.juntaId!;
 
-    const puedeVerOtro =
-      user.roles.includes(RolNombre.ADMIN) ||
-      user.roles.includes(RolNombre.SECRETARIA) ||
-      user.roles.includes(RolNombre.TESORERA) ||
-      (user.esModificador && !!user.juntaId);
-
-    if (!puedeVerOtro && usuarioId !== user.id) {
+    if (!this.permissions.puedeConsultarRecursoDeOtro(user) && usuarioId !== user.id) {
       throw new ForbiddenException('Solo puede listar sus propios documentos');
     }
 
-    const soloPropios = puedeVerOtro ? undefined : user.id;
+    const soloPropios = this.permissions.puedeConsultarRecursoDeOtro(user) ? undefined : user.id;
     const data = await this.documentos.listarPorUsuario(
       usuarioId,
       juntaId,

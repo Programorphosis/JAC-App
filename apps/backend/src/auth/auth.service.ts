@@ -4,6 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../domain/services/audit.service';
 import * as bcrypt from 'bcrypt';
 import { RolNombre } from '@prisma/client';
+import { computePermissions } from './permissions-from-roles';
+import type { Permission } from './permissions.constants';
 
 export interface LoginInput {
   tipoDocumento: string;
@@ -30,6 +32,7 @@ export interface AuthResult {
     numeroDocumento: string;
     juntaId: string | null;
     roles: RolNombre[];
+    permissions: Permission[];
     esModificador: boolean;
     requisitoTipoIds: string[];
   };
@@ -71,6 +74,12 @@ export class AuthService {
     }
 
     const roles = usuario.roles.map((ur) => ur.rol.nombre);
+    const esModificador = (usuario.requisitosComoModificador?.length ?? 0) > 0;
+    const permissions = computePermissions(
+      roles,
+      esModificador,
+      usuario.juntaId,
+    );
 
     const payload: JwtPayload = {
       sub: usuario.id,
@@ -115,7 +124,8 @@ export class AuthService {
         numeroDocumento: usuario.numeroDocumento,
         juntaId: usuario.juntaId,
         roles,
-        esModificador: (usuario.requisitosComoModificador?.length ?? 0) > 0,
+        permissions,
+        esModificador,
         requisitoTipoIds: usuario.requisitosComoModificador?.map((r) => r.id) ?? [],
       },
     };
@@ -178,6 +188,11 @@ export class AuthService {
       const roles = usuario.roles.map((ur) => ur.rol.nombre);
       const requisitoTipoIds = usuario.requisitosComoModificador?.map((r) => r.id) ?? [];
       const esModificador = requisitoTipoIds.length > 0;
+      const permissions = computePermissions(
+        roles,
+        esModificador,
+        usuario.juntaId,
+      );
 
       const newPayload: JwtPayload = {
         sub: usuario.id,
@@ -207,6 +222,7 @@ export class AuthService {
           numeroDocumento: usuario.numeroDocumento,
           juntaId: usuario.juntaId,
           roles,
+          permissions,
           esModificador,
           requisitoTipoIds,
         },

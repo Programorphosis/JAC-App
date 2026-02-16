@@ -14,13 +14,7 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { RolNombre } from '@prisma/client';
 import { JwtUser } from '../../auth/strategies/jwt.strategy';
-import {
-  UsuarioNoEncontradoError,
-  SinHistorialLaboralError,
-  SinTarifaVigenteError,
-  HistorialLaboralSuperpuestoError,
-} from '../../domain/errors/domain.errors';
-import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { PermissionService } from '../../auth/permission.service';
 
 /**
  * Módulo deuda – consulta de deuda calculada bajo demanda.
@@ -32,7 +26,10 @@ import { NotFoundException, UnprocessableEntityException } from '@nestjs/common'
 @Controller('usuarios/:usuarioId/deuda')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
 export class DeudaController {
-  constructor(private readonly debtService: DebtService) {}
+  constructor(
+    private readonly debtService: DebtService,
+    private readonly permissions: PermissionService,
+  ) {}
 
   @Get()
   @UseGuards(RolesGuard)
@@ -45,46 +42,26 @@ export class DeudaController {
     const user = req!.user;
     const juntaId = user.juntaId!;
 
-    const puedeConsultarOtro =
-      user.roles.includes(RolNombre.ADMIN) ||
-      user.roles.includes(RolNombre.SECRETARIA) ||
-      user.roles.includes(RolNombre.TESORERA) ||
-      (user.esModificador && !!user.juntaId);
-
-    if (!puedeConsultarOtro && usuarioId !== user.id) {
+    if (!this.permissions.puedeConsultarRecursoDeOtro(user) && usuarioId !== user.id) {
       throw new ForbiddenException('Solo puede consultar su propia deuda');
     }
 
-    try {
-      const result = await this.debtService.calculateUserDebt({
-        usuarioId,
-        juntaId,
-      });
+    const result = await this.debtService.calculateUserDebt({
+      usuarioId,
+      juntaId,
+    });
 
-      const data: { total: number; detalle?: typeof result.detalle } = {
-        total: result.total,
-      };
+    const data: { total: number; detalle?: typeof result.detalle } = {
+      total: result.total,
+    };
 
-      if (detalle === 'true' || detalle === '1') {
-        data.detalle = result.detalle;
-      }
-
-      return {
-        data,
-        meta: { timestamp: new Date().toISOString() },
-      };
-    } catch (err) {
-      if (err instanceof UsuarioNoEncontradoError) {
-        throw new NotFoundException(err.message);
-      }
-      if (
-        err instanceof SinHistorialLaboralError ||
-        err instanceof SinTarifaVigenteError ||
-        err instanceof HistorialLaboralSuperpuestoError
-      ) {
-        throw new UnprocessableEntityException(err.message);
-      }
-      throw err;
+    if (detalle === 'true' || detalle === '1') {
+      data.detalle = result.detalle;
     }
+
+    return {
+      data,
+      meta: { timestamp: new Date().toISOString() },
+    };
   }
 }

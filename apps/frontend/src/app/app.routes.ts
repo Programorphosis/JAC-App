@@ -8,6 +8,7 @@ import {
   requisitosGuard,
   usuariosGuard,
   crearUsuarioGuard,
+  auditoriasGuard,
 } from './core/auth/permission.guard';
 
 export const routes: Routes = [
@@ -69,12 +70,22 @@ export const routes: Routes = [
           import('./features/tarifas/tarifas-list/tarifas-list.component').then((m) => m.TarifasListComponent),
       },
       {
+        path: 'auditorias',
+        canActivate: [auditoriasGuard],
+        loadComponent: () =>
+          import('./features/auditorias/auditorias-list/auditorias-list.component').then((m) => m.AuditoriasListComponent),
+      },
+      {
         path: 'platform',
         canActivate: [platformAdminGuard],
         loadComponent: () =>
           import('./features/platform/platform/platform.component').then((m) => m.PlatformComponent),
         children: [
-          { path: '', redirectTo: 'juntas', pathMatch: 'full' },
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/platform/platform-dashboard/platform-dashboard.component').then((m) => m.PlatformDashboardComponent),
+          },
           {
             path: 'juntas',
             loadComponent: () =>

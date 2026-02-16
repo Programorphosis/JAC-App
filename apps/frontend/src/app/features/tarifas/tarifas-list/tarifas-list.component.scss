@@ -1,0 +1,10 @@
+/* Mismo padding que auditorías para consistencia */
+:host ::ng-deep .listado-card .mat-mdc-card-content {
+  padding: 12px 8px !important;
+}
+
+@media (min-width: 640px) {
+  :host ::ng-deep .listado-card .mat-mdc-card-content {
+    padding: 16px !important;
+  }
+}

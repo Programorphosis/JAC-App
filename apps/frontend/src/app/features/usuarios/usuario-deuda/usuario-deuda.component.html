@@ -1,47 +1,85 @@
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>Deuda calculada</mat-card-title>
+<mat-card class="overflow-hidden w-full min-w-0">
+  <mat-card-header class="pb-2">
+    <mat-card-title class="text-lg">Deuda calculada</mat-card-title>
+    <mat-card-subtitle>Cuota de junta según historial laboral y tarifas vigentes</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     @if (loading) {
-      <p>Cargando...</p>
+      <div class="flex items-center justify-center py-8">
+        <p class="text-gray-500">Cargando...</p>
+      </div>
     } @else if (deuda) {
-      <p class="text-xl font-semibold">Total: {{ formatearMoneda(deuda.total) }}</p>
-      @if (deuda.total > 0) {
-        <button
-          mat-raised-button
-          color="primary"
-          (click)="pagarDeudaOnline()"
-          [disabled]="pagando"
-          class="mt-4"
-        >
-          {{ pagando ? 'Redirigiendo...' : 'Pagar deuda online' }}
-        </button>
-      } @else {
-        <p class="text-green-700 mt-2">Sin deuda. Está al día con la junta.</p>
-      }
-      @if (deuda.detalle && deuda.detalle.length > 0) {
-        <table class="w-full mt-4">
-          <thead>
-            <tr>
-              <th class="text-left">Mes</th>
-              <th class="text-left">Estado</th>
-              <th class="text-right">Tarifa</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (d of deuda.detalle; track d.year + '-' + d.month) {
-              <tr>
-                <td>{{ formatearMes(d.year, d.month) }}</td>
-                <td>{{ d.estadoLaboral }}</td>
-                <td class="text-right">{{ formatearMoneda(d.tarifaAplicada) }}</td>
-              </tr>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4 min-w-0">
+          <div
+            class="rounded-xl flex items-center justify-center shrink-0 min-h-[4rem] px-4 py-3 overflow-x-auto"
+            [ngClass]="deuda.total > 0 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'"
+          >
+            <span class="text-xl sm:text-2xl font-bold whitespace-nowrap">{{ formatearMoneda(deuda.total) }}</span>
+          </div>
+          <div class="min-w-0">
+            @if (deuda.total > 0) {
+              <p class="font-medium text-amber-800">Pendiente de pago</p>
+              <p class="text-sm text-gray-600">Pague su deuda para quedar al día</p>
+            } @else {
+              <p class="font-medium text-green-800">Sin deuda</p>
+              <p class="text-sm text-gray-600">Está al día con la junta</p>
             }
-          </tbody>
-        </table>
+          </div>
+        </div>
+        @if (deuda.total > 0) {
+          <button
+            mat-raised-button
+            *appCan="auth.permissions.PAGOS_PAGAR_ONLINE; usuarioId: usuarioId"
+            color="primary"
+            (click)="pagarDeudaOnline()"
+            [disabled]="pagando"
+            class="shrink-0"
+          >
+            {{ pagando ? 'Redirigiendo...' : 'Pagar online' }}
+          </button>
+        }
+      </div>
+
+      @if (deuda.detalle && deuda.detalle.length > 0) {
+        <div class="mt-6 pt-4 border-t border-gray-200">
+          <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Detalle por mes</h3>
+          <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
+            <div class="table-responsive">
+            <table class="w-full min-w-[320px]">
+              <thead>
+                <tr>
+                  <th>Mes</th>
+                  <th>Estado</th>
+                  <th class="text-right">Tarifa</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (d of deuda.detalle; track d.year + '-' + d.month) {
+                  <tr>
+                    <td>{{ formatearMes(d.year, d.month) }}</td>
+                    <td>
+                      <span
+                        class="inline-flex px-2 py-0.5 rounded text-xs font-medium"
+                        [ngClass]="d.estadoLaboral === 'TRABAJANDO' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'"
+                      >
+                        {{ d.estadoLaboral }}
+                      </span>
+                    </td>
+                    <td class="text-right font-medium">{{ formatearMoneda(d.tarifaAplicada) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            </div>
+          </div>
+        </div>
       }
     } @else {
-      <p>No se pudo cargar la deuda</p>
+      <div class="py-8 text-center text-gray-500">
+        <mat-icon class="!text-4xl !w-12 !h-12 mx-auto mb-2 text-gray-300">error_outline</mat-icon>
+        <p>No se pudo cargar la deuda</p>
+      </div>
     }
   </mat-card-content>
 </mat-card>

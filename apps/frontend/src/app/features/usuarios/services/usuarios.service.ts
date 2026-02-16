@@ -26,6 +26,8 @@ export interface CreateUserBody {
   direccion?: string;
   password: string;
   roles?: string[];
+  /** Estado laboral inicial. Por defecto NO_TRABAJANDO. */
+  estadoLaboralInicial?: 'TRABAJANDO' | 'NO_TRABAJANDO';
 }
 
 export interface UpdateUserBody {
@@ -34,6 +36,7 @@ export interface UpdateUserBody {
   telefono?: string;
   direccion?: string;
   activo?: boolean;
+  roles?: string[];
 }
 
 export interface DeudaResult {
@@ -77,8 +80,26 @@ export class UsuariosService {
 
   constructor(private readonly http: HttpClient) {}
 
-  listar(page = 1, limit = 20): Observable<{ data: UsuarioListItem[]; meta: { total: number } }> {
-    const params = new HttpParams().set('page', page).set('limit', limit);
+  listar(
+    page = 1,
+    limit = 20,
+    opts?: {
+      search?: string;
+      activo?: boolean;
+      rol?: string;
+      sortBy?: 'apellidos' | 'nombres' | 'numeroDocumento' | 'fechaCreacion';
+      sortOrder?: 'asc' | 'desc';
+    }
+  ): Observable<{ data: UsuarioListItem[]; meta: { total: number } }> {
+    let params = new HttpParams().set('page', String(page)).set('limit', String(limit));
+    if (opts?.search && opts.search.trim().length >= 2) {
+      params = params.set('search', opts.search.trim());
+    }
+    if (opts?.activo === true) params = params.set('activo', 'true');
+    if (opts?.activo === false) params = params.set('activo', 'false');
+    if (opts?.rol?.trim()) params = params.set('rol', opts.rol.trim());
+    if (opts?.sortBy) params = params.set('sortBy', opts.sortBy);
+    if (opts?.sortOrder) params = params.set('sortOrder', opts.sortOrder);
     return this.http.get<{ data: UsuarioListItem[]; meta: { total: number; page: number; limit: number } }>(
       this.base,
       { params }

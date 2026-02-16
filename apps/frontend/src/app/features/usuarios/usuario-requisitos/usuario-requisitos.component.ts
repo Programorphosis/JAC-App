@@ -1,6 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RequisitosService, EstadoGeneralResult } from '../../requisitos/services/requisitos.service';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
@@ -8,7 +10,7 @@ import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 @Component({
   selector: 'app-usuario-requisitos',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule],
+  imports: [MatCardModule, MatButtonModule, MatIconModule, NgClass],
   templateUrl: './usuario-requisitos.component.html',
   styleUrl: './usuario-requisitos.component.scss',
 })

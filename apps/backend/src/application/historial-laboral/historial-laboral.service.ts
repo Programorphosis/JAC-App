@@ -49,14 +49,32 @@ export class HistorialLaboralService {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    const registro = await this.prisma.historialLaboral.create({
-      data: {
-        usuarioId,
-        estado: dto.estado as 'TRABAJANDO' | 'NO_TRABAJANDO',
-        fechaInicio: new Date(dto.fechaInicio),
-        fechaFin: dto.fechaFin ? new Date(dto.fechaFin) : null,
-        creadoPorId,
-      },
+    const fechaInicioNueva = new Date(dto.fechaInicio);
+    const fechaFinAnterior = new Date(fechaInicioNueva);
+    fechaFinAnterior.setDate(fechaFinAnterior.getDate() - 1);
+
+    const registro = await this.prisma.$transaction(async (tx) => {
+      // Cerrar el registro vigente (fechaFin=null): poner fechaFin = día anterior al nuevo inicio
+      const vigente = await tx.historialLaboral.findFirst({
+        where: { usuarioId, fechaFin: null },
+        orderBy: { fechaInicio: 'desc' },
+      });
+      if (vigente) {
+        await tx.historialLaboral.update({
+          where: { id: vigente.id },
+          data: { fechaFin: fechaFinAnterior },
+        });
+      }
+
+      return tx.historialLaboral.create({
+        data: {
+          usuarioId,
+          estado: dto.estado as 'TRABAJANDO' | 'NO_TRABAJANDO',
+          fechaInicio: fechaInicioNueva,
+          fechaFin: dto.fechaFin ? new Date(dto.fechaFin) : null,
+          creadoPorId,
+        },
+      });
     });
 
     await this.audit.registerEvent({

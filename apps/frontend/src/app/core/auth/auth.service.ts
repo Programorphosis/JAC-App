@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, of, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { PERMISSIONS, type Permission } from './permissions.constants';
 
 export type RolNombre =
   | 'PLATFORM_ADMIN'
@@ -19,10 +20,11 @@ export interface AuthUser {
   numeroDocumento: string;
   juntaId: string | null;
   roles: RolNombre[];
+  /** Permisos explícitos desde backend. Fuente de verdad para can(). */
+  permissions?: string[];
   esModificador?: boolean;
-  /** IDs de requisitos que puede modificar. Reemplaza requisitoTipoId (deprecado). */
   requisitoTipoIds?: string[];
-  /** @deprecated Usar requisitoTipoIds. Mantenido para compatibilidad con sesiones antiguas. */
+  /** @deprecated Mantenido para compatibilidad. */
   requisitoTipoId?: string | null;
 }
 
@@ -49,6 +51,8 @@ export class AuthService {
   private readonly userSignal = signal<AuthUser | null>(this.loadUserFromStorage());
   readonly currentUser = this.userSignal.asReadonly();
   readonly isAuthenticated = computed(() => this.userSignal() !== null);
+  /** Constantes para uso en templates: auth.permissions.USUARIOS_VER */
+  readonly permissions = PERMISSIONS;
   readonly isPlatformAdmin = computed(
     () =>
       this.userSignal()?.juntaId === null &&
@@ -113,41 +117,91 @@ export class AuthService {
       );
   }
 
-  hasRole(rol: RolNombre): boolean {
-    return this.userSignal()?.roles?.includes(rol) ?? false;
-  }
-
-  /** true si puede listar usuarios (ADMIN, SECRETARIA o modificador) */
-  puedeVerUsuarios(): boolean {
+  /**
+   * Verifica si el usuario tiene el permiso indicado.
+   * Usa el array permissions del JWT (backend). Fallback a roles si permissions no existe (sesiones antiguas).
+   */
+  can(permission: Permission | string): boolean {
     const u = this.userSignal();
     if (!u) return false;
-    if (u.roles?.includes('ADMIN') || u.roles?.includes('SECRETARIA')) return true;
-    const esMod =
-      u.esModificador ??
-      ((u.requisitoTipoIds?.length ?? 0) > 0 || !!u.requisitoTipoId);
-    return !!(esMod && u.juntaId);
+    const perms = u.permissions;
+    if (Array.isArray(perms) && perms.includes(permission)) return true;
+    // Fallback para sesiones sin permissions (re-login actualizará)
+    return this.canFallback(permission, u);
   }
 
-  /** true si puede ver la configuración de requisitos (solo ADMIN crea/edita) */
-  puedeVerRequisitos(): boolean {
-    return this.hasRole('ADMIN');
+  private canFallback(permission: string, u: AuthUser): boolean {
+    const has = (r: RolNombre) => u.roles?.includes(r) ?? false;
+    switch (permission) {
+      case PERMISSIONS.USUARIOS_VER: {
+        const esMod = u.esModificador ?? ((u.requisitoTipoIds?.length ?? 0) > 0 || !!u.requisitoTipoId);
+        return has('ADMIN') || has('SECRETARIA') || has('TESORERA') || !!(esMod && u.juntaId);
+      }
+      case PERMISSIONS.USUARIOS_CREAR:
+      case PERMISSIONS.USUARIOS_EDITAR:
+        return has('ADMIN') || has('SECRETARIA');
+      case PERMISSIONS.USUARIOS_EDITAR_ROLES:
+        return has('ADMIN');
+      case PERMISSIONS.REQUISITOS_VER:
+      case PERMISSIONS.REQUISITOS_MODIFICAR:
+        return has('ADMIN');
+      case PERMISSIONS.PAGOS_GESTIONAR:
+        return has('TESORERA');
+      case PERMISSIONS.PAGOS_VER:
+        return has('TESORERA') || has('ADMIN') || has('SECRETARIA');
+      case PERMISSIONS.PAGOS_PAGAR_ONLINE:
+        return has('TESORERA');
+      case PERMISSIONS.PAGOS_PAGAR_ONLINE_PROPIO:
+        return has('CIUDADANO') || has('SECRETARIA');
+      case PERMISSIONS.TARIFAS_VER:
+        return has('ADMIN') || has('SECRETARIA') || has('TESORERA');
+      case PERMISSIONS.TARIFAS_MODIFICAR:
+        return has('ADMIN');
+      case PERMISSIONS.CARTAS_VALIDAR:
+        return has('SECRETARIA');
+      case PERMISSIONS.CARTAS_SOLICITAR:
+        return has('CIUDADANO');
+      case PERMISSIONS.AUDITORIAS_VER:
+        return has('ADMIN') || has('SECRETARIA') || has('TESORERA');
+      case PERMISSIONS.DOCUMENTOS_SUBIR_OTROS:
+        return has('ADMIN') || has('TESORERA');
+      case PERMISSIONS.HISTORIAL_CREAR:
+        return has('ADMIN') || has('TESORERA');
+      default:
+        return false;
+    }
   }
 
-  /** true si puede registrar pagos y ver módulo Pagos (SECRETARIA, TESORERA) */
-  puedeVerPagos(): boolean {
-    return this.hasRole('SECRETARIA') || this.hasRole('TESORERA');
+  /** Permisos que requieren contexto usuarioId. TESORERA: cualquiera; CIUDADANO/SECRETARIA: solo propio. */
+  canPagarOnlinePara(usuarioId: string): boolean {
+    return this.can(PERMISSIONS.PAGOS_PAGAR_ONLINE) || (this.can(PERMISSIONS.PAGOS_PAGAR_ONLINE_PROPIO) && this.currentUser()?.id === usuarioId);
   }
 
-  /** true si puede ver Tarifas (ADMIN, SECRETARIA, TESORERA) */
-  puedeVerTarifas(): boolean {
-    return (
-      this.hasRole('ADMIN') || this.hasRole('SECRETARIA') || this.hasRole('TESORERA')
-    );
+  /** Propio siempre; otros si tiene documentos:subir:otros. */
+  canSubirDocumentoPara(usuarioId: string): boolean {
+    return this.currentUser()?.id === usuarioId || this.can(PERMISSIONS.DOCUMENTOS_SUBIR_OTROS);
   }
 
-  /** true si puede ver Cartas pendientes y validar (solo SECRETARIA) */
-  puedeVerCartasPendientes(): boolean {
-    return this.hasRole('SECRETARIA');
+  /** Solo propio y con cartas:solicitar. */
+  canSolicitarCartaPara(usuarioId: string): boolean {
+    return this.currentUser()?.id === usuarioId && this.can(PERMISSIONS.CARTAS_SOLICITAR);
+  }
+
+  /** ADMIN sin roles operativos (solo configuración). Usado para lógica de tabs. */
+  esAdminSolo(): boolean {
+    const u = this.userSignal();
+    if (!u) return false;
+    const tieneAdmin = u.roles?.includes('ADMIN') ?? false;
+    const tieneOperativo =
+      u.roles?.includes('SECRETARIA') ||
+      u.roles?.includes('TESORERA') ||
+      u.roles?.includes('RECEPTOR_AGUA') ||
+      u.roles?.includes('CIUDADANO');
+    return tieneAdmin && !tieneOperativo;
+  }
+
+  hasRole(rol: RolNombre): boolean {
+    return this.userSignal()?.roles?.includes(rol) ?? false;
   }
 
   private handleAuthSuccess(result: AuthResult): void {

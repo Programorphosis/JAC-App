@@ -1,24 +1,39 @@
 <!-- Layout: solo Tailwind en contenedores div -->
-<div class="flex flex-col h-screen">
-  <div class="flex-none">
-    <mat-toolbar color="primary">
-      <button mat-icon-button (click)="menuOpen = !menuOpen" aria-label="Toggle menu">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span class="flex-1">JAC App</span>
-      <span class="layout-user-name">{{ auth.currentUser()?.nombres }} {{ auth.currentUser()?.apellidos }}</span>
-      <button mat-icon-button (click)="logout()" aria-label="Cerrar sesión">
-        <mat-icon>logout</mat-icon>
-      </button>
-    </mat-toolbar>
-  </div>
+<div class="flex flex-col h-screen w-full min-w-0">
+  <header class="layout-navbar">
+    <button mat-icon-button (click)="menuOpen = !menuOpen" aria-label="Abrir menú" class="layout-navbar-menu-btn">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <div class="layout-navbar-brand">
+      <mat-icon class="layout-navbar-logo">account_balance</mat-icon>
+      <span class="layout-navbar-title">JAC App</span>
+    </div>
+    <div class="layout-navbar-spacer"></div>
+    <div class="layout-navbar-user">
+      <div class="layout-navbar-avatar">
+        <mat-icon>person</mat-icon>
+      </div>
+    
+      <span class="layout-navbar-user-name hidden sm:inline">{{ auth.currentUser()?.nombres | formatearNombre }} {{ auth.currentUser()?.apellidos | formatearNombre }}</span>
+    </div>
+    <button mat-icon-button (click)="logout()" aria-label="Cerrar sesión" class="layout-navbar-logout-btn">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </header>
 
-  <div class="flex flex-1 overflow-hidden">
-    <div class="flex-1 flex overflow-hidden">
-      <mat-sidenav-container class="flex-1">
-        <mat-sidenav [(opened)]="menuOpen" mode="side">
-          <mat-nav-list>
+  <div class="flex flex-1 min-h-0 min-w-0 overflow-hidden">
+    <mat-sidenav-container class="flex-1 min-h-0 min-w-0">
+      <mat-sidenav [(opened)]="menuOpen" [mode]="sidenavMode()" class="layout-sidenav">
+          <div class="layout-sidenav-header">
+            <mat-icon>account_balance</mat-icon>
+            <span>JAC App</span>
+          </div>
+          <mat-nav-list (click)="menuOpen = false">
             @if (auth.isPlatformAdmin()) {
+              <a mat-list-item routerLink="/platform" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+                <mat-icon matListItemIcon>dashboard</mat-icon>
+                <span matListItemTitle>Inicio</span>
+              </a>
               <a mat-list-item routerLink="/platform/juntas" routerLinkActive="active">
                 <mat-icon matListItemIcon>business</mat-icon>
                 <span matListItemTitle>Juntas</span>
@@ -28,49 +43,42 @@
                 <mat-icon matListItemIcon>dashboard</mat-icon>
                 <span matListItemTitle>Inicio</span>
               </a>
-              @if (auth.puedeVerUsuarios()) {
-                <a mat-list-item routerLink="/usuarios" routerLinkActive="active">
-                  <mat-icon matListItemIcon>people</mat-icon>
-                  <span matListItemTitle>Usuarios</span>
-                </a>
-              }
+              <a mat-list-item *appCan="auth.permissions.USUARIOS_VER" routerLink="/usuarios" routerLinkActive="active">
+                <mat-icon matListItemIcon>people</mat-icon>
+                <span matListItemTitle>Usuarios</span>
+              </a>
               <a mat-list-item [routerLink]="['/usuarios', auth.currentUser()?.id]" routerLinkActive="active">
                 <mat-icon matListItemIcon>person</mat-icon>
                 <span matListItemTitle>Mi cuenta</span>
               </a>
-              @if (auth.puedeVerPagos()) {
-                <a mat-list-item routerLink="/pagos" routerLinkActive="active">
-                  <mat-icon matListItemIcon>payment</mat-icon>
-                  <span matListItemTitle>Pagos</span>
-                </a>
-              }
-              @if (auth.puedeVerRequisitos()) {
-                <a mat-list-item routerLink="/requisitos" routerLinkActive="active">
-                  <mat-icon matListItemIcon>assignment</mat-icon>
-                  <span matListItemTitle>Requisitos</span>
-                </a>
-              }
-              @if (auth.puedeVerCartasPendientes()) {
-                <a mat-list-item routerLink="/cartas" routerLinkActive="active">
-                  <mat-icon matListItemIcon>mail</mat-icon>
-                  <span matListItemTitle>Cartas</span>
-                </a>
-              }
-              @if (auth.puedeVerTarifas()) {
-                <a mat-list-item routerLink="/tarifas" routerLinkActive="active">
-                  <mat-icon matListItemIcon>attach_money</mat-icon>
-                  <span matListItemTitle>Tarifas</span>
-                </a>
-              }
+              <a mat-list-item *appCan="auth.permissions.PAGOS_GESTIONAR" routerLink="/pagos" routerLinkActive="active">
+                <mat-icon matListItemIcon>payment</mat-icon>
+                <span matListItemTitle>Pagos</span>
+              </a>
+              <a mat-list-item *appCan="auth.permissions.REQUISITOS_VER" routerLink="/requisitos" routerLinkActive="active">
+                <mat-icon matListItemIcon>assignment</mat-icon>
+                <span matListItemTitle>Requisitos</span>
+              </a>
+              <a mat-list-item *appCan="auth.permissions.CARTAS_VALIDAR" routerLink="/cartas" routerLinkActive="active">
+                <mat-icon matListItemIcon>mail</mat-icon>
+                <span matListItemTitle>Cartas</span>
+              </a>
+              <a mat-list-item *appCan="auth.permissions.TARIFAS_VER" routerLink="/tarifas" routerLinkActive="active">
+                <mat-icon matListItemIcon>attach_money</mat-icon>
+                <span matListItemTitle>Tarifas</span>
+              </a>
+              <a mat-list-item *appCan="auth.permissions.AUDITORIAS_VER" routerLink="/auditorias" routerLinkActive="active">
+                <mat-icon matListItemIcon>history</mat-icon>
+                <span matListItemTitle>Auditorías</span>
+              </a>
             }
           </mat-nav-list>
         </mat-sidenav>
-        <mat-sidenav-content>
-          <div class="p-4 overflow-auto">
+        <mat-sidenav-content class="min-h-0 min-w-0">
+          <div class="p-2 sm:p-4 overflow-auto min-h-0 min-w-0">
             <router-outlet />
           </div>
         </mat-sidenav-content>
       </mat-sidenav-container>
-    </div>
   </div>
 </div>

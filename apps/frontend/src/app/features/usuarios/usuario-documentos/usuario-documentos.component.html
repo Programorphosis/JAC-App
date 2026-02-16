@@ -1,56 +1,86 @@
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>Documentos</mat-card-title>
-    <mat-card-subtitle>Recibos y soportes</mat-card-subtitle>
+<mat-card class="overflow-hidden w-full min-w-0">
+  <mat-card-header class="pb-2">
+    <mat-card-title class="text-lg">Documentos</mat-card-title>
+    <mat-card-subtitle>Recibos, soportes y archivos adjuntos</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
-    @if (puedeSubirDocumento()) {
-    <div class="flex flex-col gap-4 mb-4">
-      <label class="font-medium">Subir documento</label>
-      <div class="flex gap-2 items-center flex-wrap">
-        <select [(ngModel)]="tipoSeleccionado" class="border rounded px-2 py-1">
-          @for (t of tipos; track t.value) {
-            <option [value]="t.value">{{ t.label }}</option>
-          }
-        </select>
-        <input
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
-          (change)="onFileSelected($event)"
-          [disabled]="subiendo"
-        />
-        @if (subiendo) {
-          <span>Subiendo...</span>
-        }
+    @if (auth.canSubirDocumentoPara(usuarioId)) {
+    <div class="mb-6">
+      <div class="p-4 rounded-xl bg-gray-50 border border-gray-200">
+        <h3 class="text-sm font-semibold text-gray-700 mb-4">Subir documento</h3>
+        <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+          <mat-form-field appearance="outline" class="flex-1 min-w-[180px]">
+            <mat-label>Tipo</mat-label>
+            <mat-select [(ngModel)]="tipoSeleccionado" name="tipo">
+              @for (t of tipos; track t.value) {
+                <mat-option [value]="t.value">{{ t.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="flex flex-wrap items-center gap-3 relative min-w-0">
+            <input
+              #fileInput
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              (change)="onFileSelected($event)"
+              [disabled]="subiendo"
+              class="doc-upload-input"
+            />
+            <button
+              type="button"
+              (click)="fileInput.click()"
+              [disabled]="subiendo"
+              class="doc-upload-btn"
+            >
+              <mat-icon class="doc-upload-icon">cloud_upload</mat-icon>
+              <span>{{ subiendo ? 'Subiendo...' : 'Seleccionar archivo' }}</span>
+            </button>
+            <span class="text-xs text-gray-500">PDF, JPG o PNG</span>
+          </div>
+        </div>
       </div>
     </div>
     }
 
     @if (loading) {
-      <p>Cargando...</p>
+      <div class="flex items-center justify-center py-8">
+        <p class="text-gray-500">Cargando...</p>
+      </div>
     } @else if (documentos.length === 0) {
-      <p>No hay documentos</p>
+      <div class="py-8 text-center text-gray-500 rounded-lg border border-dashed border-gray-300">
+        <mat-icon class="!text-4xl !w-12 !h-12 mx-auto mb-2 text-gray-300">folder_open</mat-icon>
+        <p>No hay documentos</p>
+      </div>
     } @else {
-      <table class="w-full">
-        <thead>
-          <tr>
-            <th class="text-left">Tipo</th>
-            <th class="text-left">Fecha</th>
-            <th class="text-left">Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (d of documentos; track d.id) {
+      <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Listado</h3>
+      <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
+        <div class="table-responsive">
+        <table class="w-full min-w-[360px]">
+          <thead>
             <tr>
-              <td>{{ d.tipo }}</td>
-              <td>{{ formatearFecha(d.fechaSubida) }}</td>
-              <td>
-                <button mat-stroked-button (click)="descargar(d)">Descargar</button>
-              </td>
+              <th>Tipo</th>
+              <th>Fecha</th>
+              <th>Acción</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (d of documentos; track d.id) {
+              <tr>
+                <td>
+                  <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                    {{ d.tipo }}
+                  </span>
+                </td>
+                <td>{{ formatearFecha(d.fechaSubida) }}</td>
+                <td>
+                  <button mat-stroked-button (click)="descargar(d)">Descargar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        </div>
+      </div>
     }
   </mat-card-content>
 </mat-card>

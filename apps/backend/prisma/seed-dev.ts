@@ -107,8 +107,15 @@ async function main() {
     },
   });
 
-  await prisma.usuarioRol.create({
-    data: { usuarioId: juntaAdmin.id, rolId: rolAdmin.id },
+  const rolCiudadano = await prisma.rol.findUniqueOrThrow({
+    where: { nombre: RolNombre.CIUDADANO },
+  });
+
+  await prisma.usuarioRol.createMany({
+    data: [
+      { usuarioId: juntaAdmin.id, rolId: rolAdmin.id },
+      { usuarioId: juntaAdmin.id, rolId: rolCiudadano.id },
+    ],
   });
 
   console.log('');

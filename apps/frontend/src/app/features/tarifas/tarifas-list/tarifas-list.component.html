@@ -1,11 +1,14 @@
-<div class="flex flex-col gap-4">
-  <div class="flex items-center justify-between">
-    <h2>Tarifas</h2>
+<mat-card class="listado-card">
+  <mat-card-header>
+    <div class=" p-2 sm:p-4">
+      <mat-card-title>Tarifas</mat-card-title>
+      <mat-card-subtitle>Valores mensuales por estado laboral</mat-card-subtitle>
+    </div>
     @if (!mostrandoForm) {
-      <button mat-raised-button color="primary" (click)="crear()">Nueva tarifa</button>
+      <button mat-raised-button *appCan="auth.permissions.TARIFAS_MODIFICAR" color="primary" (click)="crear()">Nueva tarifa</button>
     }
-  </div>
-
+  </mat-card-header>
+  <mat-card-content>
   @if (mostrandoForm) {
     <mat-card>
       <mat-card-header>
@@ -26,7 +29,9 @@
           </mat-form-field>
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Fecha vigencia</mat-label>
-            <input matInput type="date" formControlName="fechaVigencia" />
+            <input matInput [matDatepicker]="pickerVigencia" formControlName="fechaVigencia" />
+            <mat-datepicker-toggle matSuffix [for]="pickerVigencia"></mat-datepicker-toggle>
+            <mat-datepicker #pickerVigencia></mat-datepicker>
           </mat-form-field>
           <div class="flex gap-2">
             <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Crear</button>
@@ -37,8 +42,9 @@
     </mat-card>
   }
 
-  <div class="mat-elevation-z2 overflow-hidden rounded">
-    <table mat-table [dataSource]="dataSource" class="w-full">
+  <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
+    <div class="table-responsive">
+    <table mat-table [dataSource]="dataSource" class="w-full" style="min-width: 400px">
       <ng-container matColumnDef="estadoLaboral">
         <th mat-header-cell *matHeaderCellDef>Estado laboral</th>
         <td mat-cell *matCellDef="let t">{{ t.estadoLaboral }}</td>
@@ -65,5 +71,7 @@
         </td>
       </tr>
     </table>
+    </div>
   </div>
-</div>
+  </mat-card-content>
+</mat-card>

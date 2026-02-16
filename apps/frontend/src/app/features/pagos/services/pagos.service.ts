@@ -31,6 +31,42 @@ export interface VerificarPagoResult {
   status?: string;
 }
 
+export interface PagoListItem {
+  id: string;
+  tipo: string;
+  metodo: string;
+  monto: number;
+  consecutivo: number;
+  referenciaExterna: string | null;
+  fechaPago: string;
+  vigencia: boolean | null;
+  usuarioId: string;
+  usuarioNombre: string | null;
+  registradoPorNombre: string | null;
+}
+
+export interface PagosListResponse {
+  data: PagoListItem[];
+  meta: { total: number; page: number; limit: number };
+}
+
+export interface EstadisticasPagos {
+  total: number;
+  porMetodo: {
+    efectivo: number;
+    transferencia: number;
+    online: number;
+    onlineTesorera: number;
+    onlineUsuarios: number;
+  };
+  porTipo: {
+    carta: number;
+    tarifa: number;
+  };
+  porMes: Array<{ mes: number; anio: number; total: number }>;
+  porAnio: Array<{ anio: number; total: number }>;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PagosService {
   private readonly base = `${environment.apiUrl}/pagos`;
@@ -67,5 +103,40 @@ export class PagosService {
         params: { transaction_id: transactionId },
       })
       .pipe(map((r) => r.data));
+  }
+
+  listar(params?: {
+    page?: number;
+    limit?: number;
+    usuarioId?: string;
+    tipo?: 'JUNTA' | 'CARTA';
+    fechaDesde?: string;
+    fechaHasta?: string;
+    search?: string;
+    sortBy?: 'fechaPago' | 'monto' | 'tipo' | 'metodo' | 'consecutivo';
+    sortOrder?: 'asc' | 'desc';
+  }): Observable<PagosListResponse> {
+    let httpParams: Record<string, string> = {};
+    if (params) {
+      if (params.page != null) httpParams['page'] = String(params.page);
+      if (params.limit != null) httpParams['limit'] = String(params.limit);
+      if (params.usuarioId) httpParams['usuarioId'] = params.usuarioId;
+      if (params.tipo) httpParams['tipo'] = params.tipo;
+      if (params.fechaDesde) httpParams['fechaDesde'] = params.fechaDesde;
+      if (params.fechaHasta) httpParams['fechaHasta'] = params.fechaHasta;
+      if (params.search && params.search.trim().length >= 2) httpParams['search'] = params.search.trim();
+      if (params.sortBy) httpParams['sortBy'] = params.sortBy;
+      if (params.sortOrder) httpParams['sortOrder'] = params.sortOrder;
+    }
+    return this.http.get<PagosListResponse>(this.base, { params: httpParams });
+  }
+
+  getEstadisticas(anio?: number): Observable<EstadisticasPagos> {
+    if (anio != null) {
+      return this.http.get<EstadisticasPagos>(`${this.base}/estadisticas`, {
+        params: { anio: String(anio) },
+      });
+    }
+    return this.http.get<EstadisticasPagos>(`${this.base}/estadisticas`);
   }
 }

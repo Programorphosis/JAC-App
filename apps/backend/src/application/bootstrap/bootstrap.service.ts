@@ -4,6 +4,7 @@ import { JuntaService } from '../junta/junta.service';
 import * as bcrypt from 'bcrypt';
 import { RolNombre } from '@prisma/client';
 import { randomBytes } from 'crypto';
+import { BootstrapYaEjecutadoError } from '../../domain/errors';
 
 export interface BootstrapPlatformAdmin {
   nombres: string;
@@ -78,7 +79,7 @@ export class BootstrapService {
   async ejecutarBootstrap(body: BootstrapBody): Promise<BootstrapResult> {
     const puede = await this.puedeEjecutarBootstrap();
     if (!puede) {
-      throw new Error('BOOTSTRAP_YA_EJECUTADO');
+      throw new BootstrapYaEjecutadoError();
     }
 
     const rolPlatformAdmin = await this.prisma.rol.findUniqueOrThrow({

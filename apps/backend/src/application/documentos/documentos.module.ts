@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AuthModule } from '../../auth/auth.module';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { DocumentosController } from './documentos.controller';
 import { DocumentosUsuarioController } from './documentos-usuario.controller';
@@ -6,7 +7,7 @@ import { DocumentosService } from './documentos.service';
 import { S3StorageService } from '../../infrastructure/storage/s3-storage.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [AuthModule, PrismaModule],
   controllers: [DocumentosController, DocumentosUsuarioController],
   providers: [DocumentosService, S3StorageService],
   exports: [DocumentosService],

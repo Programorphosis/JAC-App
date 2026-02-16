@@ -1,20 +1,65 @@
-<div class="flex flex-col gap-4">
-  <div class="flex items-center justify-between">
-    <h2>Usuarios</h2>
-    @if (puedeCrearUsuario()) {
-      <button mat-raised-button color="primary" (click)="crear()">Nuevo usuario</button>
+<mat-card class="listado-card">
+  <mat-card-header>
+    <div class="p-2 sm:p-4">
+      <mat-card-title >Usuarios</mat-card-title>
+      <mat-card-subtitle>Gestión de usuarios de la junta</mat-card-subtitle>
+    </div>
+    
+  </mat-card-header>
+ 
+  <mat-card-content>
+  <div class="flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-center mb-3 sm:mb-4 ">
+    <mat-form-field appearance="outline" class="flex-1 min-w-[200px] search-field-with-icon">
+      <input matInput [formControl]="searchControl" placeholder="Buscar por nombre o documento" />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="w-full sm:w-[140px]">
+      <mat-label>Estado</mat-label>
+      <mat-select [ngModel]="activoFilter" (ngModelChange)="cambiarActivo($event)">
+        <mat-option [value]="'todos'">Todos</mat-option>
+        <mat-option [value]="true">Activos</mat-option>
+        <mat-option [value]="false">Inactivos</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="w-full sm:w-[160px]">
+      <mat-label>Rol</mat-label>
+      <mat-select [ngModel]="rolFilter" (ngModelChange)="cambiarRol($event)">
+        <mat-option value="">Todos</mat-option>
+        <mat-option value="ADMIN">Admin</mat-option>
+        <mat-option value="SECRETARIA">Secretaría</mat-option>
+        <mat-option value="TESORERA">Tesorera</mat-option>
+        <mat-option value="RECEPTOR_AGUA">Receptor agua</mat-option>
+        <mat-option value="CIUDADANO">Ciudadano</mat-option>
+      </mat-select>
+    </mat-form-field>
+    @if (searchControl.value || activoFilter !== 'todos' || rolFilter) {
+      <button mat-stroked-button (click)="limpiarFiltros()">
+        <mat-icon>clear</mat-icon>
+        Limpiar
+      </button>
     }
   </div>
 
-  <div class="mat-elevation-z2 overflow-hidden rounded">
-    <table mat-table [dataSource]="dataSource" class="w-full">
+  <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
+    <div class="table-responsive">
+    <table mat-table [dataSource]="dataSource" class="w-full" style="min-width: 600px">
       <ng-container matColumnDef="documento">
-        <th mat-header-cell *matHeaderCellDef>Documento</th>
+        <th mat-header-cell *matHeaderCellDef>
+          <button mat-button (click)="ordenarPor('numeroDocumento')" class="sort-header">
+            Documento
+            <mat-icon class="sort-icon">{{ iconoOrden('numeroDocumento') }}</mat-icon>
+          </button>
+        </th>
         <td mat-cell *matCellDef="let u">{{ documento(u) }}</td>
       </ng-container>
       <ng-container matColumnDef="nombres">
-        <th mat-header-cell *matHeaderCellDef>Nombre</th>
-        <td mat-cell *matCellDef="let u">{{ u.nombres }} {{ u.apellidos }}</td>
+        <th mat-header-cell *matHeaderCellDef>
+          <button mat-button (click)="ordenarPor('apellidos')" class="sort-header">
+            Nombre
+            <mat-icon class="sort-icon">{{ iconoOrden('apellidos') }}</mat-icon>
+          </button>
+        </th>
+        <td mat-cell *matCellDef="let u">{{ u.nombres | formatearNombre }} {{ u.apellidos | formatearNombre }}</td>
       </ng-container>
       <ng-container matColumnDef="roles">
         <th mat-header-cell *matHeaderCellDef>Roles</th>
@@ -46,6 +91,7 @@
         </td>
       </tr>
     </table>
+    </div>
     <mat-paginator
       [length]="total"
       [pageSize]="limit"
@@ -54,4 +100,6 @@
       showFirstLastButtons
     ></mat-paginator>
   </div>
-</div>
+  </mat-card-content>
+  <button mat-raised-button *appCan="auth.permissions.USUARIOS_CREAR" color="primary" (click)="crear()" class="m-2 sm:m-4 mb-4">Nuevo usuario</button>
+</mat-card>

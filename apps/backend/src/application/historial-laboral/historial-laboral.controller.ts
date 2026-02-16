@@ -16,11 +16,15 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RolNombre } from '@prisma/client';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { JwtUser } from '../../auth/strategies/jwt.strategy';
+import { PermissionService } from '../../auth/permission.service';
 
 @Controller('usuarios/:usuarioId/historial-laboral')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
 export class HistorialLaboralController {
-  constructor(private readonly historial: HistorialLaboralService) {}
+  constructor(
+    private readonly historial: HistorialLaboralService,
+    private readonly permissions: PermissionService,
+  ) {}
 
   @Get()
   @UseGuards(RolesGuard)
@@ -32,12 +36,7 @@ export class HistorialLaboralController {
     const user = req.user;
     const juntaId = user.juntaId!;
 
-    const puedeVerOtro =
-      user.roles.includes(RolNombre.ADMIN) ||
-      user.roles.includes(RolNombre.SECRETARIA) ||
-      user.roles.includes(RolNombre.TESORERA);
-
-    if (!puedeVerOtro && usuarioId !== user.id) {
+    if (!this.permissions.puedeVerHistorialDeOtro(user) && usuarioId !== user.id) {
       throw new ForbiddenException('Solo puede consultar su propio historial');
     }
 
@@ -46,7 +45,7 @@ export class HistorialLaboralController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.SECRETARIA)
+  @Roles(RolNombre.ADMIN, RolNombre.TESORERA)
   async crear(
     @Param('usuarioId') usuarioId: string,
     @Body() dto: CreateHistorialLaboralDto,

@@ -21,7 +21,7 @@ Sistema digital para Juntas de Acción Comunal en Colombia. Multi-tenant, audita
 - `chatModeCursor.md` – Reglas de implementación completas.
 - `definicionDomainServices.md` – Servicios de dominio (Debt, Payment, Letter, Requisito, Audit).
 - Flujos: `flujoDePagos.md`, `flujoDePagosCasoFallaWebhook.md`, `flujoDePagosCondicionDeCarrera.md`, `flujoRequisitosAdicionales.md`, `flujoSolicitudCarta.md`, `validacionesDeCartaQR.md`, `flujoDocumentos.md`, `flujoBootstrapYOnboarding.md`.
-- Frontend: `ARQUITECTURA_FRONTEND_ANGULAR.md`.
+- Frontend: `ARQUITECTURA_FRONTEND_ANGULAR.md`. `permisos.md` – Permisos explícitos. `MATRIZ_PERMISOS_ROLES.md` – Qué puede hacer cada rol.
 - `calculadoraDeDeuda.md` – Cálculo de deuda. `SCHEMA BASE v1.md` – Modelo Prisma.
 - `convencionesAPI.md` – Contrato de API. `consecutivosYCronJobs.md` – Consecutivos y cron jobs.
 

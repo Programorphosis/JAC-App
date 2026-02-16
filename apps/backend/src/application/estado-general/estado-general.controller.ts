@@ -16,24 +16,26 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { RolNombre } from '@prisma/client';
 import { JwtUser } from '../../auth/strategies/jwt.strategy';
+import { PermissionService } from '../../auth/permission.service';
 import { EstadoGeneralService } from './estado-general.service';
-import { UsuarioNoEncontradoError } from '../../domain/errors/domain.errors';
-import { NotFoundException } from '@nestjs/common';
 
 @Controller('usuarios/:usuarioId/estado-general')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
 export class EstadoGeneralController {
-  constructor(private readonly estadoGeneral: EstadoGeneralService) {}
+  constructor(
+    private readonly estadoGeneral: EstadoGeneralService,
+    private readonly permissions: PermissionService,
+  ) {}
 
   /**
    * GET /usuarios/:usuarioId/estado-general
    * Calcula: deuda junta, requisitos adicionales, existencia pago CARTA.
    * ADMIN, SECRETARIA, TESORERA: cualquier usuario de la junta.
-   * CIUDADANO: solo sí mismo.
+   * CIUDADANO, RECEPTOR_AGUA (modificador): si puedeConsultarRecursoDeOtro.
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO, RolNombre.RECEPTOR_AGUA)
   async obtener(
     @Param('usuarioId') usuarioId: string,
     @Request() req: { user: JwtUser },
@@ -41,30 +43,17 @@ export class EstadoGeneralController {
     const user = req.user;
     const juntaId = user.juntaId!;
 
-    const puedeConsultarOtro =
-      user.roles.includes(RolNombre.ADMIN) ||
-      user.roles.includes(RolNombre.SECRETARIA) ||
-      user.roles.includes(RolNombre.TESORERA) ||
-      (user.esModificador && !!user.juntaId);
-
-    if (!puedeConsultarOtro && usuarioId !== user.id) {
+    if (!this.permissions.puedeConsultarRecursoDeOtro(user) && usuarioId !== user.id) {
       throw new ForbiddenException('Solo puede consultar su propio estado');
     }
 
-    try {
-      const data = await this.estadoGeneral.getEstadoGeneral(usuarioId, juntaId, {
-        id: user.id,
-        roles: user.roles,
-      });
-      return {
-        data,
-        meta: { timestamp: new Date().toISOString() },
-      };
-    } catch (err) {
-      if (err instanceof UsuarioNoEncontradoError) {
-        throw new NotFoundException(err.message);
-      }
-      throw err;
-    }
+    const data = await this.estadoGeneral.getEstadoGeneral(usuarioId, juntaId, {
+      id: user.id,
+      roles: user.roles,
+    });
+    return {
+      data,
+      meta: { timestamp: new Date().toISOString() },
+    };
   }
 }

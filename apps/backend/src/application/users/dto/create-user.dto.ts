@@ -33,4 +33,12 @@ export class CreateUserDto {
     message: 'Roles inválidos',
   })
   roles?: string[];
+
+  /** Estado laboral inicial al registrar. Por defecto NO_TRABAJANDO. */
+  @IsOptional()
+  @IsString()
+  @IsIn(['TRABAJANDO', 'NO_TRABAJANDO'], {
+    message: 'estadoLaboralInicial debe ser TRABAJANDO o NO_TRABAJANDO',
+  })
+  estadoLaboralInicial?: 'TRABAJANDO' | 'NO_TRABAJANDO';
 }

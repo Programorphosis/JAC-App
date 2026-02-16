@@ -8,6 +8,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { CreateRequisitoTipoBody, RequisitoTipoItem } from '../services/requisitos.service';
 import { UsuariosService, UsuarioListItem } from '../../usuarios/services/usuarios.service';
+import { formatearNombre } from '../../../shared/utils/formatear-nombre.util';
 
 @Component({
   selector: 'app-requisito-form',
@@ -87,6 +88,6 @@ export class RequisitoFormComponent implements OnInit {
   }
 
   nombreUsuario(u: UsuarioListItem): string {
-    return `${u.nombres} ${u.apellidos} (${u.tipoDocumento} ${u.numeroDocumento})`;
+    return `${formatearNombre(u.nombres)} ${formatearNombre(u.apellidos)} (${u.tipoDocumento} ${u.numeroDocumento})`;
   }
 }

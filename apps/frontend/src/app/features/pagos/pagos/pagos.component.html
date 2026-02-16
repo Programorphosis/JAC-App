@@ -1,96 +1,289 @@
-<div class="flex flex-col gap-6">
-  <h2>Pagos</h2>
+<div class="flex flex-col gap-6 min-w-0">
+  <h2 class="text-xl sm:text-2xl">Pagos</h2>
 
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Registrar pago efectivo (cuota junta)</mat-card-title>
-      <mat-card-subtitle>El monto se calcula en el backend según la deuda</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <form [formGroup]="formEfectivo" (ngSubmit)="registrarEfectivo()" class="flex flex-col gap-4">
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Usuario</mat-label>
-          <mat-select formControlName="usuarioId">
-            @for (u of usuarios; track u.id) {
-              <mat-option [value]="u.id">{{ nombreUsuario(u) }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Método</mat-label>
-          <mat-select formControlName="metodo">
-            <mat-option value="EFECTIVO">Efectivo</mat-option>
-            <mat-option value="TRANSFERENCIA">Transferencia</mat-option>
-          </mat-select>
-        </mat-form-field>
-        @if (formEfectivo.get('metodo')?.value === 'TRANSFERENCIA') {
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Referencia / Número transferencia</mat-label>
-            <input matInput formControlName="referenciaExterna" />
-          </mat-form-field>
-        }
-        <button mat-raised-button color="primary" type="submit" [disabled]="formEfectivo.invalid || loading">
-          Registrar pago
-        </button>
-      </form>
-    </mat-card-content>
-  </mat-card>
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex">
+    @if (puedeVerListado()) {
+      <mat-tab label="Dashboard contable">
+        <div class="pt-4">
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>Ingresos</mat-card-title>
+              <mat-card-subtitle>Resumen contable por método, tipo, mes y año</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              @if (estadisticasLoading) {
+                <p>Cargando...</p>
+              } @else if (estadisticas()) {
+                <div class="flex flex-col gap-6">
+                  <div class="text-2xl font-semibold">
+                    Total ingresos: {{ formatearMoneda(estadisticas()!.total) }}
+                  </div>
 
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Registrar pago carta (efectivo)</mat-card-title>
-      <mat-card-subtitle>Monto desde configuración de la junta</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <form [formGroup]="formCarta" (ngSubmit)="registrarCarta()" class="flex flex-col gap-4">
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Usuario</mat-label>
-          <mat-select formControlName="usuarioId">
-            @for (u of usuarios; track u.id) {
-              <mat-option [value]="u.id">{{ nombreUsuario(u) }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Método</mat-label>
-          <mat-select formControlName="metodo">
-            <mat-option value="EFECTIVO">Efectivo</mat-option>
-            <mat-option value="TRANSFERENCIA">Transferencia</mat-option>
-          </mat-select>
-        </mat-form-field>
-        @if (formCarta.get('metodo')?.value === 'TRANSFERENCIA') {
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Referencia / Número transferencia</mat-label>
-            <input matInput formControlName="referenciaExterna" />
-          </mat-form-field>
-        }
-        <button mat-raised-button color="primary" type="submit" [disabled]="formCarta.invalid || loading">
-          Registrar pago carta
-        </button>
-      </form>
-    </mat-card-content>
-  </mat-card>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <h3 class="text-lg font-medium mb-2">Por método de pago</h3>
+                      <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded">
+                          <span>Efectivo</span>
+                          <span class="font-medium">{{ formatearMoneda(estadisticas()?.porMetodo?.efectivo ?? 0) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded">
+                          <span>Transferencia</span>
+                          <span class="font-medium">{{ formatearMoneda(estadisticas()?.porMetodo?.transferencia ?? 0) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center px-3 py-2 bg-blue-50 rounded">
+                          <span>Online (total)</span>
+                          <span class="font-medium">{{ formatearMoneda(estadisticas()?.porMetodo?.online ?? 0) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center px-3 py-2 pl-6 text-sm text-gray-600">
+                          <span>— por tesorera</span>
+                          <span>{{ formatearMoneda(estadisticas()?.porMetodo?.onlineTesorera ?? 0) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center px-3 py-2 pl-6 text-sm text-gray-600">
+                          <span>— por usuarios</span>
+                          <span>{{ formatearMoneda(estadisticas()?.porMetodo?.onlineUsuarios ?? 0) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 class="text-lg font-medium mb-2">Por tipo de ingreso</h3>
+                      <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded">
+                          <span>Tarifa junta</span>
+                          <span class="font-medium">{{ formatearMoneda(estadisticas()?.porTipo?.tarifa ?? 0) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded">
+                          <span>Cartas</span>
+                          <span class="font-medium">{{ formatearMoneda(estadisticas()?.porTipo?.carta ?? 0) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Pago online (Wompi)</mat-card-title>
-      <mat-card-subtitle>Crear intención y redirigir a Wompi</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <p class="mb-4">Selecciona un usuario y el tipo de pago para generar el link de pago online.</p>
-      <div class="flex flex-wrap gap-2">
-        @for (u of usuarios; track u.id) {
-          <div class="flex gap-2 items-center">
-            <span>{{ u.nombres }} {{ u.apellidos }}</span>
-            <button mat-stroked-button (click)="pagarOnlineJunta(u.id)" [disabled]="loading">
-              Pagar cuota
-            </button>
-            <button mat-stroked-button (click)="pagarOnlineCarta(u.id)" [disabled]="loading">
-              Pagar carta
-            </button>
-          </div>
-        }
+                  <div>
+                    <h3 class="text-lg font-medium mb-2">Por año</h3>
+                    <div class="flex flex-wrap gap-4">
+                      @for (a of estadisticas()!.porAnio; track a.anio) {
+                        <div class="px-4 py-2 bg-gray-100 rounded">
+                          <span class="font-medium">{{ a.anio }}</span>: {{ formatearMoneda(a.total) }}
+                        </div>
+                      }
+                    </div>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-medium mb-2">Por mes (últimos 24)</h3>
+                    <div class="flex flex-wrap gap-2">
+                      @for (m of estadisticas()!.porMes; track m.anio + '-' + m.mes) {
+                        <div class="px-3 py-1 bg-gray-50 rounded text-sm">
+                          {{ nombreMes(m.mes) }} {{ m.anio }}: {{ formatearMoneda(m.total) }}
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              } @else {
+                <p>No hay datos de estadísticas.</p>
+              }
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+    }
+    <mat-tab label="Registrar">
+      <div class="flex flex-col gap-6 pt-4">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Registrar pago efectivo (cuota junta)</mat-card-title>
+            <mat-card-subtitle>El monto se calcula en el backend según la deuda</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="formEfectivo" (ngSubmit)="registrarEfectivo()" class="flex flex-col gap-4">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Buscar usuario (nombre, apellido o documento)</mat-label>
+                <input matInput formControlName="usuario" [matAutocomplete]="autoEfectivo" />
+                <mat-autocomplete #autoEfectivo="matAutocomplete" [displayWith]="displayUsuario">
+                  @for (u of usuariosFiltrados(); track u.id) {
+                    <mat-option [value]="u">{{ nombreUsuario(u) }}</mat-option>
+                  }
+                </mat-autocomplete>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Método</mat-label>
+                <mat-select formControlName="metodo">
+                  <mat-option value="EFECTIVO">Efectivo</mat-option>
+                  <mat-option value="TRANSFERENCIA">Transferencia</mat-option>
+                </mat-select>
+              </mat-form-field>
+              @if (formEfectivo.get('metodo')?.value === 'TRANSFERENCIA') {
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Referencia / Número transferencia</mat-label>
+                  <input matInput formControlName="referenciaExterna" />
+                </mat-form-field>
+              }
+              <button mat-raised-button color="primary" type="submit" [disabled]="formEfectivo.invalid || loading">
+                Registrar pago
+              </button>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Registrar pago carta (efectivo)</mat-card-title>
+            <mat-card-subtitle>Monto desde configuración de la junta</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="formCarta" (ngSubmit)="registrarCarta()" class="flex flex-col gap-4">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Buscar usuario (nombre, apellido o documento)</mat-label>
+                <input matInput formControlName="usuario" [matAutocomplete]="autoCarta" />
+                <mat-autocomplete #autoCarta="matAutocomplete" [displayWith]="displayUsuario">
+                  @for (u of usuariosFiltrados(); track u.id) {
+                    <mat-option [value]="u">{{ nombreUsuario(u) }}</mat-option>
+                  }
+                </mat-autocomplete>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Método</mat-label>
+                <mat-select formControlName="metodo">
+                  <mat-option value="EFECTIVO">Efectivo</mat-option>
+                  <mat-option value="TRANSFERENCIA">Transferencia</mat-option>
+                </mat-select>
+              </mat-form-field>
+              @if (formCarta.get('metodo')?.value === 'TRANSFERENCIA') {
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Referencia / Número transferencia</mat-label>
+                  <input matInput formControlName="referenciaExterna" />
+                </mat-form-field>
+              }
+              <button mat-raised-button color="primary" type="submit" [disabled]="formCarta.invalid || loading">
+                Registrar pago carta
+              </button>
+            </form>
+          </mat-card-content>
+        </mat-card>
       </div>
-    </mat-card-content>
-  </mat-card>
+    </mat-tab>
+
+    @if (puedeVerListado()) {
+      <mat-tab label="Listado">
+        <div class="pt-4">
+          <mat-card class="listado-card">
+            <mat-card-header>
+              <mat-card-title>Seguimiento de pagos</mat-card-title>
+              <mat-card-subtitle>Historial de pagos registrados</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <!-- Búsqueda y filtros -->
+              <div class="flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-center mb-3 sm:mb-4">
+                <mat-form-field appearance="outline" class="flex-1 min-w-[200px] search-field-with-icon">
+                  <input matInput [formControl]="pagosSearchControl" placeholder="Buscar por usuario, consecutivo o referencia" />
+                  <mat-icon matPrefix>search</mat-icon>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-full sm:w-[140px]">
+                  <mat-label>Tipo</mat-label>
+                  <mat-select [ngModel]="pagosFiltros.tipo ?? ''" (ngModelChange)="cambiarFiltroTipo($event)">
+                    <mat-option value="">Todos</mat-option>
+                    <mat-option value="JUNTA">Junta</mat-option>
+                    <mat-option value="CARTA">Carta</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-full sm:w-[140px]">
+                  <mat-label>Desde</mat-label>
+                  <input matInput [matDatepicker]="pickerDesde" [ngModel]="fechaDesdeModel" (ngModelChange)="cambiarFechaDesde($event)" />
+                  <mat-datepicker-toggle matSuffix [for]="pickerDesde"></mat-datepicker-toggle>
+                  <mat-datepicker #pickerDesde></mat-datepicker>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-full sm:w-[140px]">
+                  <mat-label>Hasta</mat-label>
+                  <input matInput [matDatepicker]="pickerHasta" [ngModel]="fechaHastaModel" (ngModelChange)="cambiarFechaHasta($event)" />
+                  <mat-datepicker-toggle matSuffix [for]="pickerHasta"></mat-datepicker-toggle>
+                  <mat-datepicker #pickerHasta></mat-datepicker>
+                </mat-form-field>
+                @if (pagosSearchControl.value || pagosFiltros.tipo || pagosFiltros.fechaDesde || pagosFiltros.fechaHasta) {
+                  <button mat-stroked-button (click)="limpiarFiltrosPagos()">
+                    <mat-icon>clear</mat-icon>
+                    Limpiar
+                  </button>
+                }
+              </div>
+              @if (pagosLoading) {
+                <p>Cargando...</p>
+              } @else {
+                <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
+                <div class="table-responsive">
+                <table mat-table [dataSource]="pagos()" class="w-full" style="min-width: 650px">
+                  <ng-container matColumnDef="fechaPago">
+                    <th mat-header-cell *matHeaderCellDef>
+                      <button mat-button (click)="ordenarPagosPor('fechaPago')" class="sort-header">
+                        Fecha
+                        <mat-icon class="sort-icon">{{ iconoOrdenPagos('fechaPago') }}</mat-icon>
+                      </button>
+                    </th>
+                    <td mat-cell *matCellDef="let p">{{ formatearFecha(p.fechaPago) }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="tipo">
+                    <th mat-header-cell *matHeaderCellDef>
+                      <button mat-button (click)="ordenarPagosPor('tipo')" class="sort-header">
+                        Tipo
+                        <mat-icon class="sort-icon">{{ iconoOrdenPagos('tipo') }}</mat-icon>
+                      </button>
+                    </th>
+                    <td mat-cell *matCellDef="let p">{{ p.tipo }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="metodo">
+                    <th mat-header-cell *matHeaderCellDef>
+                      <button mat-button (click)="ordenarPagosPor('metodo')" class="sort-header">
+                        Método
+                        <mat-icon class="sort-icon">{{ iconoOrdenPagos('metodo') }}</mat-icon>
+                      </button>
+                    </th>
+                    <td mat-cell *matCellDef="let p">{{ p.metodo }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="monto">
+                    <th mat-header-cell *matHeaderCellDef>
+                      <button mat-button (click)="ordenarPagosPor('monto')" class="sort-header">
+                        Monto
+                        <mat-icon class="sort-icon">{{ iconoOrdenPagos('monto') }}</mat-icon>
+                      </button>
+                    </th>
+                    <td mat-cell *matCellDef="let p">{{ formatearMoneda(p.monto) }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="usuarioNombre">
+                    <th mat-header-cell *matHeaderCellDef>Usuario</th>
+                    <td mat-cell *matCellDef="let p">{{ (p.usuarioNombre | formatearNombre) || '-' }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="consecutivo">
+                    <th mat-header-cell *matHeaderCellDef>
+                      <button mat-button (click)="ordenarPagosPor('consecutivo')" class="sort-header">
+                        Consec.
+                        <mat-icon class="sort-icon">{{ iconoOrdenPagos('consecutivo') }}</mat-icon>
+                      </button>
+                    </th>
+                    <td mat-cell *matCellDef="let p">{{ p.consecutivo }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="registradoPorNombre">
+                    <th mat-header-cell *matHeaderCellDef>Registrado por</th>
+                    <td mat-cell *matCellDef="let p">{{ (p.registradoPorNombre | formatearNombre) || '-' }}</td>
+                  </ng-container>
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                </table>
+                </div>
+                <mat-paginator
+                  [length]="pagosMeta().total"
+                  [pageSize]="pagosMeta().limit"
+                  [pageIndex]="pagosPage - 1"
+                  [pageSizeOptions]="[10, 20, 50]"
+                  (page)="onPagosPage($event)"
+                  showFirstLastButtons
+                ></mat-paginator>
+                </div>
+              }
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+    }
+  </mat-tab-group>
 </div>

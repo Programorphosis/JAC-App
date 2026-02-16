@@ -117,3 +117,94 @@ export class EstadoRequisitoMismaObligacionError extends DomainError {
     this.name = 'EstadoRequisitoMismaObligacionError';
   }
 }
+
+export class RequisitoTipoNoEncontradoError extends DomainError {
+  constructor(requisitoTipoId: string) {
+    super(`Requisito tipo ${requisitoTipoId} no encontrado`, 'REQUISITO_TIPO_NO_ENCONTRADO');
+    this.name = 'RequisitoTipoNoEncontradoError';
+  }
+}
+
+// Cartas / Documentos / Pagos – errores de aplicación
+export class CartaPendienteExistenteError extends DomainError {
+  constructor(usuarioId: string) {
+    super(
+      'Ya existe una carta pendiente para este usuario. Debe esperar a que se valide o rechace.',
+      'CARTA_PENDIENTE_EXISTENTE',
+    );
+    this.name = 'CartaPendienteExistenteError';
+  }
+}
+
+export class CartaNoEncontradaError extends DomainError {
+  constructor(cartaId: string) {
+    super(`Carta ${cartaId} no encontrada o sin PDF disponible`, 'CARTA_NO_ENCONTRADA');
+    this.name = 'CartaNoEncontradaError';
+  }
+}
+
+export class DocumentoNoEncontradoError extends DomainError {
+  constructor() {
+    super('Documento no encontrado', 'DOCUMENTO_NO_ENCONTRADO');
+    this.name = 'DocumentoNoEncontradoError';
+  }
+}
+
+export class TipoDocumentoNoPermitidoError extends DomainError {
+  constructor(tipo: string) {
+    super(`Tipo de documento no permitido: ${tipo}`, 'TIPO_DOCUMENTO_NO_PERMITIDO');
+    this.name = 'TipoDocumentoNoPermitidoError';
+  }
+}
+
+export class MontoCartaNoConfiguradoError extends DomainError {
+  constructor(juntaId: string) {
+    super('La junta no tiene monto de carta configurado', 'MONTO_CARTA_NO_CONFIGURADO');
+    this.name = 'MontoCartaNoConfiguradoError';
+  }
+}
+
+export class CartaVigenteError extends DomainError {
+  constructor(usuarioId: string) {
+    super(
+      'Tiene una carta vigente. Debe esperar a que venza para poder pagar otra.',
+      'CARTA_VIGENTE',
+    );
+    this.name = 'CartaVigenteError';
+  }
+}
+
+export class IntencionPagoNoEncontradaError extends DomainError {
+  constructor() {
+    super('Intención de pago no encontrada o monto no coincide', 'INTENCION_PAGO_NO_ENCONTRADA');
+    this.name = 'IntencionPagoNoEncontradaError';
+  }
+}
+
+export class BootstrapYaEjecutadoError extends DomainError {
+  constructor() {
+    super('Bootstrap ya fue ejecutado. No se puede repetir.', 'BOOTSTRAP_YA_EJECUTADO');
+    this.name = 'BootstrapYaEjecutadoError';
+  }
+}
+
+export class AlmacenamientoNoConfiguradoError extends DomainError {
+  constructor() {
+    super('El almacenamiento S3 no está configurado', 'ALMACENAMIENTO_NO_CONFIGURADO');
+    this.name = 'AlmacenamientoNoConfiguradoError';
+  }
+}
+
+export class ArchivoSobrepasaTamanioError extends DomainError {
+  constructor(maxMb: number) {
+    super(`El archivo supera el tamaño máximo de ${maxMb} MB`, 'ARCHIVO_SOBREPASA_TAMANIO');
+    this.name = 'ArchivoSobrepasaTamanioError';
+  }
+}
+
+export class FormatoArchivoNoPermitidoError extends DomainError {
+  constructor() {
+    super('Formato no permitido. Use PDF, JPG o PNG', 'FORMATO_ARCHIVO_NO_PERMITIDO');
+    this.name = 'FormatoArchivoNoPermitidoError';
+  }
+}

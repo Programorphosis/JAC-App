@@ -33,7 +33,7 @@ ADMIN es un rol de **configuración y mantenimiento** de la junta. No realiza ta
 | Pagar carta online | Operacional |
 | Registrar pagos (efectivo/transferencia) | Operacional – TESORERA, SECRETARIA |
 | Validar/aprobar cartas | Operacional – SECRETARIA |
-| Cambiar estado requisitos (AL_DÍA/MORA) | Operacional – modificador, SECRETARIA |
+| Cambiar estado requisitos (AL_DÍA/MORA) | Operacional – solo modificador asignado |
 | Cambiar obligación requisitos | Operacional – SECRETARIA |
 | Agregar historial laboral | Operacional – SECRETARIA |
 | Subir documentos | Operacional – SECRETARIA, TESORERA, CIUDADANO |
@@ -50,9 +50,10 @@ Todo lo que ADMIN puede hacer está limitado a **su junta** (juntaId del usuario
 
 Las tareas que ADMIN no realiza las ejecutan:
 
-- **SECRETARIA:** validar cartas, cambiar obligación requisitos, historial laboral
-- **TESORERA:** registrar pagos
-- **Modificador:** cambiar estado requisitos (AL_DÍA/MORA)
+- **SECRETARIA:** validar cartas, editar datos básicos de usuarios (solo visualización del resto)
+- **TESORERA:** registrar pagos, crear historial laboral
+- **ADMIN:** cambiar obligación requisitos
+- **Modificador:** cambiar estado requisitos (AL_DÍA/MORA) de sus requisitos asignados
 - **CIUDADANO:** solicitar carta, pagar deuda/carta online
 
 ---

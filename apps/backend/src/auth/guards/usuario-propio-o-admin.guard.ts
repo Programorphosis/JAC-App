@@ -8,8 +8,8 @@ import { RolNombre } from '@prisma/client';
 import { JwtUser } from '../strategies/jwt.strategy';
 
 /**
- * Permite acceso si: ADMIN, SECRETARIA, modificador, O si solicita su propio usuario (id === user.id).
- * Usado para GET /usuarios/:id para que CIUDADANO pueda ver su "Mi cuenta".
+ * Permite acceso si: ADMIN, SECRETARIA, TESORERA, modificador, O si solicita su propio usuario (id === user.id).
+ * Usado para GET /usuarios/:id. TESORERA necesita ver detalles de usuarios para registrar pagos.
  */
 @Injectable()
 export class UsuarioPropioOAdminGuard implements CanActivate {
@@ -26,15 +26,19 @@ export class UsuarioPropioOAdminGuard implements CanActivate {
       return true;
     }
 
-    const esAdminOSecretaria =
-      user.roles.includes(RolNombre.ADMIN) || user.roles.includes(RolNombre.SECRETARIA);
+    const esAdminOSecretariaOTesorera =
+      user.roles.includes(RolNombre.ADMIN) ||
+      user.roles.includes(RolNombre.SECRETARIA) ||
+      user.roles.includes(RolNombre.TESORERA);
     const esModificador = user.esModificador && user.juntaId;
 
-    if (esAdminOSecretaria || esModificador) {
+    if (esAdminOSecretariaOTesorera || esModificador) {
       return true;
     }
 
-    throw new ForbiddenException('No tiene permiso para ver este usuario');
+    throw new ForbiddenException(
+      'Se requiere rol ADMIN, SECRETARIA, TESORERA o ser modificador para ver otros usuarios',
+    );
   }
 }
 

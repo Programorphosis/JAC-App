@@ -19,16 +19,10 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { RolNombre } from '@prisma/client';
 import { JwtUser } from '../../auth/strategies/jwt.strategy';
+import { PermissionService } from '../../auth/permission.service';
 import { CartasService } from './cartas.service';
 import { LetterEmissionRunner } from '../../infrastructure/letter/letter-emission-runner.service';
-import {
-  RequisitosCartaNoCumplidosError,
-  CartaNoPendienteError,
-} from '../../domain/errors/domain.errors';
-import {
-  BadRequestException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 
 @Controller('cartas')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
@@ -36,6 +30,7 @@ export class CartasController {
   constructor(
     private readonly cartas: CartasService,
     private readonly letterRunner: LetterEmissionRunner,
+    private readonly permissions: PermissionService,
   ) {}
 
   /**
@@ -54,8 +49,7 @@ export class CartasController {
     const user = req.user;
 
     if (usuarioId?.trim()) {
-      const puedeVerOtro = user.roles.includes(RolNombre.SECRETARIA);
-      if (!puedeVerOtro && usuarioId !== user.id) {
+      if (!this.permissions.puedeVerCartasDeOtro(user) && usuarioId !== user.id) {
         throw new ForbiddenException('Solo puede listar sus propias cartas');
       }
       const data = await this.cartas.listarPorUsuario(usuarioId.trim(), juntaId);
@@ -63,8 +57,7 @@ export class CartasController {
     }
 
     if (estado === 'PENDIENTE') {
-      const puedeVer = user.roles.includes(RolNombre.SECRETARIA);
-      if (!puedeVer) {
+      if (!this.permissions.puedeListarCartasPendientes(user)) {
         throw new ForbiddenException('Solo SECRETARIA puede listar cartas pendientes');
       }
       const data = await this.cartas.listarPendientes(juntaId);
@@ -92,32 +85,15 @@ export class CartasController {
     const user = req.user;
     const juntaId = user.juntaId!;
 
-    const puedeSolicitarParaOtro = user.roles.includes(RolNombre.SECRETARIA);
-
-    if (!puedeSolicitarParaOtro && usuarioId !== user.id) {
+    if (!this.permissions.puedeSolicitarCartaParaOtro(user) && usuarioId !== user.id) {
       throw new ForbiddenException('Solo puede solicitar carta para sí mismo');
     }
 
-    try {
-      const data = await this.cartas.solicitar(usuarioId.trim(), juntaId);
-      return {
-        data,
-        meta: { timestamp: new Date().toISOString() },
-      };
-    } catch (err) {
-      if (err instanceof Error) {
-        if (err.message.includes('Ya existe')) {
-          throw new UnprocessableEntityException(err.message);
-        }
-        if (err.message.includes('Tiene una carta vigente')) {
-          throw new UnprocessableEntityException(err.message);
-        }
-        if (err.message.includes('no encontrado')) {
-          throw new BadRequestException(err.message);
-        }
-      }
-      throw err;
-    }
+    const data = await this.cartas.solicitar(usuarioId.trim(), juntaId);
+    return {
+      data,
+      meta: { timestamp: new Date().toISOString() },
+    };
   }
 
   /**
@@ -134,23 +110,10 @@ export class CartasController {
     const juntaId = req.user.juntaId!;
     const user = req.user;
 
-    const puedeVerOtro = user.roles.includes(RolNombre.SECRETARIA);
-    const soloPropios = puedeVerOtro ? undefined : user.id;
+    const soloPropios = this.permissions.puedeVerCartasDeOtro(user) ? undefined : user.id;
 
-    try {
-      const url = await this.cartas.getUrlDescargaCarta(cartaId, juntaId, soloPropios);
-      return { data: { url } };
-    } catch (err) {
-      if (err instanceof Error) {
-        if (err.message.includes('no encontrada') || err.message.includes('sin PDF')) {
-          throw new BadRequestException(err.message);
-        }
-        if (err.message.includes('no está configurado')) {
-          throw new BadRequestException('Servicio de almacenamiento no disponible');
-        }
-      }
-      throw err;
-    }
+    const url = await this.cartas.getUrlDescargaCarta(cartaId, juntaId, soloPropios);
+    return { data: { url } };
   }
 
   /**
@@ -166,25 +129,15 @@ export class CartasController {
   ) {
     const juntaId = req.user.juntaId!;
 
-    try {
-      const result = await this.letterRunner.emitLetter({
-        cartaId,
-        juntaId,
-        emitidaPorId: req.user.id,
-      });
+    const result = await this.letterRunner.emitLetter({
+      cartaId,
+      juntaId,
+      emitidaPorId: req.user.id,
+    });
 
-      return {
-        data: result,
-        meta: { timestamp: new Date().toISOString() },
-      };
-    } catch (err) {
-      if (err instanceof RequisitosCartaNoCumplidosError) {
-        throw new UnprocessableEntityException(err.message);
-      }
-      if (err instanceof CartaNoPendienteError) {
-        throw new UnprocessableEntityException(err.message);
-      }
-      throw err;
-    }
+    return {
+      data: result,
+      meta: { timestamp: new Date().toISOString() },
+    };
   }
 }

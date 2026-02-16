@@ -8,10 +8,8 @@ import type { CreateRequisitoTipoDto } from './dto/create-requisito-tipo.dto';
 import type { UpdateRequisitoTipoDto } from './dto/update-requisito-tipo.dto';
 import {
   UsuarioNoEncontradoError,
-  EstadoRequisitoMismoEstadoError,
-  EstadoRequisitoMismaObligacionError,
-} from '../../domain/errors/domain.errors';
-import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+  RequisitoTipoNoEncontradoError,
+} from '../../domain/errors';
 
 @Injectable()
 export class RequisitosService {
@@ -72,7 +70,7 @@ export class RequisitosService {
       where: { id, juntaId },
     });
     if (!existente) {
-      throw new NotFoundException('Requisito no encontrado');
+      throw new RequisitoTipoNoEncontradoError(id);
     }
 
     const updated = await this.prisma.requisitoTipo.update({
@@ -104,7 +102,7 @@ export class RequisitosService {
       where: { id, juntaId },
     });
     if (!existente) {
-      throw new NotFoundException('Requisito no encontrado');
+      throw new RequisitoTipoNoEncontradoError(id);
     }
 
     await this.prisma.requisitoTipo.delete({
@@ -128,17 +126,15 @@ export class RequisitosService {
     requisitoTipoId: string,
     juntaId: string,
   ): Promise<void> {
-    if (user.roles.includes(RolNombre.SECRETARIA)) return;
-
     const rt = await this.prisma.requisitoTipo.findFirst({
       where: { id: requisitoTipoId, juntaId },
     });
     if (!rt) {
-      throw new NotFoundException('Requisito no encontrado');
+      throw new RequisitoTipoNoEncontradoError(requisitoTipoId);
     }
     if (rt.modificadorId !== user.id) {
       throw new ForbiddenException(
-        'Solo el modificador asignado o SECRETARIA puede actualizar el estado',
+        'Solo el modificador asignado a este requisito puede actualizar el estado',
       );
     }
   }
@@ -157,27 +153,17 @@ export class RequisitosService {
       where: { id: usuarioId, juntaId },
     });
     if (!usuario) {
-      throw new NotFoundException('Usuario no encontrado');
+      throw new UsuarioNoEncontradoError(usuarioId);
     }
 
-    try {
-      await this.runner.updateEstadoRequisito({
-        requisitoTipoId,
-        usuarioId,
-        juntaId,
-        nuevoEstado: estado,
-        cambiadoPorId: user.id,
-      });
-      return { data: { ok: true }, meta: { timestamp: new Date().toISOString() } };
-    } catch (err) {
-      if (err instanceof UsuarioNoEncontradoError) {
-        throw new NotFoundException(err.message);
-      }
-      if (err instanceof EstadoRequisitoMismoEstadoError) {
-        throw new UnprocessableEntityException(err.message);
-      }
-      throw err;
-    }
+    await this.runner.updateEstadoRequisito({
+      requisitoTipoId,
+      usuarioId,
+      juntaId,
+      nuevoEstado: estado,
+      cambiadoPorId: user.id,
+    });
+    return { data: { ok: true }, meta: { timestamp: new Date().toISOString() } };
   }
 
   async actualizarObligacion(
@@ -188,41 +174,31 @@ export class RequisitosService {
   ) {
     const juntaId = user.juntaId!;
 
-    if (!user.roles.includes(RolNombre.SECRETARIA)) {
-      throw new ForbiddenException('Solo SECRETARIA puede cambiar la obligación');
+    if (!user.roles.includes(RolNombre.ADMIN)) {
+      throw new ForbiddenException('Solo ADMIN puede cambiar la obligación');
     }
 
     const usuario = await this.prisma.usuario.findFirst({
       where: { id: usuarioId, juntaId },
     });
     if (!usuario) {
-      throw new NotFoundException('Usuario no encontrado');
+      throw new UsuarioNoEncontradoError(usuarioId);
     }
 
     const rt = await this.prisma.requisitoTipo.findFirst({
       where: { id: requisitoTipoId, juntaId },
     });
     if (!rt) {
-      throw new NotFoundException('Requisito no encontrado');
+      throw new RequisitoTipoNoEncontradoError(requisitoTipoId);
     }
 
-    try {
-      await this.runner.updateObligacionRequisito({
-        requisitoTipoId,
-        usuarioId,
-        juntaId,
-        obligacionActiva,
-        cambiadoPorId: user.id,
-      });
-      return { data: { ok: true }, meta: { timestamp: new Date().toISOString() } };
-    } catch (err) {
-      if (err instanceof UsuarioNoEncontradoError) {
-        throw new NotFoundException(err.message);
-      }
-      if (err instanceof EstadoRequisitoMismaObligacionError) {
-        throw new UnprocessableEntityException(err.message);
-      }
-      throw err;
-    }
+    await this.runner.updateObligacionRequisito({
+      requisitoTipoId,
+      usuarioId,
+      juntaId,
+      obligacionActiva,
+      cambiadoPorId: user.id,
+    });
+    return { data: { ok: true }, meta: { timestamp: new Date().toISOString() } };
   }
 }

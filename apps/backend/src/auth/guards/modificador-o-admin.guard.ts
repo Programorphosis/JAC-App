@@ -8,8 +8,8 @@ import { RolNombre } from '@prisma/client';
 import { JwtUser } from '../strategies/jwt.strategy';
 
 /**
- * Guard que permite acceso si el usuario es ADMIN, SECRETARIA o modificador (esModificador).
- * Usado para listar/ver usuarios y estado-general de otros.
+ * Guard que permite acceso si el usuario es ADMIN, SECRETARIA, TESORERA o modificador (esModificador).
+ * Usado para listar/ver usuarios y estado-general de otros. TESORERA necesita listar usuarios para registrar pagos.
  */
 @Injectable()
 export class ModificadorOAdminGuard implements CanActivate {
@@ -21,16 +21,18 @@ export class ModificadorOAdminGuard implements CanActivate {
       throw new ForbiddenException('No autenticado');
     }
 
-    const esAdminOSecretaria =
-      user.roles.includes(RolNombre.ADMIN) || user.roles.includes(RolNombre.SECRETARIA);
+    const esAdminOSecretariaOTesorera =
+      user.roles.includes(RolNombre.ADMIN) ||
+      user.roles.includes(RolNombre.SECRETARIA) ||
+      user.roles.includes(RolNombre.TESORERA);
     const esModificador = user.esModificador && user.juntaId;
 
-    if (esAdminOSecretaria || esModificador) {
+    if (esAdminOSecretariaOTesorera || esModificador) {
       return true;
     }
 
     throw new ForbiddenException(
-      'Se requiere rol ADMIN, SECRETARIA o ser modificador de un requisito',
+      'Se requiere rol ADMIN, SECRETARIA, TESORERA o ser modificador de un requisito',
     );
   }
 }

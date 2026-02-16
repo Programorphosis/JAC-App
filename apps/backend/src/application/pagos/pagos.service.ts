@@ -11,8 +11,10 @@ import {
   PagoDuplicadoError,
   PagoCartaPendienteError,
   UsuarioNoEncontradoError,
-} from '../../domain/errors/domain.errors';
-import { TipoIntencionPago } from '@prisma/client';
+  IntencionPagoNoEncontradaError,
+} from '../../domain/errors';
+import { validateCartaPagoPreconditions } from '../../domain/helpers/carta-pago-validation.helper';
+import { TipoIntencionPago, TipoPago } from '@prisma/client';
 
 export interface RegistrarPagoEfectivoParams {
   usuarioId: string;
@@ -50,6 +52,199 @@ export class PagosService {
     private readonly prisma: PrismaService,
     private readonly wompi: WompiService,
   ) {}
+
+  /**
+   * Lista pagos de la junta con filtros opcionales.
+   * Multi-tenant: juntaId obligatorio desde JWT.
+   */
+  async listar(
+    juntaId: string,
+    page = 1,
+    limit = 20,
+    filtros?: {
+      usuarioId?: string;
+      tipo?: TipoPago;
+      fechaDesde?: Date;
+      fechaHasta?: Date;
+      search?: string;
+      sortBy?: 'fechaPago' | 'monto' | 'tipo' | 'metodo' | 'consecutivo';
+      sortOrder?: 'asc' | 'desc';
+    },
+  ) {
+    const skip = (page - 1) * limit;
+    const sortBy = filtros?.sortBy ?? 'fechaPago';
+    const sortOrder = filtros?.sortOrder ?? 'desc';
+
+    const where: Record<string, unknown> = { juntaId };
+
+    if (filtros?.usuarioId) where.usuarioId = filtros.usuarioId;
+    if (filtros?.tipo) where.tipo = filtros.tipo;
+    if (filtros?.fechaDesde || filtros?.fechaHasta) {
+      where.fechaPago = {};
+      if (filtros.fechaDesde) (where.fechaPago as Record<string, Date>).gte = filtros.fechaDesde;
+      if (filtros.fechaHasta) (where.fechaPago as Record<string, Date>).lte = filtros.fechaHasta;
+    }
+    if (filtros?.search && filtros.search.trim().length >= 2) {
+      const term = filtros.search.trim();
+      const isNum = /^\d+$/.test(term);
+      where.OR = [
+        { usuario: { nombres: { contains: term, mode: 'insensitive' } } },
+        { usuario: { apellidos: { contains: term, mode: 'insensitive' } } },
+        { usuario: { numeroDocumento: { contains: term, mode: 'insensitive' } } },
+        { referenciaExterna: { contains: term, mode: 'insensitive' } },
+        ...(isNum ? [{ consecutivo: parseInt(term, 10) }] : []),
+      ];
+    }
+
+    const orderBy = { [sortBy]: sortOrder };
+
+    const [pagos, total] = await Promise.all([
+      this.prisma.pago.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        select: {
+          id: true,
+          tipo: true,
+          metodo: true,
+          monto: true,
+          consecutivo: true,
+          referenciaExterna: true,
+          fechaPago: true,
+          vigencia: true,
+          usuario: {
+            select: {
+              id: true,
+              nombres: true,
+              apellidos: true,
+              numeroDocumento: true,
+            },
+          },
+          registradoPor: {
+            select: {
+              id: true,
+              nombres: true,
+              apellidos: true,
+            },
+          },
+        },
+      }),
+      this.prisma.pago.count({ where }),
+    ]);
+
+    return {
+      data: pagos.map((p) => ({
+        id: p.id,
+        tipo: p.tipo,
+        metodo: p.metodo,
+        monto: p.monto,
+        consecutivo: p.consecutivo,
+        referenciaExterna: p.referenciaExterna,
+        fechaPago: p.fechaPago,
+        vigencia: p.vigencia,
+        usuarioId: p.usuario?.id,
+        usuarioNombre: p.usuario
+          ? `${p.usuario.nombres} ${p.usuario.apellidos} (${p.usuario.numeroDocumento})`
+          : null,
+        registradoPorNombre: p.registradoPor
+          ? `${p.registradoPor.nombres} ${p.registradoPor.apellidos}`
+          : null,
+      })),
+      meta: { total, page, limit },
+    };
+  }
+
+  /**
+   * Estadísticas contables: ingresos totales, desglose por método/tipo, por mes, por año.
+   * Multi-tenant: juntaId obligatorio desde JWT.
+   */
+  async getEstadisticas(juntaId: string, anio?: number) {
+    const whereBase = { juntaId };
+
+    const pagosRaw = await this.prisma.pago.findMany({
+      where: whereBase,
+      select: {
+        monto: true,
+        fechaPago: true,
+        tipo: true,
+        metodo: true,
+        usuarioId: true,
+        registradoPorId: true,
+      },
+    });
+
+    let total = 0;
+    let totalEfectivo = 0;
+    let totalTransferencia = 0;
+    let totalOnline = 0;
+    let totalOnlineTesorera = 0;
+    let totalOnlineUsuarios = 0;
+    let totalCarta = 0;
+    let totalTarifa = 0;
+
+    const anios = new Map<number, number>();
+    const meses = new Map<string, number>();
+
+    for (const p of pagosRaw) {
+      total += p.monto;
+
+      if (p.metodo === 'EFECTIVO') totalEfectivo += p.monto;
+      else if (p.metodo === 'TRANSFERENCIA') totalTransferencia += p.monto;
+      else if (p.metodo === 'ONLINE') {
+        totalOnline += p.monto;
+        if (p.registradoPorId === p.usuarioId) {
+          totalOnlineUsuarios += p.monto;
+        } else {
+          totalOnlineTesorera += p.monto;
+        }
+      }
+
+      if (p.tipo === 'CARTA') totalCarta += p.monto;
+      else if (p.tipo === 'JUNTA') totalTarifa += p.monto;
+
+      const d = new Date(p.fechaPago);
+      const a = d.getFullYear();
+      const m = d.getMonth() + 1;
+      anios.set(a, (anios.get(a) ?? 0) + p.monto);
+      const key = `${a}-${m}`;
+      meses.set(key, (meses.get(key) ?? 0) + p.monto);
+    }
+
+    const porAnio: { anio: number; total: number }[] = [];
+    for (const [a, tot] of anios) {
+      porAnio.push({ anio: a, total: tot });
+    }
+    porAnio.sort((x, y) => y.anio - x.anio);
+
+    const porMes: { mes: number; anio: number; total: number }[] = [];
+    for (const [key, tot] of meses) {
+      const [a, m] = key.split('-').map(Number);
+      if (anio !== undefined && a !== anio) continue;
+      porMes.push({ mes: m, anio: a, total: tot });
+    }
+    porMes.sort((x, y) => {
+      if (x.anio !== y.anio) return y.anio - x.anio;
+      return y.mes - x.mes;
+    });
+
+    return {
+      total,
+      porMetodo: {
+        efectivo: totalEfectivo,
+        transferencia: totalTransferencia,
+        online: totalOnline,
+        onlineTesorera: totalOnlineTesorera,
+        onlineUsuarios: totalOnlineUsuarios,
+      },
+      porTipo: {
+        carta: totalCarta,
+        tarifa: totalTarifa,
+      },
+      porMes: porMes.slice(0, 24),
+      porAnio: porAnio.slice(0, 5),
+    };
+  }
 
   async registrarPagoEfectivo(params: RegistrarPagoEfectivoParams) {
     return this.paymentRunner.registerJuntaPayment({
@@ -133,13 +328,6 @@ export class PagosService {
       }),
     ]);
 
-    if (!usuario) {
-      throw new UsuarioNoEncontradoError(usuarioId);
-    }
-    if (!junta?.montoCarta || junta.montoCarta <= 0) {
-      throw new Error('La junta no tiene monto de carta configurado');
-    }
-
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
     const [cartaPendiente, tienePagoVigente, cartaVigente] = await Promise.all([
@@ -158,14 +346,18 @@ export class PagosService {
         },
       }),
     ]);
-    if (cartaPendiente || tienePagoVigente) {
-      throw new PagoCartaPendienteError(usuarioId);
-    }
-    if (cartaVigente) {
-      throw new Error('Tiene una carta vigente. Debe esperar a que venza para poder pagar otra.');
-    }
 
-    const montoCents = junta.montoCarta * 100;
+    validateCartaPagoPreconditions({
+      junta,
+      usuario,
+      cartaPendiente,
+      tienePagoVigente,
+      cartaVigente,
+      usuarioId,
+      juntaId,
+    });
+
+    const montoCents = junta!.montoCarta! * 100;
     const referencia = this.generarReferencia();
     const redirectUrl = process.env.WOMPI_REDIRECT_URL || 'http://localhost:4200/pagos/retorno';
 
@@ -194,7 +386,7 @@ export class PagosService {
     return {
       checkoutUrl: `https://checkout.wompi.co/l/${link.id}`,
       referencia,
-      monto: junta.montoCarta,
+      monto: junta!.montoCarta!,
       montoCents,
     };
   }
@@ -237,7 +429,7 @@ export class PagosService {
         : null;
 
     if (!intencion || intencion.montoCents !== amountInCents) {
-      throw new Error('IntencionPago no encontrada o monto no coincide');
+      throw new IntencionPagoNoEncontradaError();
     }
 
     const baseParams = {
@@ -288,7 +480,7 @@ export class PagosService {
       if (err instanceof PagoDuplicadoError) {
         return { registrado: true, pagoId: '', monto: 0, consecutivo: 0 };
       }
-      if (err instanceof Error && err.message.includes('no encontrada')) {
+      if (err instanceof IntencionPagoNoEncontradaError) {
         return { registrado: false, status: tx.status };
       }
       throw err;

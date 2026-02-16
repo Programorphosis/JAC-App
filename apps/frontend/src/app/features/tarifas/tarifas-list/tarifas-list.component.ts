@@ -2,9 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { AuthService } from '../../../core/auth/auth.service';
+import { AppCanDirective } from '../../../core/auth/app-can.directive';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UsuariosService, TarifaItem, CreateTarifaBody } from '../../usuarios/services/usuarios.service';
 
@@ -18,7 +22,10 @@ import { UsuariosService, TarifaItem, CreateTarifaBody } from '../../usuarios/se
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     ReactiveFormsModule,
+    AppCanDirective,
   ],
   templateUrl: './tarifas-list.component.html',
   styleUrl: './tarifas-list.component.scss',
@@ -32,12 +39,13 @@ export class TarifasListComponent implements OnInit {
 
   constructor(
     private readonly usuarios: UsuariosService,
-    private readonly fb: FormBuilder
+    private readonly fb: FormBuilder,
+    readonly auth: AuthService
   ) {
     this.form = this.fb.group({
       estadoLaboral: ['TRABAJANDO', Validators.required],
       valorMensual: [0, [Validators.required, Validators.min(1)]],
-      fechaVigencia: ['', Validators.required],
+      fechaVigencia: [null as Date | null, Validators.required],
     });
   }
 
@@ -62,12 +70,20 @@ export class TarifasListComponent implements OnInit {
 
   onSubmit(): void {
     if (this.form.invalid) return;
-    const v = this.form.value as CreateTarifaBody;
-    v.fechaVigencia = v.fechaVigencia.split('T')[0];
+    const raw = this.form.value;
+    const fechaVal = raw.fechaVigencia;
+    const fechaStr = fechaVal instanceof Date
+      ? fechaVal.toISOString().slice(0, 10)
+      : String(fechaVal ?? '').split('T')[0];
+    const v: CreateTarifaBody = {
+      estadoLaboral: raw.estadoLaboral,
+      valorMensual: raw.valorMensual,
+      fechaVigencia: fechaStr,
+    };
     this.usuarios.crearTarifa(v).subscribe({
       next: () => {
         this.mostrandoForm = false;
-        this.form.reset({ estadoLaboral: 'TRABAJANDO' });
+        this.form.reset({ estadoLaboral: 'TRABAJANDO', valorMensual: 0, fechaVigencia: null });
         this.cargar();
       },
     });
@@ -75,6 +91,7 @@ export class TarifasListComponent implements OnInit {
 
   cancelar(): void {
     this.mostrandoForm = false;
+    this.form.reset({ estadoLaboral: 'TRABAJANDO', valorMensual: 0, fechaVigencia: null });
   }
 
   formatearMoneda(v: number): string {

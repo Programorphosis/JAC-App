@@ -1,21 +1,22 @@
 /**
- * EstadoGeneralService - Calcula estado para solicitud de carta.
- * Referencia: flujoSolicitudCarta.md
+ * EstadoGeneralService - Caso de uso de consulta enriquecida para UI.
+ * Referencia: flujoSolicitudCarta.md, definicionDomainServices.md
  *
- * No almacena estado; todo se calcula bajo demanda.
+ * Calcula estado para solicitud de carta. No almacena estado; todo se calcula bajo demanda.
+ *
+ * NOTA DE DISEÑO: Este servicio mezcla datos de dominio con lógica de permisos (puedeModificarEstado,
+ * puedeModificarObligacion) calculados a partir del actor. Es una decisión explícita: "estado enriquecido
+ * para UI" es responsabilidad de Application. La autorización por requisito vive aquí para simplificar
+ * el contrato del endpoint. Si cambian las reglas de permisos, modificar este servicio.
  */
 import { Injectable, Inject } from '@nestjs/common';
 import { DebtService } from '../../domain/services/debt.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TipoPago, RolNombre } from '@prisma/client';
+import { RolNombre } from '@prisma/client';
 import type { IRequisitoRepository } from '../../domain/ports/requisito-repository.port';
 import { REQUISITO_REPOSITORY } from '../../domain/ports/requisito-repository.port';
-import {
-  UsuarioNoEncontradoError,
-  SinHistorialLaboralError,
-  SinTarifaVigenteError,
-  HistorialLaboralSuperpuestoError,
-} from '../../domain/errors/domain.errors';
+import type { IEstadoGeneralDataProvider } from '../../domain/ports/estado-general-data-provider.port';
+import { ESTADO_GENERAL_DATA_PROVIDER } from '../../domain/ports/estado-general-data-provider.port';
+import { UsuarioNoEncontradoError } from '../../domain/errors/domain.errors';
 
 export interface EstadoGeneralResult {
   deuda_junta: number;
@@ -35,7 +36,7 @@ export class EstadoGeneralService {
   constructor(
     private readonly debtService: DebtService,
     @Inject(REQUISITO_REPOSITORY) private readonly requisitoRepo: IRequisitoRepository,
-    private readonly prisma: PrismaService,
+    @Inject(ESTADO_GENERAL_DATA_PROVIDER) private readonly dataProvider: IEstadoGeneralDataProvider,
   ) {}
 
   async getEstadoGeneral(
@@ -43,9 +44,7 @@ export class EstadoGeneralService {
     juntaId: string,
     actor?: { id: string; roles: string[] },
   ): Promise<EstadoGeneralResult> {
-    const usuario = await this.prisma.usuario.findFirst({
-      where: { id: usuarioId, juntaId },
-    });
+    const usuario = await this.dataProvider.findUsuario(usuarioId, juntaId);
     if (!usuario) {
       throw new UsuarioNoEncontradoError(usuarioId);
     }
@@ -57,31 +56,18 @@ export class EstadoGeneralService {
         juntaId,
       });
       deuda_junta = debtResult.total;
-    } catch (err) {
-      if (
-        err instanceof SinHistorialLaboralError ||
-        err instanceof SinTarifaVigenteError ||
-        err instanceof HistorialLaboralSuperpuestoError
-      ) {
-        deuda_junta = 0;
-      } else {
-        throw err;
-      }
+    } catch {
+      // Datos inconsistentes (sin historial, sin tarifa vigente, superposición): deuda = 0.
+      // No fallar el endpoint: la UI de requisitos solo necesita la lista de requisitos.
+      deuda_junta = 0;
     }
 
     const requisitos = await this.requisitoRepo.getRequisitosParaCarta(usuarioId, juntaId);
 
-    const pagoCartaCount = await this.prisma.pago.count({
-      where: {
-        usuarioId,
-        juntaId,
-        tipo: TipoPago.CARTA,
-        vigencia: true, // solo vigente = true permite solicitar carta; null/false = inválido
-      },
-    });
+    const pagoCartaCount = await this.dataProvider.countPagoCartaVigente(usuarioId, juntaId);
     const pago_carta = pagoCartaCount > 0;
 
-    const esSecretaria = actor?.roles?.includes(RolNombre.SECRETARIA) ?? false;
+    const esAdmin = actor?.roles?.includes(RolNombre.ADMIN) ?? false;
 
     return {
       deuda_junta,
@@ -90,8 +76,8 @@ export class EstadoGeneralService {
         nombre: r.nombre,
         obligacionActiva: r.obligacionActiva,
         estado: r.estado,
-        puedeModificarEstado: esSecretaria || (actor != null && r.modificadorId === actor.id),
-        puedeModificarObligacion: esSecretaria,
+        puedeModificarEstado: actor != null && r.modificadorId === actor.id,
+        puedeModificarObligacion: esAdmin,
       })),
       pago_carta,
     };

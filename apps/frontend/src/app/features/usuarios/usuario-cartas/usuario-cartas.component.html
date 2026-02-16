@@ -1,26 +1,29 @@
 @if (cartasAprobadas().length > 0) {
-  <mat-card class="mb-4 border-l-4 border-l-green-600 bg-green-50">
-    <mat-card-header>
-      <mat-card-title>Su carta laboral está lista</mat-card-title>
-      <mat-card-subtitle>Puede descargar el PDF de su carta aprobada</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
+  <mat-card class="mb-6 overflow-hidden w-full min-w-0 border-l-4 border-l-green-600">
+    <div class="bg-green-50 px-6 py-4">
+      <mat-card-header class="!p-0 !mb-0">
+        <mat-card-title class="!text-base !font-semibold text-green-800">Su carta laboral está lista</mat-card-title>
+        <mat-card-subtitle class="!text-green-700">Puede descargar el PDF de su carta aprobada</mat-card-subtitle>
+      </mat-card-header>
+    </div>
+    <mat-card-content class="p-6">
       @for (c of cartasAprobadas(); track c.id) {
-        <div class="flex flex-wrap items-center gap-4 py-2">
-          <span>
-            Carta {{ c.consecutivo }}/{{ c.anio }}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-lg bg-white border border-green-100 min-w-0">
+          <div class="text-sm text-gray-700 min-w-0">
+            <span class="font-medium">Carta {{ c.consecutivo }}/{{ c.anio }}</span>
             @if (c.fechaEmision) {
-              · Emitida el {{ formatearFecha(c.fechaEmision) }}
+              <span class="text-gray-500"> · Emitida {{ formatearFecha(c.fechaEmision) }}</span>
             }
             @if (c.vigenciaHasta) {
-              · Vigente hasta {{ formatearFecha(c.vigenciaHasta) }}
+              <span class="text-gray-500"> · Vigente hasta {{ formatearFecha(c.vigenciaHasta) }}</span>
             }
-          </span>
+          </div>
           <button
             mat-raised-button
             color="primary"
             (click)="descargarCartaPdf(c)"
             [disabled]="descargandoCartaId === c.id"
+            class="shrink-0"
           >
             {{ descargandoCartaId === c.id ? 'Descargando...' : 'Descargar PDF' }}
           </button>
@@ -30,36 +33,65 @@
   </mat-card>
 }
 
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>Estado para carta</mat-card-title>
-    <mat-card-subtitle>Deuda, requisitos y pago carta</mat-card-subtitle>
+<mat-card class="overflow-hidden w-full min-w-0">
+  <mat-card-header class="pb-2">
+    <mat-card-title class="text-lg">Estado para carta</mat-card-title>
+    <mat-card-subtitle>Deuda junta, requisitos y pago de carta</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     @if (loading) {
-      <p>Cargando...</p>
+      <div class="flex items-center justify-center py-8">
+        <p class="text-gray-500">Cargando...</p>
+      </div>
     } @else if (estado) {
-      <p><strong>Deuda junta:</strong> {{ formatearMoneda(estado.deuda_junta) }}</p>
-      <p><strong>Pago carta:</strong> {{ estado.pago_carta ? 'Sí' : 'No' }}</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div class="p-4 rounded-lg bg-gray-50 min-w-0 overflow-x-auto">
+          <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Deuda junta</p>
+          <p class="text-lg font-semibold whitespace-nowrap" [ngClass]="estado.deuda_junta > 0 ? 'text-amber-700' : 'text-green-700'">
+            {{ formatearMoneda(estado.deuda_junta) }}
+          </p>
+        </div>
+        <div class="p-4 rounded-lg bg-gray-50">
+          <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Pago carta</p>
+          <p class="text-lg font-semibold" [ngClass]="estado.pago_carta ? 'text-green-700' : 'text-amber-700'">
+            {{ estado.pago_carta ? 'Sí' : 'No' }}
+          </p>
+        </div>
+      </div>
+
       @if (estado.requisitos.length > 0) {
-        <p><strong>Requisitos:</strong></p>
-        <ul>
-          @for (r of estado.requisitos; track r.requisitoTipoId) {
-            <li>{{ r.nombre }}: {{ r.estado }} (obligación: {{ r.obligacionActiva ? 'Sí' : 'No' }})</li>
-          }
-        </ul>
+        <div class="mb-6">
+          <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Requisitos</h3>
+          <div class="flex flex-wrap gap-2">
+            @for (r of estado.requisitos; track r.requisitoTipoId) {
+              <span
+                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm"
+                [ngClass]="{
+                  'bg-green-100 text-green-700': r.obligacionActiva && r.estado === 'AL_DIA',
+                  'bg-amber-100 text-amber-700': r.obligacionActiva && r.estado !== 'AL_DIA',
+                  'bg-gray-100 text-gray-600': !r.obligacionActiva
+                }"
+              >
+                {{ r.nombre }}: {{ r.estado }}
+                <span class="text-xs opacity-75">({{ r.obligacionActiva ? 'obligatorio' : 'exento' }})</span>
+              </span>
+            }
+          </div>
+        </div>
       }
 
       @if (puedeSolicitar()) {
-        <button mat-raised-button color="primary" (click)="solicitar()" [disabled]="solicitando" class="mt-2">
+        <button mat-raised-button *appCan="auth.permissions.CARTAS_SOLICITAR; usuarioId: usuarioId" color="primary" (click)="solicitar()" [disabled]="solicitando">
           Solicitar carta
         </button>
-      } @else {
-        <div class="mt-4 space-y-2">
+      }
+      @if (!puedeSolicitar()) {
+        <div class="space-y-4 p-4 rounded-xl bg-amber-50 border border-amber-200">
           @if (estado.deuda_junta > 0) {
-            <p class="text-amber-700">Debe pagar su deuda de la junta antes de solicitar carta.</p>
+            <p class="text-amber-800">Debe pagar su deuda de la junta antes de solicitar carta.</p>
             <button
               mat-raised-button
+              *appCan="auth.permissions.PAGOS_PAGAR_ONLINE; usuarioId: usuarioId"
               color="primary"
               (click)="pagarDeudaOnline()"
               [disabled]="pagandoDeuda"
@@ -67,9 +99,10 @@
               {{ pagandoDeuda ? 'Redirigiendo...' : 'Pagar deuda online' }}
             </button>
           } @else if (!estado.pago_carta && cartasAprobadas().length === 0) {
-            <p class="text-amber-700">Debe pagar la carta para poder solicitarla.</p>
+            <p class="text-amber-800">Debe pagar la carta para poder solicitarla.</p>
             <button
               mat-raised-button
+              *appCan="auth.permissions.PAGOS_PAGAR_ONLINE; usuarioId: usuarioId"
               color="primary"
               (click)="pagarCartaOnline()"
               [disabled]="pagandoCarta"
@@ -77,64 +110,77 @@
               {{ pagandoCarta ? 'Redirigiendo...' : 'Pagar carta online' }}
             </button>
           } @else if (tieneCartaVigente()) {
-            <p class="text-amber-700">
-              Tiene una carta vigente. Debe esperar a que venza para poder pagar y solicitar otra.
-            </p>
+            <p class="text-amber-800">Tiene una carta vigente. Debe esperar a que venza para solicitar otra.</p>
           } @else if (cartasAprobadas().length > 0) {
             <p class="text-gray-600">Ya tiene carta aprobada. Puede descargarla arriba.</p>
           } @else if (requisitosNoAlDia().length > 0) {
-            <p class="text-amber-700">Debe regularizar los siguientes requisitos con la junta:</p>
-            <ul class="list-disc ml-4">
+            <p class="text-amber-800 font-medium">Debe regularizar los siguientes requisitos con la junta:</p>
+            <ul class="list-disc ml-4 space-y-1">
               @for (r of requisitosNoAlDia(); track r.nombre) {
                 <li>{{ r.nombre }}: en {{ r.estado }}</li>
               }
             </ul>
           } @else if (tieneCartaPendiente()) {
-            <p class="text-amber-700">Tiene una carta pendiente de validación.</p>
+            <p class="text-amber-800">Tiene una carta pendiente de validación.</p>
           } @else {
-            <p class="text-amber-700">No cumple requisitos para solicitar carta.</p>
+            <p class="text-amber-800">No cumple requisitos para solicitar carta.</p>
           }
         </div>
       }
     }
 
-    <h3 class="mt-4">Mis cartas</h3>
-    @if (cartas.length > 0) {
-      <table class="w-full mt-2">
-        <thead>
-          <tr>
-            <th class="text-left">Estado</th>
-            <th class="text-left">Fecha solicitud</th>
-            <th class="text-left">Vigente hasta</th>
-            <th class="text-left">Consecutivo</th>
-            <th class="text-left">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of cartas; track c.id) {
-            <tr>
-              <td>{{ c.estado }}</td>
-              <td>{{ formatearFecha(c.fechaSolicitud) }}</td>
-              <td>{{ c.vigenciaHasta ? formatearFecha(c.vigenciaHasta) : '-' }}</td>
-              <td>{{ c.consecutivo ? c.consecutivo + '/' + c.anio : '-' }}</td>
-              <td>
-                @if (c.estado === 'APROBADA') {
-                  <button
-                    mat-button
-                    color="primary"
-                    (click)="descargarCartaPdf(c)"
-                    [disabled]="descargandoCartaId === c.id"
-                  >
-                    {{ descargandoCartaId === c.id ? 'Descargando...' : 'Descargar PDF' }}
-                  </button>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    } @else {
-      <p class="text-gray-600 mt-2">No tiene cartas aún. Solicite una cuando cumpla los requisitos.</p>
-    }
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Mis cartas</h3>
+      @if (cartas.length > 0) {
+        <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
+          <div class="table-responsive">
+          <table class="w-full min-w-[480px]">
+            <thead>
+              <tr>
+                <th>Estado</th>
+                <th>Fecha solicitud</th>
+                <th>Vigente hasta</th>
+                <th>Consecutivo</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of cartas; track c.id) {
+                <tr>
+                  <td>
+                    <span
+                      class="inline-flex px-2 py-0.5 rounded text-xs font-medium"
+                      [ngClass]="{
+                        'bg-green-100 text-green-700': c.estado === 'APROBADA',
+                        'bg-amber-100 text-amber-700': c.estado === 'PENDIENTE',
+                        'bg-red-100 text-red-700': c.estado === 'RECHAZADA'
+                      }"
+                    >
+                      {{ c.estado }}
+                    </span>
+                  </td>
+                  <td>{{ formatearFecha(c.fechaSolicitud) }}</td>
+                  <td>{{ c.vigenciaHasta ? formatearFecha(c.vigenciaHasta) : '—' }}</td>
+                  <td>{{ c.consecutivo ? c.consecutivo + '/' + c.anio : '—' }}</td>
+                  <td>
+                    @if (c.estado === 'APROBADA') {
+                      <button mat-button color="primary" (click)="descargarCartaPdf(c)" [disabled]="descargandoCartaId === c.id">
+                        {{ descargandoCartaId === c.id ? 'Descargando...' : 'Descargar' }}
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          </div>
+        </div>
+      } @else {
+        <div class="py-6 text-center text-gray-500 rounded-lg border border-dashed border-gray-300">
+          <mat-icon class="!text-4xl !w-12 !h-12 mx-auto mb-2 text-gray-300">mail</mat-icon>
+          <p>No tiene cartas aún. Solicite una cuando cumpla los requisitos.</p>
+        </div>
+      }
+    </div>
   </mat-card-content>
 </mat-card>

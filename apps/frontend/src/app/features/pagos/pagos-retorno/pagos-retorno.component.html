@@ -25,7 +25,7 @@
           }
         }
         <button mat-raised-button color="primary" (click)="volver()" class="mt-4">
-          {{ auth.puedeVerPagos() ? 'Volver a pagos' : 'Volver a Mi cuenta' }}
+          {{ auth.can(auth.permissions.PAGOS_GESTIONAR) ? 'Volver a pagos' : 'Volver a Mi cuenta' }}
         </button>
       }
     </mat-card-content>

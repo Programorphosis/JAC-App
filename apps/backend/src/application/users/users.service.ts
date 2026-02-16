@@ -10,6 +10,10 @@ import { RolNombre } from '@prisma/client';
 import type { CreateUserDto } from './dto/create-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
 
+const ROLES_UNICOS_POR_JUNTA: RolNombre[] = ['SECRETARIA', 'TESORERA'];
+/** Rol base: todos los usuarios de una junta son ciudadanos. */
+const ROL_BASE = RolNombre.CIUDADANO;
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -17,12 +21,79 @@ export class UsersService {
     private readonly audit: AuditService,
   ) {}
 
-  async listar(juntaId: string, page = 1, limit = 20) {
+  /** Verifica que SECRETARIA y TESORERA sean únicos por junta. Excluye usuarioId si se proporciona. */
+  private async validarRolesUnicosPorJunta(
+    juntaId: string,
+    rolesNuevos: string[],
+    excluirUsuarioId?: string,
+  ): Promise<void> {
+    for (const rol of ROLES_UNICOS_POR_JUNTA) {
+      if (!rolesNuevos.includes(rol)) continue;
+
+      const existente = await this.prisma.usuarioRol.findFirst({
+        where: {
+          rol: { nombre: rol },
+          usuario: {
+            juntaId,
+            ...(excluirUsuarioId && { id: { not: excluirUsuarioId } }),
+          },
+        },
+      });
+
+      if (existente) {
+        const mensaje =
+          rol === 'SECRETARIA'
+            ? 'Ya existe una secretaria en esta junta. Solo puede haber una.'
+            : 'Ya existe una tesorera en esta junta. Solo puede haber una.';
+        throw new ConflictException(mensaje);
+      }
+    }
+  }
+
+  async listar(
+    juntaId: string,
+    page = 1,
+    limit = 20,
+    opts?: {
+      search?: string;
+      activo?: boolean;
+      rol?: string;
+      sortBy?: 'apellidos' | 'nombres' | 'numeroDocumento' | 'fechaCreacion';
+      sortOrder?: 'asc' | 'desc';
+    },
+  ) {
     const skip = (page - 1) * limit;
+    const search = opts?.search;
+    const activo = opts?.activo;
+    const rol = opts?.rol;
+    const sortBy = opts?.sortBy ?? 'apellidos';
+    const sortOrder = opts?.sortOrder ?? 'asc';
+
+    const where: Record<string, unknown> = { juntaId };
+    if (search && search.length >= 2) {
+      where.OR = [
+        { nombres: { contains: search, mode: 'insensitive' } },
+        { apellidos: { contains: search, mode: 'insensitive' } },
+        { numeroDocumento: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    if (activo !== undefined) {
+      where.activo = activo;
+    }
+    if (rol && rol.trim()) {
+      where.roles = { some: { rol: { nombre: rol.trim() as RolNombre } } };
+    }
+
+    const orderBy =
+      sortBy === 'apellidos'
+        ? [{ apellidos: sortOrder }, { nombres: sortOrder }]
+        : sortBy === 'nombres'
+          ? [{ nombres: sortOrder }, { apellidos: sortOrder }]
+          : { [sortBy]: sortOrder };
 
     const [usuarios, total] = await Promise.all([
       this.prisma.usuario.findMany({
-        where: { juntaId },
+        where,
         skip,
         take: limit,
         select: {
@@ -37,9 +108,9 @@ export class UsersService {
           fechaCreacion: true,
           roles: { include: { rol: { select: { nombre: true } } } },
         },
-        orderBy: { apellidos: 'asc' },
+        orderBy,
       }),
-      this.prisma.usuario.count({ where: { juntaId } }),
+      this.prisma.usuario.count({ where }),
     ]);
 
     return {
@@ -92,7 +163,12 @@ export class UsersService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    const roles = dto.roles?.length ? dto.roles : ['CIUDADANO'];
+    const rolesRaw = dto.roles?.length ? dto.roles : [];
+    const roles = rolesRaw.includes(ROL_BASE) ? rolesRaw : [ROL_BASE, ...rolesRaw];
+
+    await this.validarRolesUnicosPorJunta(juntaId, roles);
+
+    const estadoLaboralInicial = dto.estadoLaboralInicial ?? 'NO_TRABAJANDO';
 
     const usuario = await this.prisma.$transaction(async (tx) => {
       const u = await tx.usuario.create({
@@ -117,6 +193,17 @@ export class UsersService {
           data: { usuarioId: u.id, rolId: rol.id },
         });
       }
+
+      // Historial laboral inicial: desde fechaCreacion, sin fechaFin (vigente)
+      await tx.historialLaboral.create({
+        data: {
+          usuarioId: u.id,
+          estado: estadoLaboralInicial,
+          fechaInicio: u.fechaCreacion,
+          fechaFin: null,
+          creadoPorId,
+        },
+      });
 
       return u;
     });
@@ -152,15 +239,35 @@ export class UsersService {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    await this.prisma.usuario.update({
-      where: { id },
-      data: {
-        ...(dto.nombres !== undefined && { nombres: dto.nombres }),
-        ...(dto.apellidos !== undefined && { apellidos: dto.apellidos }),
-        ...(dto.telefono !== undefined && { telefono: dto.telefono }),
-        ...(dto.direccion !== undefined && { direccion: dto.direccion }),
-        ...(dto.activo !== undefined && { activo: dto.activo }),
-      },
+    let rolesFinales: string[] | undefined;
+    if (dto.roles !== undefined && dto.roles.length > 0) {
+      rolesFinales = dto.roles.includes(ROL_BASE) ? dto.roles : [ROL_BASE, ...dto.roles];
+      await this.validarRolesUnicosPorJunta(juntaId, rolesFinales, id);
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.usuario.update({
+        where: { id },
+        data: {
+          ...(dto.nombres !== undefined && { nombres: dto.nombres }),
+          ...(dto.apellidos !== undefined && { apellidos: dto.apellidos }),
+          ...(dto.telefono !== undefined && { telefono: dto.telefono }),
+          ...(dto.direccion !== undefined && { direccion: dto.direccion }),
+          ...(dto.activo !== undefined && { activo: dto.activo }),
+        },
+      });
+
+      if (rolesFinales !== undefined) {
+        await tx.usuarioRol.deleteMany({ where: { usuarioId: id } });
+        const rolesDb = await tx.rol.findMany({
+          where: { nombre: { in: rolesFinales as RolNombre[] } },
+        });
+        for (const rol of rolesDb) {
+          await tx.usuarioRol.create({
+            data: { usuarioId: id, rolId: rol.id },
+          });
+        }
+      }
     });
 
     await this.audit.registerEvent({

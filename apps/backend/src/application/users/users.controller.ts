@@ -31,12 +31,25 @@ export class UsersController {
   async listar(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('activo') activo?: string,
+    @Query('rol') rol?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
     @Request() req?: { user: JwtUser },
   ) {
     const juntaId = req!.user.juntaId!;
     const p = page ? parseInt(page, 10) : 1;
     const l = limit ? parseInt(limit, 10) : 20;
-    return this.users.listar(juntaId, p, l);
+    const opts: Parameters<UsersService['listar']>[3] = {};
+    if (search?.trim()) opts.search = search.trim();
+    if (activo === 'true') opts.activo = true;
+    if (activo === 'false') opts.activo = false;
+    if (rol?.trim()) opts.rol = rol.trim();
+    const validSortBy = ['apellidos', 'nombres', 'numeroDocumento', 'fechaCreacion'];
+    if (sortBy && validSortBy.includes(sortBy)) opts.sortBy = sortBy as typeof opts.sortBy;
+    if (sortOrder === 'asc' || sortOrder === 'desc') opts.sortOrder = sortOrder;
+    return this.users.listar(juntaId, p, l, opts);
   }
 
   @Get(':id')

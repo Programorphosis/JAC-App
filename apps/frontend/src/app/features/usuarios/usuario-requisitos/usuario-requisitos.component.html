@@ -1,58 +1,84 @@
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>{{ soloRequisitosModificables ? 'Obligaciones' : 'Requisitos adicionales' }}</mat-card-title>
+<mat-card class="overflow-hidden w-full min-w-0">
+  <mat-card-header class="pb-2">
+    <mat-card-title class="text-lg">{{ soloRequisitosModificables ? 'Obligaciones' : 'Requisitos adicionales' }}</mat-card-title>
     <mat-card-subtitle>
-      {{ soloRequisitosModificables ? 'Estado de los requisitos que puede modificar' : 'Estado y obligación por requisito' }}
+      {{ soloRequisitosModificables ? 'Estado de los requisitos que puede modificar' : 'Estado y obligación por requisito (agua, basura, etc.)' }}
     </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     @if (loading) {
-      <p>Cargando...</p>
-    }     @else if (estado && requisitosVisibles().length > 0) {
-      <table class="w-full">
-        <thead>
-          <tr>
-            <th class="text-left">Requisito</th>
-            <th class="text-left">Estado</th>
-            <th class="text-left">Obligación</th>
-            <th class="text-left">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (r of requisitosVisibles(); track r.requisitoTipoId) {
+      <div class="flex items-center justify-center py-8">
+        <p class="text-gray-500">Cargando...</p>
+      </div>
+    } @else if (estado && requisitosVisibles().length > 0) {
+      <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
+        <div class="table-responsive">
+        <table class="w-full min-w-[480px]">
+          <thead>
             <tr>
-              <td>{{ r.nombre }}</td>
-              <td>{{ r.estado }}</td>
-              <td>{{ r.obligacionActiva ? 'Sí' : 'No' }}</td>
-              <td>
-                @if (r.puedeModificarEstado || r.puedeModificarObligacion) {
-                  <div class="flex gap-2">
-                    @if (r.puedeModificarEstado) {
-                      <button mat-stroked-button (click)="cambiarEstado(r.requisitoTipoId, 'AL_DIA')" [disabled]="r.estado === 'AL_DIA'">
-                        Al día
-                      </button>
-                      <button mat-stroked-button (click)="cambiarEstado(r.requisitoTipoId, 'MORA')" [disabled]="r.estado === 'MORA'">
-                        Mora
-                      </button>
-                    }
-                    @if (r.puedeModificarObligacion) {
-                      <button mat-stroked-button (click)="cambiarObligacion(r.requisitoTipoId, !r.obligacionActiva)">
-                        {{ r.obligacionActiva ? 'Exentar' : 'Activar' }}
-                      </button>
-                    }
-                  </div>
-                } @else {
-                  <span class="text-gray-500">—</span>
-                }
-              </td>
+              <th>Requisito</th>
+              <th>Estado</th>
+              <th>Obligación</th>
+              <th>Acciones</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (r of requisitosVisibles(); track r.requisitoTipoId) {
+              <tr>
+                <td class="font-medium">{{ r.nombre }}</td>
+                <td>
+                  <span
+                    class="inline-flex px-2 py-0.5 rounded text-xs font-medium"
+                    [ngClass]="r.estado === 'AL_DIA' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'"
+                  >
+                    {{ r.estado }}
+                  </span>
+                </td>
+                <td>
+                  <span
+                    class="inline-flex px-2 py-0.5 rounded text-xs font-medium"
+                    [ngClass]="r.obligacionActiva ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'"
+                  >
+                    {{ r.obligacionActiva ? 'Sí' : 'No' }}
+                  </span>
+                </td>
+                <td>
+                  @if (r.puedeModificarEstado || r.puedeModificarObligacion) {
+                    <div class="flex flex-wrap gap-2 min-w-[140px]">
+                      @if (r.puedeModificarEstado) {
+                        <button mat-stroked-button (click)="cambiarEstado(r.requisitoTipoId, 'AL_DIA')" [disabled]="r.estado === 'AL_DIA'" class="!min-w-0">
+                          Al día
+                        </button>
+                        <button mat-stroked-button (click)="cambiarEstado(r.requisitoTipoId, 'MORA')" [disabled]="r.estado === 'MORA'" class="!min-w-0">
+                          Mora
+                        </button>
+                      }
+                      @if (r.puedeModificarObligacion) {
+                        <button mat-stroked-button (click)="cambiarObligacion(r.requisitoTipoId, !r.obligacionActiva)" class="!min-w-0">
+                          {{ r.obligacionActiva ? 'Exentar' : 'Activar' }}
+                        </button>
+                      }
+                    </div>
+                  } @else {
+                    <span class="text-gray-400 text-sm">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        </div>
+      </div>
     } @else if (estado && requisitosVisibles().length === 0 && soloRequisitosModificables) {
-      <p>No tiene requisitos asignados para modificar.</p>
+      <div class="py-8 text-center text-gray-500 rounded-lg border border-dashed border-gray-300">
+        <mat-icon class="!text-4xl !w-12 !h-12 mx-auto mb-2 text-gray-300">assignment</mat-icon>
+        <p>No tiene requisitos asignados para modificar.</p>
+      </div>
     } @else {
-      <p>No hay requisitos configurados para la junta.</p>
+      <div class="py-8 text-center text-gray-500 rounded-lg border border-dashed border-gray-300">
+        <mat-icon class="!text-4xl !w-12 !h-12 mx-auto mb-2 text-gray-300">assignment</mat-icon>
+        <p>No hay requisitos configurados para la junta.</p>
+      </div>
     }
   </mat-card-content>
 </mat-card>

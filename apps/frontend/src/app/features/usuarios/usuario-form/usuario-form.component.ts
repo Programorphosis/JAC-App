@@ -8,7 +8,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CreateUserBody, UpdateUserBody } from '../services/usuarios.service';
 
-const ROLES = ['ADMIN', 'SECRETARIA', 'TESORERA', 'RECEPTOR_AGUA', 'CIUDADANO'];
+/** Rol base: todos los usuarios de la junta son ciudadanos. */
+const ROL_BASE = 'CIUDADANO';
+/** Roles operativos que el admin puede asignar además del base. */
+const ROLES_OPERATIVOS = ['ADMIN', 'SECRETARIA', 'TESORERA', 'RECEPTOR_AGUA'];
 const TIPOS_DOC = ['CC', 'CE', 'TI', 'PA'];
 
 @Component({
@@ -28,17 +31,24 @@ const TIPOS_DOC = ['CC', 'CE', 'TI', 'PA'];
 })
 export class UsuarioFormComponent implements OnInit {
   @Input() modoEdicion = false;
+  @Input() puedeEditarRoles = false;
   @Input() valoresIniciales?: Partial<{
     nombres: string;
     apellidos: string;
     telefono: string;
     direccion: string;
     activo: boolean;
+    roles: string[];
   }>;
   @Output() guardar = new EventEmitter<CreateUserBody | UpdateUserBody>();
 
-  readonly roles = ROLES;
+  readonly rolBase = ROL_BASE;
+  readonly rolesOperativos = ROLES_OPERATIVOS;
   readonly tiposDoc = TIPOS_DOC;
+  readonly estadosLaborales = [
+    { value: 'NO_TRABAJANDO', label: 'No trabajando' },
+    { value: 'TRABAJANDO', label: 'Trabajando' },
+  ];
   form: FormGroup;
 
   constructor(private readonly fb: FormBuilder) {
@@ -50,19 +60,23 @@ export class UsuarioFormComponent implements OnInit {
       telefono: [''],
       direccion: [''],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      roles: [['CIUDADANO']],
+      rolesOperativos: [[] as string[]],
+      estadoLaboralInicial: ['NO_TRABAJANDO'],
       activo: [true],
     });
   }
 
   ngOnInit(): void {
     if (this.modoEdicion && this.valoresIniciales) {
+      const roles = this.valoresIniciales.roles ?? [];
+      const rolesOperativos = roles.filter((r) => r !== ROL_BASE);
       this.form.patchValue({
         nombres: this.valoresIniciales.nombres,
         apellidos: this.valoresIniciales.apellidos,
         telefono: this.valoresIniciales.telefono || '',
         direccion: this.valoresIniciales.direccion || '',
         activo: this.valoresIniciales.activo ?? true,
+        rolesOperativos,
       });
       this.form.get('tipoDocumento')?.disable();
       this.form.get('numeroDocumento')?.disable();
@@ -75,14 +89,19 @@ export class UsuarioFormComponent implements OnInit {
     if (this.form.invalid) return;
     const v = this.form.getRawValue();
     if (this.modoEdicion) {
-      this.guardar.emit({
+      const payload: UpdateUserBody = {
         nombres: v.nombres,
         apellidos: v.apellidos,
         telefono: v.telefono || undefined,
         direccion: v.direccion || undefined,
         activo: v.activo,
-      });
-    } else {
+      };
+      if (this.puedeEditarRoles) {
+        const op = Array.isArray(v.rolesOperativos) ? v.rolesOperativos : [];
+        payload.roles = [ROL_BASE, ...op];
+      }
+      this.guardar.emit(payload);
+    } else if (!this.modoEdicion) {
       this.guardar.emit({
         tipoDocumento: v.tipoDocumento,
         numeroDocumento: v.numeroDocumento,
@@ -91,7 +110,8 @@ export class UsuarioFormComponent implements OnInit {
         telefono: v.telefono || undefined,
         direccion: v.direccion || undefined,
         password: v.password,
-        roles: Array.isArray(v.roles) ? v.roles : ['CIUDADANO'],
+        roles: [ROL_BASE, ...(Array.isArray(v.rolesOperativos) ? v.rolesOperativos : [])],
+        estadoLaboralInicial: v.estadoLaboralInicial || 'NO_TRABAJANDO',
       });
     }
   }

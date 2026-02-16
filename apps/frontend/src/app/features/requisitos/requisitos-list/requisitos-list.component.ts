@@ -10,6 +10,7 @@ import { RequisitosService, RequisitoTipoItem, CreateRequisitoTipoBody, UpdateRe
 import { RequisitoFormComponent } from '../requisito-form/requisito-form.component';
 import { ConfirmarEliminarRequisitoDialogComponent } from '../confirmar-eliminar-requisito-dialog/confirmar-eliminar-requisito-dialog.component';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
+import { formatearNombre } from '../../../shared/utils/formatear-nombre.util';
 
 @Component({
   selector: 'app-requisitos-list',
@@ -115,7 +116,7 @@ export class RequisitosListComponent implements OnInit {
 
   modificador(r: RequisitoTipoItem): string {
     if (r.modificador) {
-      return `${r.modificador.nombres} ${r.modificador.apellidos}`;
+      return `${formatearNombre(r.modificador.nombres)} ${formatearNombre(r.modificador.apellidos)}`;
     }
     return '-';
   }

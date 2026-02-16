@@ -2,6 +2,10 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DocumentosService, DocumentoItem } from '../../cartas/services/documentos.service';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
@@ -15,7 +19,7 @@ const TIPOS = [
 @Component({
   selector: 'app-usuario-documentos',
   standalone: true,
-  imports: [FormsModule, MatCardModule, MatButtonModule],
+  imports: [FormsModule, MatCardModule, MatButtonModule, MatFormFieldModule, MatSelectModule, MatInputModule, MatIconModule],
   templateUrl: './usuario-documentos.component.html',
   styleUrl: './usuario-documentos.component.scss',
 })
@@ -31,7 +35,7 @@ export class UsuarioDocumentosComponent implements OnInit {
   constructor(
     private readonly documentosSvc: DocumentosService,
     private readonly snackBar: MatSnackBar,
-    private readonly auth: AuthService
+    readonly auth: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -77,12 +81,6 @@ export class UsuarioDocumentosComponent implements OnInit {
     });
   }
 
-  puedeSubirDocumento(): boolean {
-    const u = this.auth.currentUser();
-    if (!u) return false;
-    if (this.usuarioId === u.id) return true;
-    return u.roles?.includes('ADMIN') || u.roles?.includes('SECRETARIA') || u.roles?.includes('TESORERA') || false;
-  }
 
   formatearFecha(f: string): string {
     return new Date(f).toLocaleDateString('es-CO');

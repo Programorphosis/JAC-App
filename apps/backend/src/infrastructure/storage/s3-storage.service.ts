@@ -4,6 +4,10 @@
  */
 import { Injectable } from '@nestjs/common';
 import {
+  ArchivoSobrepasaTamanioError,
+  FormatoArchivoNoPermitidoError,
+} from '../../domain/errors';
+import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
@@ -44,13 +48,12 @@ export class S3StorageService {
   }
 
   validateFile(file: { size: number; mimetype: string }): void {
+    const maxMb = 5;
     if (file.size > MAX_FILE_SIZE) {
-      throw new Error('El archivo supera el tamaño máximo de 5 MB');
+      throw new ArchivoSobrepasaTamanioError(maxMb);
     }
     if (!ALLOWED_MIMES.includes(file.mimetype)) {
-      throw new Error(
-        'Formato no permitido. Use PDF, JPG o PNG',
-      );
+      throw new FormatoArchivoNoPermitidoError();
     }
   }
 

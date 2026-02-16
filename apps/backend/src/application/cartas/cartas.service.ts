@@ -6,6 +6,13 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { S3StorageService } from '../../infrastructure/storage/s3-storage.service';
 import { randomUUID } from 'crypto';
+import {
+  UsuarioNoEncontradoError,
+  CartaPendienteExistenteError,
+  CartaVigenteError,
+  CartaNoEncontradaError,
+  AlmacenamientoNoConfiguradoError,
+} from '../../domain/errors';
 
 @Injectable()
 export class CartasService {
@@ -30,7 +37,7 @@ export class CartasService {
       where: { id: usuarioId, juntaId },
     });
     if (!usuario) {
-      throw new Error('Usuario no encontrado en la junta');
+      throw new UsuarioNoEncontradoError(usuarioId);
     }
 
     const cartas = await this.prisma.carta.findMany({
@@ -95,7 +102,7 @@ export class CartasService {
       where: { id: usuarioId, juntaId },
     });
     if (!usuario) {
-      throw new Error('Usuario no encontrado en la junta');
+      throw new UsuarioNoEncontradoError(usuarioId);
     }
 
     const pendiente = await this.prisma.carta.findFirst({
@@ -106,7 +113,7 @@ export class CartasService {
       },
     });
     if (pendiente) {
-      throw new Error('Ya existe una carta pendiente para este usuario');
+      throw new CartaPendienteExistenteError(usuarioId);
     }
 
     const hoy = new Date();
@@ -120,9 +127,7 @@ export class CartasService {
       },
     });
     if (cartaVigente) {
-      throw new Error(
-        'Tiene una carta vigente. Debe esperar a que venza para poder pagar y solicitar otra.',
-      );
+      throw new CartaVigenteError(usuarioId);
     }
 
     const anio = new Date().getFullYear();
@@ -174,10 +179,10 @@ export class CartasService {
       select: { rutaPdf: true },
     });
     if (!carta || !carta.rutaPdf) {
-      throw new Error('Carta no encontrada o sin PDF disponible');
+      throw new CartaNoEncontradaError(cartaId);
     }
     if (!this.s3.isConfigured()) {
-      throw new Error('El almacenamiento no está configurado');
+      throw new AlmacenamientoNoConfiguradoError();
     }
     return this.s3.getSignedDownloadUrl(carta.rutaPdf);
   }

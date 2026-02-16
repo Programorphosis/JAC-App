@@ -22,6 +22,7 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { RolNombre } from '@prisma/client';
 import { JwtUser } from '../../auth/strategies/jwt.strategy';
+import { PermissionService } from '../../auth/permission.service';
 import { DocumentosService } from './documentos.service';
 import type { MulterFile } from './types';
 import { memoryStorage } from 'multer';
@@ -31,7 +32,10 @@ const storage = memoryStorage();
 @Controller('documentos')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
 export class DocumentosController {
-  constructor(private readonly documentos: DocumentosService) {}
+  constructor(
+    private readonly documentos: DocumentosService,
+    private readonly permissions: PermissionService,
+  ) {}
 
   /**
    * POST /documentos - Subir documento (multipart/form-data).
@@ -39,7 +43,7 @@ export class DocumentosController {
    */
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.TESORERA, RolNombre.CIUDADANO)
   @UseInterceptors(
     FileInterceptor('file', {
       storage,
@@ -62,44 +66,22 @@ export class DocumentosController {
     const user = req.user;
     const juntaId = user.juntaId!;
 
-    const puedeSubirParaOtro =
-      user.roles.includes(RolNombre.SECRETARIA) ||
-      user.roles.includes(RolNombre.TESORERA);
-
-    if (!puedeSubirParaOtro && usuarioId !== user.id) {
+    if (!this.permissions.puedeSubirDocumentoParaOtro(user) && usuarioId !== user.id) {
       throw new ForbiddenException('Solo puede subir documentos propios');
     }
 
-    try {
-      const data = await this.documentos.subir({
-        usuarioId: usuarioId.trim(),
-        juntaId,
-        tipo: tipo.trim(),
-        file,
-        subidoPorId: user.id,
-      });
+    const data = await this.documentos.subir({
+      usuarioId: usuarioId.trim(),
+      juntaId,
+      tipo: tipo.trim(),
+      file,
+      subidoPorId: user.id,
+    });
 
-      return {
-        data,
-        meta: { timestamp: new Date().toISOString() },
-      };
-    } catch (err) {
-      if (err instanceof Error) {
-        if (err.message.includes('no permitido')) {
-          throw new BadRequestException(err.message);
-        }
-        if (err.message.includes('no encontrado')) {
-          throw new BadRequestException(err.message);
-        }
-        if (err.message.includes('tamaño') || err.message.includes('Formato')) {
-          throw new BadRequestException(err.message);
-        }
-        if (err.message.includes('S3 no está configurado')) {
-          throw new BadRequestException('Servicio de almacenamiento no disponible');
-        }
-      }
-      throw err;
-    }
+    return {
+      data,
+      meta: { timestamp: new Date().toISOString() },
+    };
   }
 
   /**
@@ -115,12 +97,7 @@ export class DocumentosController {
     const juntaId = req.user.juntaId!;
     const user = req.user;
 
-    const puedeVerOtro =
-      user.roles.includes(RolNombre.ADMIN) ||
-      user.roles.includes(RolNombre.SECRETARIA) ||
-      user.roles.includes(RolNombre.TESORERA);
-
-    const soloPropios = puedeVerOtro ? undefined : user.id;
+    const soloPropios = this.permissions.puedeVerDocumentosDeOtro(user) ? undefined : user.id;
     const url = await this.documentos.getUrlDescarga(id, juntaId, soloPropios);
     return { data: { url } };
   }

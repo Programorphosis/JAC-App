@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import {
-  UsuarioNoEncontradoError,
-  PagoDuplicadoError,
-  PagoCartaPendienteError,
-} from '../../domain/errors/domain.errors';
+import { PagoDuplicadoError } from '../../domain/errors';
+import { validateCartaPagoPreconditions } from '../../domain/helpers/carta-pago-validation.helper';
 import { PaymentService } from '../../domain/services/payment.service';
 import { PrismaPaymentRegistrationContext } from './prisma-payment-registration-context.service';
 import type { RegisterJuntaPaymentParams } from '../../domain/types/payment.types';
@@ -71,13 +68,6 @@ export class PaymentRegistrationRunner {
           }),
         ]);
 
-        if (!usuario) {
-          throw new UsuarioNoEncontradoError(params.usuarioId);
-        }
-        if (!junta?.montoCarta || junta.montoCarta <= 0) {
-          throw new Error('La junta no tiene monto de carta configurado');
-        }
-
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
         const [cartaPendiente, tienePagoVigente, cartaVigente] = await Promise.all([
@@ -105,18 +95,23 @@ export class PaymentRegistrationRunner {
             },
           }),
         ]);
-        if (cartaPendiente || tienePagoVigente) {
-          throw new PagoCartaPendienteError(params.usuarioId);
-        }
-        if (cartaVigente) {
-          throw new Error('Tiene una carta vigente. Debe esperar a que venza para poder pagar otra.');
-        }
 
+        validateCartaPagoPreconditions({
+          junta,
+          usuario,
+          cartaPendiente,
+          tienePagoVigente,
+          cartaVigente,
+          usuarioId: params.usuarioId,
+          juntaId: params.juntaId,
+        });
+
+        const montoCarta = junta!.montoCarta!;
         const consecutivo = await ctx.getNextConsecutivoPagoCarta(params.juntaId);
         const { pagoId } = await ctx.createCartaPayment({
           usuarioId: params.usuarioId,
           juntaId: params.juntaId,
-          monto: junta.montoCarta,
+          monto: montoCarta,
           metodo: params.metodo,
           registradoPorId: params.registradoPorId,
           referenciaExterna: params.referenciaExterna,
@@ -130,7 +125,7 @@ export class PaymentRegistrationRunner {
           accion: 'REGISTRO_PAGO_CARTA',
           metadata: {
             usuarioId: params.usuarioId,
-            monto: junta.montoCarta,
+            monto: montoCarta,
             metodo: params.metodo,
             consecutivo,
             referenciaExterna: params.referenciaExterna ?? null,
@@ -140,7 +135,7 @@ export class PaymentRegistrationRunner {
 
         return {
           pagoId,
-          monto: junta.montoCarta,
+          monto: montoCarta,
           consecutivo,
         };
       },

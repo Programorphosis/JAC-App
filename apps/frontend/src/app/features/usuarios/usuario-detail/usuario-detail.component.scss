@@ -1,0 +1,7 @@
+/* Tab body: permitir scroll horizontal en tablas y evitar overflow */
+.mat-tabs-mi-cuenta {
+  .mat-mdc-tab-body-content {
+    overflow-x: auto;
+    min-width: 0;
+  }
+}
