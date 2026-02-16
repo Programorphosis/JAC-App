@@ -152,11 +152,11 @@ export class PagosController {
 
   /**
    * POST /pagos/carta/online/intencion – Crear intención de pago CARTA online.
-   * TESORERA puede crear para otros. CIUDADANO y SECRETARIA solo para sí mismos.
+   * TESORERA puede crear para otros. AFILIADO y SECRETARIA solo para sí mismos.
    */
   @Post('carta/online/intencion')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.TESORERA, RolNombre.CIUDADANO, RolNombre.SECRETARIA)
+  @Roles(RolNombre.TESORERA, RolNombre.AFILIADO, RolNombre.SECRETARIA)
   async crearIntencionCarta(
     @Body() dto: CrearIntencionPagoDto,
     @Request() req: { user: JwtUser },
@@ -181,11 +181,11 @@ export class PagosController {
 
   /**
    * POST /pagos/online/intencion – Crear intención de pago JUNTA online (link Wompi).
-   * TESORERA puede crear para cualquier usuario. CIUDADANO y SECRETARIA solo para sí mismos.
+   * TESORERA puede crear para cualquier usuario. AFILIADO y SECRETARIA solo para sí mismos.
    */
   @Post('online/intencion')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.TESORERA, RolNombre.CIUDADANO, RolNombre.SECRETARIA)
+  @Roles(RolNombre.TESORERA, RolNombre.AFILIADO, RolNombre.SECRETARIA)
   async crearIntencion(
     @Body() dto: CrearIntencionPagoDto,
     @Request() req: { user: JwtUser },
@@ -211,11 +211,11 @@ export class PagosController {
   /**
    * GET /pagos/online/verificar?transaction_id=xxx
    * Rescate al retorno: consulta Wompi y registra si APPROVED.
-   * TESORERA, CIUDADANO, SECRETARIA (para verificar su propio pago al retornar).
+   * TESORERA, AFILIADO, SECRETARIA (para verificar su propio pago al retornar).
    */
   @Get('online/verificar')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.TESORERA, RolNombre.CIUDADANO, RolNombre.SECRETARIA)
+  @Roles(RolNombre.TESORERA, RolNombre.AFILIADO, RolNombre.SECRETARIA)
   async verificarPagoOnline(@Query('transaction_id') transactionId: string) {
     if (!transactionId?.trim()) {
       throw new BadRequestException('transaction_id es requerido');

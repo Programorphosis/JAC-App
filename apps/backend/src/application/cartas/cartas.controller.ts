@@ -39,7 +39,7 @@ export class CartasController {
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.AFILIADO)
   async listar(
     @Query('usuarioId') usuarioId: string | undefined,
     @Query('estado') estado: string | undefined,
@@ -69,11 +69,11 @@ export class CartasController {
 
   /**
    * POST /cartas/solicitar - Crear carta en estado PENDIENTE.
-   * CIUDADANO: solo para sí mismo. SECRETARIA: para cualquier usuario de la junta.
+   * AFILIADO: solo para sí mismo. SECRETARIA: para cualquier usuario de la junta.
    */
   @Post('solicitar')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.SECRETARIA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.SECRETARIA, RolNombre.AFILIADO)
   async solicitar(
     @Body('usuarioId') usuarioId: string,
     @Request() req: { user: JwtUser },
@@ -98,11 +98,11 @@ export class CartasController {
 
   /**
    * GET /cartas/:id/descargar - Obtener URL firmada para descargar PDF.
-   * CIUDADANO: solo propias. SECRETARIA: cualquiera de la junta.
+   * AFILIADO: solo propias. SECRETARIA: cualquiera de la junta.
    */
   @Get(':id/descargar')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.SECRETARIA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.SECRETARIA, RolNombre.AFILIADO)
   async descargar(
     @Param('id') cartaId: string,
     @Request() req: { user: JwtUser },

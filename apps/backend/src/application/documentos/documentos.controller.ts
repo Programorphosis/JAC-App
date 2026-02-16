@@ -43,7 +43,7 @@ export class DocumentosController {
    */
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.TESORERA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.TESORERA, RolNombre.AFILIADO)
   @UseInterceptors(
     FileInterceptor('file', {
       storage,
@@ -89,7 +89,7 @@ export class DocumentosController {
    */
   @Get(':id/descargar')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.AFILIADO)
   async descargar(
     @Param('id') id: string,
     @Request() req: { user: JwtUser },

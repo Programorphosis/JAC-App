@@ -162,7 +162,7 @@ export class CartasService {
 
   /**
    * Obtener URL firmada para descargar PDF de carta aprobada.
-   * CIUDADANO: solo propias. ADMIN/SECRETARIA: cualquiera de la junta.
+   * AFILIADO: solo propias. ADMIN/SECRETARIA: cualquiera de la junta.
    */
   async getUrlDescargaCarta(
     cartaId: string,

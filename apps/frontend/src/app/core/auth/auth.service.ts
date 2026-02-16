@@ -11,7 +11,7 @@ export type RolNombre =
   | 'SECRETARIA'
   | 'TESORERA'
   | 'RECEPTOR_AGUA'
-  | 'CIUDADANO';
+  | 'AFILIADO';
 
 export interface AuthUser {
   id: string;
@@ -152,7 +152,7 @@ export class AuthService {
       case PERMISSIONS.PAGOS_PAGAR_ONLINE:
         return has('TESORERA');
       case PERMISSIONS.PAGOS_PAGAR_ONLINE_PROPIO:
-        return has('CIUDADANO') || has('SECRETARIA');
+        return has('AFILIADO') || has('SECRETARIA');
       case PERMISSIONS.TARIFAS_VER:
         return has('ADMIN') || has('SECRETARIA') || has('TESORERA');
       case PERMISSIONS.TARIFAS_MODIFICAR:
@@ -160,7 +160,7 @@ export class AuthService {
       case PERMISSIONS.CARTAS_VALIDAR:
         return has('SECRETARIA');
       case PERMISSIONS.CARTAS_SOLICITAR:
-        return has('CIUDADANO');
+        return has('AFILIADO');
       case PERMISSIONS.AUDITORIAS_VER:
         return has('ADMIN') || has('SECRETARIA') || has('TESORERA');
       case PERMISSIONS.DOCUMENTOS_SUBIR_OTROS:
@@ -172,7 +172,7 @@ export class AuthService {
     }
   }
 
-  /** Permisos que requieren contexto usuarioId. TESORERA: cualquiera; CIUDADANO/SECRETARIA: solo propio. */
+  /** Permisos que requieren contexto usuarioId. TESORERA: cualquiera; AFILIADO/SECRETARIA: solo propio. */
   canPagarOnlinePara(usuarioId: string): boolean {
     return this.can(PERMISSIONS.PAGOS_PAGAR_ONLINE) || (this.can(PERMISSIONS.PAGOS_PAGAR_ONLINE_PROPIO) && this.currentUser()?.id === usuarioId);
   }
@@ -196,7 +196,7 @@ export class AuthService {
       u.roles?.includes('SECRETARIA') ||
       u.roles?.includes('TESORERA') ||
       u.roles?.includes('RECEPTOR_AGUA') ||
-      u.roles?.includes('CIUDADANO');
+      u.roles?.includes('AFILIADO');
     return tieneAdmin && !tieneOperativo;
   }
 

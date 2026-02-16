@@ -75,7 +75,7 @@ export class DashboardComponent implements OnInit {
       });
     }
 
-    // Pagar mi deuda online (CIUDADANO, SECRETARIA)
+    // Pagar mi deuda online (AFILIADO, SECRETARIA)
     const d = this.deuda();
     if (this.auth.can(p.PAGOS_PAGAR_ONLINE_PROPIO) && d && d.total > 0) {
       list.push({
@@ -100,7 +100,7 @@ export class DashboardComponent implements OnInit {
         list.push({
           icon: 'person_add',
           title: 'Nuevo usuario',
-          description: 'Registrar un nuevo ciudadano o asignar roles operativos.',
+          description: 'Registrar un nuevo afiliado o asignar roles operativos.',
           link: ['/usuarios/nuevo'],
           color: 'accent',
         });
@@ -118,7 +118,7 @@ export class DashboardComponent implements OnInit {
       });
     }
 
-    // Solicitar carta (CIUDADANO cuando puede)
+    // Solicitar carta (AFILIADO cuando puede)
     if (this.auth.can(p.CARTAS_SOLICITAR) && this.puedeSolicitarCarta()) {
       list.push({
         icon: 'description',
@@ -177,7 +177,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     const user = this.auth.currentUser();
-    if (user?.id && this.auth.hasRole('CIUDADANO') && !this.auth.esAdminSolo()) {
+    if (user?.id && this.auth.hasRole('AFILIADO') && !this.auth.esAdminSolo()) {
       this.loading = true;
       this.usuarios.getDeuda(user.id, true).subscribe({
         next: (d) => {
@@ -204,8 +204,8 @@ export class DashboardComponent implements OnInit {
     return id ? ['/usuarios', id] : ['/'];
   }
 
-  esCiudadano(): boolean {
-    return this.auth.hasRole('CIUDADANO') && !this.auth.esAdminSolo();
+  esAfiliado(): boolean {
+    return this.auth.hasRole('AFILIADO') && !this.auth.esAdminSolo();
   }
 
   esAdminSolo(): boolean {

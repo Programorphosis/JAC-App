@@ -30,11 +30,11 @@ export class DocumentosUsuarioController {
   /**
    * GET /usuarios/:usuarioId/documentos - Listar documentos de un usuario.
    * ADMIN, SECRETARIA, TESORERA: cualquier usuario de la junta.
-   * CIUDADANO: solo propios.
+   * AFILIADO: solo propios.
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.AFILIADO)
   async listar(
     @Param('usuarioId') usuarioId: string,
     @Request() req: { user: JwtUser },

@@ -1,0 +1,2 @@
+-- Renombrar rol base de CIUDADANO a AFILIADO
+ALTER TYPE "RolNombre" RENAME VALUE 'CIUDADANO' TO 'AFILIADO';

@@ -1,13 +1,13 @@
-# Rol CIUDADANO – Especificación Completa Frontend
+# Rol AFILIADO – Especificación Completa Frontend
 
-**Documento oficial** – Todo lo que un usuario con rol CIUDADANO puede y debe hacer en la aplicación.  
+**Documento oficial** – Todo lo que un usuario con rol AFILIADO puede y debe hacer en la aplicación.  
 Referencias: `flujoDePagos.md`, `flujoSolicitudCarta.md`, `ARQUITECTURA_FRONTEND_ANGULAR.md` Fase 10.
 
 ---
 
 ## 1. Principio del rol
 
-El CIUDADANO es un afiliado de la junta que **solo puede pagar online** (Wompi). No registra pagos en efectivo ni transferencia; eso lo hace TESORERA/SECRETARIA. Su flujo es **autónomo y digital**.
+El AFILIADO es un miembro de la junta que **solo puede pagar online** (Wompi). No registra pagos en efectivo ni transferencia; eso lo hace TESORERA/SECRETARIA. Su flujo es **autónomo y digital**.
 
 ---
 
@@ -141,7 +141,7 @@ El CIUDADANO es un afiliado de la junta que **solo puede pagar online** (Wompi).
 
 **Estado actual:**
 - ✓ Botón "Pagar deuda online" implementado.
-- ✓ Página retorno: "Volver" va a Mi cuenta cuando CIUDADANO (o usuario sin acceso a /pagos).
+- ✓ Página retorno: "Volver" va a Mi cuenta cuando AFILIADO (o usuario sin acceso a /pagos).
 
 ### 4.2 Pago carta
 
@@ -158,25 +158,25 @@ El CIUDADANO es un afiliado de la junta que **solo puede pagar online** (Wompi).
 ## 5. Página de retorno (`/pagos/retorno`)
 
 **Requisitos:**
-- Ruta accesible sin guard de Pagos (o con guard que permita CIUDADANO tras pago).
+- Ruta accesible sin guard de Pagos (o con guard que permita AFILIADO tras pago).
 - Recibir `transaction_id` por query.
 - Llamar `GET /pagos/online/verificar?transaction_id=xxx`.
 - Mostrar: "Pago registrado correctamente" o mensaje de error.
 - Botón **"Volver a Mi cuenta"** → `/usuarios/:myId` (usando `auth.currentUser().id`).
 
-**Estado actual:** ✓ "Volver" navega a Mi cuenta para CIUDADANO.
+**Estado actual:** ✓ "Volver" navega a Mi cuenta para AFILIADO.
 
 ---
 
 ## 6. Inicio (Dashboard)
 
-**Para CIUDADANO:**
+**Para AFILIADO:**
 - Mensaje de bienvenida.
 - Resumen rápido: "Su deuda: $X" o "Sin deuda".
 - "Estado para carta: puede solicitar" / "Debe pagar deuda" / "Debe pagar carta" / etc.
 - Enlace a "Ir a Mi cuenta".
 
-**Estado actual:** ✓ Dashboard con resumen para CIUDADANO (deuda, estado carta, enlace a Mi cuenta).
+**Estado actual:** ✓ Dashboard con resumen para AFILIADO (deuda, estado carta, enlace a Mi cuenta).
 
 ---
 
@@ -205,15 +205,15 @@ El CIUDADANO es un afiliado de la junta que **solo puede pagar online** (Wompi).
 
 ### 7.4 Dashboard
 
-- [x] Para CIUDADANO: mostrar resumen (deuda, estado carta) y enlace a Mi cuenta.
+- [x] Para AFILIADO: mostrar resumen (deuda, estado carta) y enlace a Mi cuenta.
 
 ### 7.5 Rutas y guards
 
-- [x] `/pagos/retorno` accesible por CIUDADANO (sin `pagosGuard`).
+- [x] `/pagos/retorno` accesible por AFILIADO (sin `pagosGuard`).
 
 ---
 
-## 8. Endpoints backend que usa CIUDADANO
+## 8. Endpoints backend que usa AFILIADO
 
 | Método | Endpoint | Uso |
 |--------|----------|-----|
@@ -231,7 +231,7 @@ El CIUDADANO es un afiliado de la junta que **solo puede pagar online** (Wompi).
 | POST | `/cartas/solicitar` | Solicitar carta |
 | GET | `/cartas/:id/descargar` | Obtener URL firmada para descargar PDF de carta aprobada |
 
-**Todos validan que CIUDADANO solo actúe sobre sí mismo cuando aplica.**
+**Todos validan que AFILIADO solo actúe sobre sí mismo cuando aplica.**
 
 ---
 
@@ -244,12 +244,12 @@ El CIUDADANO es un afiliado de la junta que **solo puede pagar online** (Wompi).
 | 3 | Botón "Pagar carta online" en tab Cartas cuando !pago_carta | ✓ |
 | 4 | Página retorno: "Volver" → Mi cuenta (no /pagos) | ✓ |
 | 5 | Mensajes claros cuando no puede solicitar (qué falta) | ✓ |
-| 6 | Dashboard con resumen para CIUDADANO | ✓ |
+| 6 | Dashboard con resumen para AFILIADO | ✓ |
 | 7 | Descargar PDF de carta aprobada (backend + frontend) | ✓ |
 
 ---
 
-## 10. Flujo completo CIUDADANO (caso feliz)
+## 10. Flujo completo AFILIADO (caso feliz)
 
 1. Login → Inicio.
 2. Clic "Mi cuenta" → `/usuarios/:myId`.
@@ -261,4 +261,4 @@ El CIUDADANO es un afiliado de la junta que **solo puede pagar online** (Wompi).
 
 ---
 
-*Documento creado para asegurar que el rol CIUDADANO quede completo antes de continuar con otros roles.*
+*Documento creado para asegurar que el rol AFILIADO quede completo antes de continuar con otros roles.*

@@ -8,8 +8,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CreateUserBody, UpdateUserBody } from '../services/usuarios.service';
 
-/** Rol base: todos los usuarios de la junta son ciudadanos. */
-const ROL_BASE = 'CIUDADANO';
+/** Rol base: todos los usuarios de la junta son afiliados. */
+const ROL_BASE = 'AFILIADO';
 /** Roles operativos que el admin puede asignar además del base. */
 const ROLES_OPERATIVOS = ['ADMIN', 'SECRETARIA', 'TESORERA', 'RECEPTOR_AGUA'];
 const TIPOS_DOC = ['CC', 'CE', 'TI', 'PA'];

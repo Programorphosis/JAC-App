@@ -31,11 +31,11 @@ export class EstadoGeneralController {
    * GET /usuarios/:usuarioId/estado-general
    * Calcula: deuda junta, requisitos adicionales, existencia pago CARTA.
    * ADMIN, SECRETARIA, TESORERA: cualquier usuario de la junta.
-   * CIUDADANO, RECEPTOR_AGUA (modificador): si puedeConsultarRecursoDeOtro.
+   * AFILIADO, RECEPTOR_AGUA (modificador): si puedeConsultarRecursoDeOtro.
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO, RolNombre.RECEPTOR_AGUA)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.AFILIADO, RolNombre.RECEPTOR_AGUA)
   async obtener(
     @Param('usuarioId') usuarioId: string,
     @Request() req: { user: JwtUser },

@@ -2,7 +2,7 @@
 
 **Documento oficial** – Todo lo que un usuario con rol TESORERA puede y debe hacer en la aplicación.
 
-**Referencias:** `flujoDePagos.md`, `ROL_CIUDADANO_FRONTEND.md`, `00_ARQUITECTURA_RECTOR copy.md`
+**Referencias:** `flujoDePagos.md`, `ROL_AFILIADO_FRONTEND.md`, `00_ARQUITECTURA_RECTOR copy.md`
 
 ---
 

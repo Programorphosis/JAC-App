@@ -61,8 +61,8 @@ export function computePermissions(
     set.add(PERMISSIONS.USUARIOS_VER);
   }
 
-  // CIUDADANO
-  if (roles.includes(RolNombre.CIUDADANO)) {
+  // AFILIADO
+  if (roles.includes(RolNombre.AFILIADO)) {
     set.add(PERMISSIONS.PAGOS_PAGAR_ONLINE_PROPIO);
     set.add(PERMISSIONS.CARTAS_SOLICITAR);
   }

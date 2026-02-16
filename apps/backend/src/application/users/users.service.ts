@@ -11,8 +11,8 @@ import type { CreateUserDto } from './dto/create-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
 
 const ROLES_UNICOS_POR_JUNTA: RolNombre[] = ['SECRETARIA', 'TESORERA'];
-/** Rol base: todos los usuarios de una junta son ciudadanos. */
-const ROL_BASE = RolNombre.CIUDADANO;
+/** Rol base: todos los usuarios de una junta son afiliados. */
+const ROL_BASE = RolNombre.AFILIADO;
 
 @Injectable()
 export class UsersService {

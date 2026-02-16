@@ -172,7 +172,7 @@ export class UsuarioDetailComponent implements OnInit {
       SECRETARIA: 'Secretaría',
       TESORERA: 'Tesorera',
       RECEPTOR_AGUA: 'Receptor de agua',
-      CIUDADANO: 'Ciudadano',
+      AFILIADO: 'Afiliado',
     };
     return map[rol] ?? rol;
   }

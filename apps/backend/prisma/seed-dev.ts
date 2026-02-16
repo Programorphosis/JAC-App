@@ -47,7 +47,7 @@ async function main() {
     RolNombre.SECRETARIA,
     RolNombre.TESORERA,
     RolNombre.RECEPTOR_AGUA,
-    RolNombre.CIUDADANO,
+    RolNombre.AFILIADO,
   ];
 
   for (const nombre of roles) {
@@ -108,7 +108,7 @@ async function main() {
   });
 
   const rolCiudadano = await prisma.rol.findUniqueOrThrow({
-    where: { nombre: RolNombre.CIUDADANO },
+    where: { nombre: RolNombre.AFILIADO },
   });
 
   await prisma.usuarioRol.createMany({

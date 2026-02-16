@@ -18,7 +18,7 @@ export const PERMISSIONS = {
   PAGOS_GESTIONAR: 'pagos:gestionar',
   PAGOS_VER: 'pagos:ver',
   PAGOS_PAGAR_ONLINE: 'pagos:pagarOnline', // TESORERA: para cualquiera
-  PAGOS_PAGAR_ONLINE_PROPIO: 'pagos:pagarOnline:propio', // CIUDADANO/SECRETARIA: solo propio
+  PAGOS_PAGAR_ONLINE_PROPIO: 'pagos:pagarOnline:propio', // AFILIADO/SECRETARIA: solo propio
 
   // Tarifas
   TARIFAS_VER: 'tarifas:ver',
@@ -26,7 +26,7 @@ export const PERMISSIONS = {
 
   // Cartas
   CARTAS_VALIDAR: 'cartas:validar',
-  CARTAS_SOLICITAR: 'cartas:solicitar', // CIUDADANO: solo propio
+  CARTAS_SOLICITAR: 'cartas:solicitar', // AFILIADO: solo propio
 
   // Auditorías
   AUDITORIAS_VER: 'auditorias:ver',

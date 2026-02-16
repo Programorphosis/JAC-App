@@ -119,6 +119,6 @@ Cuando un usuario ve el detalle de otro usuario (GET /usuarios/:id), qué tabs v
 
 ## 5. Referencias
 
-- `ROL_ADMIN.md`, `ROL_SECRETARIA.md`, `ROL_TESORERA_FRONTEND.md`, `ROL_CIUDADANO_FRONTEND.md`
+- `ROL_ADMIN.md`, `ROL_SECRETARIA.md`, `ROL_TESORERA_FRONTEND.md`, `ROL_AFILIADO_FRONTEND.md`
 - `permisos.md` – Sistema de permisos explícitos
 - `flujoRequisitosAdicionales.md` – Modificadores

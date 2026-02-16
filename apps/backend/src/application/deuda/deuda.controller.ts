@@ -21,7 +21,7 @@ import { PermissionService } from '../../auth/permission.service';
  * Referencia: ROADMAP Fase 4, calculadoraDeDeuda.md
  *
  * - ADMIN, SECRETARIA, TESORERA: pueden consultar deuda de cualquier usuario de la junta.
- * - CIUDADANO: solo puede consultar su propia deuda.
+ * - AFILIADO: solo puede consultar su propia deuda.
  */
 @Controller('usuarios/:usuarioId/deuda')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
@@ -33,7 +33,7 @@ export class DeudaController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.CIUDADANO)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.AFILIADO)
   async obtener(
     @Param('usuarioId') usuarioId: string,
     @Query('detalle') detalle?: string,
