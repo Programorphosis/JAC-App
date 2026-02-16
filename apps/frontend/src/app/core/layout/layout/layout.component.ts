@@ -1,4 +1,4 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, effect } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
@@ -32,9 +32,10 @@ export class LayoutComponent {
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly breakpoint = inject(BreakpointObserver);
-  menuOpen = false;
+  /** Desktop: true por defecto. Móvil: false (el effect sincroniza). */
+  menuOpen = true;
 
-  private readonly isSmallScreen = toSignal(
+  readonly isSmallScreen = toSignal(
     this.breakpoint.observe([Breakpoints.Small, Breakpoints.XSmall]).pipe(map((b) => b.matches)),
     { initialValue: false }
   );
@@ -43,6 +44,10 @@ export class LayoutComponent {
   readonly sidenavMode = computed(() => (this.isSmallScreen() ? 'over' : 'side'));
 
   constructor() {
+    // Desktop: sidenav abierto por defecto. Móvil: cerrado. Al cambiar breakpoint, sincronizar.
+    effect(() => {
+      this.menuOpen = !this.isSmallScreen();
+    });
     if (this.auth.isPlatformAdmin() && this.router.url === '/') {
       this.router.navigate(['/platform']);
     }
@@ -50,5 +55,12 @@ export class LayoutComponent {
 
   logout(): void {
     this.auth.logout();
+  }
+
+  /** En móvil: cerrar al elegir opción. En desktop: no hacer nada. */
+  onNavItemClick(): void {
+    if (this.isSmallScreen()) {
+      this.menuOpen = false;
+    }
   }
 }

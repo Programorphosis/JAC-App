@@ -438,6 +438,7 @@ Fase 12 (Deploy)
 | Cartas | `flujoSolicitudCarta.md`, `validacionesDeCartaQR.md` |
 | Documentos (upload) | `flujoDocumentos.md` |
 | Bootstrap y onboarding | `flujoBootstrapYOnboarding.md` |
+| **Administrador de plataforma** | `PLAN_ADMINISTRADOR_PLATAFORMA.md`, `ROADMAP_ADMINISTRADOR_PLATAFORMA.md` |
 | API | `convencionesAPI.md` |
 | Consecutivos y cron | `consecutivosYCronJobs.md` |
 | Dominio | `definicionDomainServices.md` |

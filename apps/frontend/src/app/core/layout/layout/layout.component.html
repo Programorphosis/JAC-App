@@ -23,12 +23,15 @@
 
   <div class="flex flex-1 min-h-0 min-w-0 overflow-hidden">
     <mat-sidenav-container class="flex-1 min-h-0 min-w-0">
-      <mat-sidenav [(opened)]="menuOpen" [mode]="sidenavMode()" class="layout-sidenav">
+      <mat-sidenav [(opened)]="menuOpen" [mode]="sidenavMode()" [autoFocus]="false" class="layout-sidenav">
           <div class="layout-sidenav-header">
             <mat-icon>account_balance</mat-icon>
             <span>JAC App</span>
+            <button mat-icon-button (click)="menuOpen = false" aria-label="Cerrar menú" class="layout-sidenav-close-btn">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
           </div>
-          <mat-nav-list (click)="menuOpen = false">
+          <mat-nav-list (click)="onNavItemClick()">
             @if (auth.isPlatformAdmin()) {
               <a mat-list-item routerLink="/platform" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                 <mat-icon matListItemIcon>dashboard</mat-icon>
@@ -39,11 +42,11 @@
                 <span matListItemTitle>Juntas</span>
               </a>
             } @else {
-              <a mat-list-item routerLink="/" routerLinkActive="active">
+              <a mat-list-item routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                 <mat-icon matListItemIcon>dashboard</mat-icon>
                 <span matListItemTitle>Inicio</span>
               </a>
-              <a mat-list-item *appCan="auth.permissions.USUARIOS_VER" routerLink="/usuarios" routerLinkActive="active">
+              <a mat-list-item *appCan="auth.permissions.USUARIOS_VER" routerLink="/usuarios" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                 <mat-icon matListItemIcon>people</mat-icon>
                 <span matListItemTitle>Usuarios</span>
               </a>
