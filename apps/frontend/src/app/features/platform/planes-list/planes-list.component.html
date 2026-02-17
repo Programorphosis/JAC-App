@@ -1,0 +1,33 @@
+<div class="flex flex-col gap-4">
+  <div class="flex items-center gap-2">
+    <a mat-icon-button routerLink="/platform" aria-label="Volver">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <h2>Planes</h2>
+  </div>
+
+  @if (loading) {
+    <p>Cargando planes...</p>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (plan of planes; track plan.id) {
+        <mat-card class="border border-gray-100">
+          <mat-card-header>
+            <mat-card-title>{{ plan.nombre }}</mat-card-title>
+            <mat-card-subtitle>
+              {{ plan.precioMensual | number }} COP/mes · {{ plan.precioAnual | number }} COP/año
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <ul class="text-sm text-gray-600 space-y-1">
+              <li>Usuarios: {{ limiteTexto(plan.limiteUsuarios) }}</li>
+              <li>Storage: {{ limiteTexto(plan.limiteStorageMb) }} MB</li>
+              <li>Cartas/mes: {{ limiteTexto(plan.limiteCartasMes) }}</li>
+              <li>Días de prueba: {{ plan.diasPrueba }}</li>
+            </ul>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

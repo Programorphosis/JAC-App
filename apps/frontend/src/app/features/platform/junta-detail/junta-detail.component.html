@@ -4,6 +4,18 @@
       <mat-icon>arrow_back</mat-icon>
     </button>
     <h2>Detalle de junta</h2>
+    @if (puedeImpersonar()) {
+      <button
+        mat-stroked-button
+        color="primary"
+        class="ml-auto"
+        (click)="verComoJunta()"
+        [disabled]="impersonando"
+      >
+        <mat-icon>visibility</mat-icon>
+        Ver como junta
+      </button>
+    }
   </div>
 
   @if (loading) {
@@ -15,25 +27,65 @@
         [valoresIniciales]="{
           nombre: junta.nombre,
           nit: junta.nit || '',
-          montoCarta: junta.montoCarta
+          montoCarta: junta.montoCarta,
+          telefono: junta.telefono || '',
+          email: junta.email || '',
+          direccion: junta.direccion || '',
+          ciudad: junta.ciudad || '',
+          departamento: junta.departamento || '',
+          enMantenimiento: junta.enMantenimiento ?? false
         }"
         (guardar)="onGuardar($event)"
       />
     } @else {
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>{{ junta.nombre }}</mat-card-title>
-          <mat-card-subtitle>NIT: {{ junta.nit || '-' }}</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <p>Monto carta: {{ junta.montoCarta != null ? (junta.montoCarta | number) + ' COP' : '-' }}</p>
-          <p>Fecha creación: {{ formatearFecha(junta.fechaCreacion) }}</p>
-          <p>Usuarios: {{ junta._count.usuarios }}</p>
-          <p>Pagos: {{ junta._count.pagos }}</p>
-          <p>Cartas: {{ junta._count.cartas }}</p>
-          <button mat-raised-button color="primary" (click)="editar()">Editar</button>
-        </mat-card-content>
-      </mat-card>
+      <app-junta-info-card
+        [junta]="junta"
+        [alertas]="alertas"
+        (editar)="editar()"
+        (toggleActivo)="toggleActivo()"
+        (darBaja)="darBaja()"
+      />
+      <app-junta-suscripcion-card
+        [junta]="junta"
+        (crearSuscripcion)="abrirCrearSuscripcion()"
+        (cambiarPlan)="abrirCambiarPlan()"
+      />
+      <app-junta-admin-card
+        [junta]="junta"
+        (resetPassword)="resetPasswordAdmin()"
+        (reenviarCredenciales)="reenviarCredenciales()"
+        (cambiarAdmin)="abrirCambiarAdmin()"
+        (bloquearAdmin)="bloquearAdmin()"
+      />
+      <app-junta-resumen-card [resumen]="resumen" [loading]="loadingResumen" />
+      <app-junta-uso-card [junta]="junta" [uso]="uso" [loading]="loadingUso" />
+      <app-junta-facturacion-card
+        [junta]="junta"
+        [facturas]="facturas"
+        [facturasMeta]="facturasMeta"
+        [loadingFacturas]="loadingFacturas"
+        [pagosPlataforma]="pagosPlataforma"
+        [pagosMeta]="pagosMeta"
+        [loadingPagos]="loadingPagos"
+        (crearFactura)="abrirCrearFactura()"
+        (registrarPago)="abrirRegistrarPago($event)"
+        (cancelarFactura)="cancelarFactura($event)"
+        (reactivarFactura)="reactivarFactura($event)"
+        (cargarFacturas)="cargarFacturas(junta.id, $event)"
+        (cargarPagos)="cargarPagosPlataforma(junta.id, $event)"
+      />
+      <app-junta-notas-card
+        [junta]="junta"
+        [notas]="notas"
+        [notasMeta]="notasMeta"
+        [loadingNotas]="loadingNotas"
+        [nuevaNotaTexto]="nuevaNotaTexto"
+        [guardandoNota]="guardandoNota"
+        (nuevaNotaTextoChange)="nuevaNotaTexto = $event"
+        (agregarNota)="agregarNota()"
+        (exportar)="exportar($event)"
+        (cargarNotas)="cargarNotas(junta.id, $event)"
+      />
     }
   }
 </div>

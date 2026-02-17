@@ -22,6 +22,7 @@ import { JwtUser } from '../../auth/strategies/jwt.strategy';
 import { PermissionService } from '../../auth/permission.service';
 import { CartasService } from './cartas.service';
 import { LetterEmissionRunner } from '../../infrastructure/letter/letter-emission-runner.service';
+import { LimitesService } from '../../infrastructure/limits/limites.service';
 import { BadRequestException } from '@nestjs/common';
 
 @Controller('cartas')
@@ -31,6 +32,7 @@ export class CartasController {
     private readonly cartas: CartasService,
     private readonly letterRunner: LetterEmissionRunner,
     private readonly permissions: PermissionService,
+    private readonly limites: LimitesService,
   ) {}
 
   /**
@@ -128,6 +130,7 @@ export class CartasController {
     @Request() req: { user: JwtUser },
   ) {
     const juntaId = req.user.juntaId!;
+    await this.limites.validarEmitirCarta(juntaId);
 
     const result = await this.letterRunner.emitLetter({
       cartaId,

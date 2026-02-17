@@ -11,6 +11,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UsuariosService, TarifaItem, CreateTarifaBody } from '../../usuarios/services/usuarios.service';
+import { FormatearFechaPipe } from '../../../shared/pipes/formatear-fecha.pipe';
 
 @Component({
   selector: 'app-tarifas-list',
@@ -26,6 +27,7 @@ import { UsuariosService, TarifaItem, CreateTarifaBody } from '../../usuarios/se
     MatNativeDateModule,
     ReactiveFormsModule,
     AppCanDirective,
+    FormatearFechaPipe,
   ],
   templateUrl: './tarifas-list.component.html',
   styleUrl: './tarifas-list.component.scss',
@@ -98,7 +100,4 @@ export class TarifasListComponent implements OnInit {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(v);
   }
 
-  formatearFecha(f: string): string {
-    return new Date(f).toLocaleDateString('es-CO');
-  }
 }

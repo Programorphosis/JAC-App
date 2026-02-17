@@ -5,11 +5,12 @@ import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CartasService, CartaPendienteItem } from '../services/cartas.service';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
+import { FormatearFechaPipe } from '../../../shared/pipes/formatear-fecha.pipe';
 
 @Component({
   selector: 'app-cartas',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatTableModule],
+  imports: [MatCardModule, MatButtonModule, MatTableModule, FormatearFechaPipe],
   templateUrl: './cartas.component.html',
   styleUrl: './cartas.component.scss',
 })
@@ -52,9 +53,5 @@ export class CartasComponent implements OnInit {
 
   nombreUsuario(c: CartaPendienteItem): string {
     return `${c.usuarioNombres} ${c.usuarioApellidos}`;
-  }
-
-  formatearFecha(f: string): string {
-    return new Date(f).toLocaleDateString('es-CO');
   }
 }

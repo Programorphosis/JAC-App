@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DocumentosService, DocumentoItem } from '../../cartas/services/documentos.service';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
+import { FormatearFechaPipe } from '../../../shared/pipes/formatear-fecha.pipe';
 import { AuthService } from '../../../core/auth/auth.service';
 
 const TIPOS = [
@@ -19,7 +20,16 @@ const TIPOS = [
 @Component({
   selector: 'app-usuario-documentos',
   standalone: true,
-  imports: [FormsModule, MatCardModule, MatButtonModule, MatFormFieldModule, MatSelectModule, MatInputModule, MatIconModule],
+  imports: [
+    FormsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatIconModule,
+    FormatearFechaPipe,
+  ],
   templateUrl: './usuario-documentos.component.html',
   styleUrl: './usuario-documentos.component.scss',
 })
@@ -82,7 +92,4 @@ export class UsuarioDocumentosComponent implements OnInit {
   }
 
 
-  formatearFecha(f: string): string {
-    return new Date(f).toLocaleDateString('es-CO');
-  }
 }

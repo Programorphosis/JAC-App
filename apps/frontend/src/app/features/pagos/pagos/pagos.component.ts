@@ -24,6 +24,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 import { formatearNombre } from '../../../shared/utils/formatear-nombre.util';
 import { FormatearNombrePipe } from '../../../shared/pipes/formatear-nombre.pipe';
+import { FormatearFechaHoraPipe } from '../../../shared/pipes/formatear-fecha-hora.pipe';
 
 function usuarioRequerido(c: AbstractControl): ValidationErrors | null {
   const v = c.value;
@@ -50,6 +51,7 @@ function usuarioRequerido(c: AbstractControl): ValidationErrors | null {
     ReactiveFormsModule,
     FormsModule,
     FormatearNombrePipe,
+    FormatearFechaHoraPipe,
   ],
   templateUrl: './pagos.component.html',
   styleUrl: './pagos.component.scss',
@@ -266,16 +268,6 @@ export class PagosComponent implements OnInit {
       error: () => {
         this.estadisticasLoading = false;
       },
-    });
-  }
-
-  formatearFecha(s: string): string {
-    return new Date(s).toLocaleDateString('es-CO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     });
   }
 

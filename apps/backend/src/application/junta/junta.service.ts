@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../../domain/services/audit.service';
 import * as bcrypt from 'bcrypt';
-import { RolNombre } from '@prisma/client';
+import { RolNombre, EstadoSuscripcion } from '@prisma/client';
 
 export interface CreateJuntaAdminUser {
   nombres: string;
@@ -20,6 +20,8 @@ export interface CreateJuntaParams {
   adminUser: CreateJuntaAdminUser;
   passwordTemporal: string;
   ejecutadoPorId: string;
+  planId?: string;
+  diasPrueba?: number;
 }
 
 export interface CreateJuntaResult {
@@ -75,6 +77,34 @@ export class JuntaService {
           rolId: rolAdmin.id,
         },
       });
+
+      // PA-4: crear suscripción si se especifica plan
+      let planId = params.planId;
+      if (!planId) {
+        const planBasico = await tx.plan.findFirst({
+          where: { nombre: 'Básico', activo: true },
+        });
+        planId = planBasico?.id ?? undefined;
+      }
+      if (planId) {
+        const plan = await tx.plan.findUniqueOrThrow({ where: { id: planId } });
+        const dias = params.diasPrueba ?? plan.diasPrueba ?? 0;
+        const fechaVencimiento = new Date();
+        if (dias > 0) {
+          fechaVencimiento.setDate(fechaVencimiento.getDate() + dias);
+        } else {
+          fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 1);
+        }
+        const estado = dias > 0 ? EstadoSuscripcion.PRUEBA : EstadoSuscripcion.ACTIVA;
+        await tx.suscripcion.create({
+          data: {
+            juntaId: junta.id,
+            planId,
+            fechaVencimiento,
+            estado,
+          },
+        });
+      }
 
       return { junta, adminUsuario };
     });

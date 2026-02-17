@@ -69,8 +69,8 @@
                     {{ item.estado }}
                   </span>
                 </td>
-                <td>{{ formatearFecha(item.fechaInicio) }}</td>
-                <td>{{ formatearFecha(item.fechaFin) }}</td>
+                <td>{{ item.fechaInicio | formatearFecha }}</td>
+                <td>{{ (item.fechaFin | formatearFecha) || 'Actual' }}</td>
               </tr>
             }
           </tbody>

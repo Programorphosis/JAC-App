@@ -5,7 +5,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
-import { CreateJuntaBody } from '../services/platform.service';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { DecimalPipe } from '@angular/common';
+import { CreateJuntaBody } from '../services/platform-juntas.service';
+import { PlatformPlanesService, Plan } from '../services/platform-planes.service';
 
 @Component({
   selector: 'app-junta-form',
@@ -17,22 +20,59 @@ import { CreateJuntaBody } from '../services/platform.service';
     MatInputModule,
     MatButtonModule,
     MatSelectModule,
+    MatSlideToggleModule,
+    DecimalPipe,
   ],
   templateUrl: './junta-form.component.html',
   styleUrl: './junta-form.component.scss',
 })
 export class JuntaFormComponent implements OnInit {
   @Input() modoEdicion = false;
-  @Input() valoresIniciales?: { nombre: string; nit: string; montoCarta: number | null };
-  @Output() guardar = new EventEmitter<CreateJuntaBody | { nombre: string; nit: string; montoCarta: number | null }>();
+  planes: Plan[] = [];
+  @Input() valoresIniciales?: {
+    nombre: string;
+    nit: string;
+    montoCarta: number | null;
+    telefono?: string;
+    email?: string;
+    direccion?: string;
+    ciudad?: string;
+    departamento?: string;
+    enMantenimiento?: boolean;
+  };
+  @Output() guardar = new EventEmitter<
+    | CreateJuntaBody
+    | {
+        nombre: string;
+        nit?: string;
+        montoCarta?: number | null;
+        telefono?: string | null;
+        email?: string | null;
+        direccion?: string | null;
+        ciudad?: string | null;
+        departamento?: string | null;
+        enMantenimiento?: boolean;
+      }
+  >();
 
   form: FormGroup;
 
-  constructor(private readonly fb: FormBuilder) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly planesService: PlatformPlanesService
+  ) {
     this.form = this.fb.group({
       nombre: ['', Validators.required],
       nit: [''],
       montoCarta: [null as number | null],
+      planId: [''],
+      diasPrueba: [null as number | null],
+      telefono: [''],
+      email: [''],
+      direccion: [''],
+      ciudad: [''],
+      departamento: [''],
+      enMantenimiento: [false],
       adminNombres: ['', Validators.required],
       adminApellidos: ['', Validators.required],
       adminTipoDocumento: ['CC', Validators.required],
@@ -43,11 +83,22 @@ export class JuntaFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (!this.modoEdicion) {
+      this.planesService.listar().subscribe({
+        next: (p) => (this.planes = p),
+      });
+    }
     if (this.modoEdicion && this.valoresIniciales) {
       this.form.patchValue({
         nombre: this.valoresIniciales.nombre,
         nit: this.valoresIniciales.nit || '',
         montoCarta: this.valoresIniciales.montoCarta,
+        telefono: this.valoresIniciales.telefono || '',
+        email: this.valoresIniciales.email || '',
+        direccion: this.valoresIniciales.direccion || '',
+        ciudad: this.valoresIniciales.ciudad || '',
+        departamento: this.valoresIniciales.departamento || '',
+        enMantenimiento: this.valoresIniciales.enMantenimiento ?? false,
       });
       this.form.get('adminNombres')?.clearValidators();
       this.form.get('adminApellidos')?.clearValidators();
@@ -68,12 +119,20 @@ export class JuntaFormComponent implements OnInit {
         nombre: v.nombre,
         nit: v.nit || undefined,
         montoCarta: v.montoCarta ?? undefined,
+        telefono: v.telefono || null,
+        email: v.email || null,
+        direccion: v.direccion || null,
+        ciudad: v.ciudad || null,
+        departamento: v.departamento || null,
+        enMantenimiento: v.enMantenimiento ?? false,
       });
     } else {
       this.guardar.emit({
         nombre: v.nombre,
         nit: v.nit || undefined,
         montoCarta: v.montoCarta ?? undefined,
+        planId: v.planId || undefined,
+        diasPrueba: v.diasPrueba ?? undefined,
         adminUser: {
           nombres: v.adminNombres,
           apellidos: v.adminApellidos,

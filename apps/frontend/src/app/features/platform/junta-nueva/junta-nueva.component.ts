@@ -4,7 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { PlatformService, CreateJuntaBody, CreateJuntaResult } from '../services/platform.service';
+import { PlatformJuntasService, CreateJuntaBody, CreateJuntaResult } from '../services/platform-juntas.service';
 import { JuntaFormComponent } from '../junta-form/junta-form.component';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 
@@ -19,7 +19,7 @@ export class JuntaNuevaComponent {
   credenciales: CreateJuntaResult | null = null;
 
   constructor(
-    private readonly platform: PlatformService,
+    private readonly platform: PlatformJuntasService,
     private readonly router: Router,
     private readonly snackBar: MatSnackBar
   ) {}
@@ -28,7 +28,21 @@ export class JuntaNuevaComponent {
     this.router.navigate(['/platform', 'juntas']);
   }
 
-  onGuardar(body: CreateJuntaBody | { nombre: string; nit: string; montoCarta: number | null }): void {
+  onGuardar(
+    body:
+      | CreateJuntaBody
+      | {
+          nombre: string;
+          nit?: string;
+          montoCarta?: number | null;
+          telefono?: string | null;
+          email?: string | null;
+          direccion?: string | null;
+          ciudad?: string | null;
+          departamento?: string | null;
+          enMantenimiento?: boolean;
+        }
+  ): void {
     this.platform.crear(body as CreateJuntaBody).subscribe({
       next: (result) => {
         this.credenciales = result;

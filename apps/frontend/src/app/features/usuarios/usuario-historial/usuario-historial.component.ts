@@ -12,6 +12,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { UsuariosService, HistorialLaboralItem, CreateHistorialBody } from '../services/usuarios.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AppCanDirective } from '../../../core/auth/app-can.directive';
+import { FormatearFechaPipe } from '../../../shared/pipes/formatear-fecha.pipe';
 
 @Component({
   selector: 'app-usuario-historial',
@@ -28,6 +29,7 @@ import { AppCanDirective } from '../../../core/auth/app-can.directive';
     ReactiveFormsModule,
     NgClass,
     AppCanDirective,
+    FormatearFechaPipe,
   ],
   templateUrl: './usuario-historial.component.html',
   styleUrl: './usuario-historial.component.scss',
@@ -86,8 +88,4 @@ export class UsuarioHistorialComponent implements OnInit {
   }
 
 
-  formatearFecha(f: string | null): string {
-    if (!f) return 'Actual';
-    return new Date(f).toLocaleDateString('es-CO');
-  }
 }

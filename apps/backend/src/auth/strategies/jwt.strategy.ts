@@ -10,6 +10,8 @@ export interface JwtUser {
   roles: RolNombre[];
   esModificador: boolean;
   requisitoTipoIds: string[];
+  /** PA-8: true cuando platform admin está viendo como junta (solo lectura). */
+  impersonando?: boolean;
 }
 
 interface JwtPayload {
@@ -17,6 +19,7 @@ interface JwtPayload {
   juntaId: string | null;
   roles: RolNombre[];
   tipo?: string;
+  impersonando?: boolean;
 }
 
 @Injectable()
@@ -52,12 +55,17 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     const requisitoTipoIds = usuario.requisitosComoModificador?.map((r) => r.id) ?? [];
     const esModificador = requisitoTipoIds.length > 0;
 
+    // PA-8: En impersonación, usar juntaId del payload (junta vista) en lugar del usuario
+    const juntaId =
+      payload.impersonando && payload.juntaId ? payload.juntaId : usuario.juntaId;
+
     return {
       id: usuario.id,
-      juntaId: usuario.juntaId,
+      juntaId,
       roles: usuario.roles.map((ur) => ur.rol.nombre),
       esModificador,
       requisitoTipoIds,
+      impersonando: payload.impersonando === true,
     };
   }
 }

@@ -1,0 +1,67 @@
+<div class="max-w-4xl mx-auto">
+  <header class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Facturas de la plataforma</h1>
+    <p class="text-gray-600 mt-1">
+      Facturas emitidas por la plataforma a su junta. Contacte al administrador de la plataforma para realizar pagos.
+    </p>
+  </header>
+
+  @if (loading) {
+    <p class="py-8 text-gray-600 text-sm">Cargando facturas...</p>
+  } @else if (facturas.length === 0) {
+    <mat-card>
+      <mat-card-content class="py-12 text-center text-gray-500">
+        <mat-icon class="!text-5xl !w-16 !h-16 mx-auto mb-2 text-gray-300">receipt_long</mat-icon>
+        <p>No hay facturas registradas.</p>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <mat-card>
+      <mat-card-content class="p-0">
+        <table mat-table [dataSource]="facturas" class="w-full">
+          <ng-container matColumnDef="fechaEmision">
+            <th mat-header-cell *matHeaderCellDef>Emisión</th>
+            <td mat-cell *matCellDef="let f">{{ f.fechaEmision | formatearFecha }}</td>
+          </ng-container>
+          <ng-container matColumnDef="fechaVencimiento">
+            <th mat-header-cell *matHeaderCellDef>Vencimiento</th>
+            <td mat-cell *matCellDef="let f">{{ f.fechaVencimiento | formatearFecha }}</td>
+          </ng-container>
+          <ng-container matColumnDef="monto">
+            <th mat-header-cell *matHeaderCellDef>Monto</th>
+            <td mat-cell *matCellDef="let f">{{ f.monto | number }} COP</td>
+          </ng-container>
+          <ng-container matColumnDef="pendiente">
+            <th mat-header-cell *matHeaderCellDef>Pendiente</th>
+            <td mat-cell *matCellDef="let f">{{ montoPendiente(f) | number }} COP</td>
+          </ng-container>
+          <ng-container matColumnDef="tipo">
+            <th mat-header-cell *matHeaderCellDef>Tipo</th>
+            <td mat-cell *matCellDef="let f">{{ f.tipo }}</td>
+          </ng-container>
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let f">
+              <span [ngClass]="claseEstado(f.estado)">{{ f.estado }}</span>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['fechaEmision', 'fechaVencimiento', 'monto', 'pendiente', 'tipo', 'estado']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['fechaEmision', 'fechaVencimiento', 'monto', 'pendiente', 'tipo', 'estado']"></tr>
+        </table>
+      </mat-card-content>
+      @if (meta && meta.totalPages > 1) {
+        <mat-card-actions class="flex justify-between items-center px-4 py-2">
+          <span class="text-sm text-gray-600">{{ meta.total }} facturas</span>
+          <div class="flex gap-2">
+            @if (page > 1) {
+              <button mat-stroked-button (click)="cargar(page - 1)">Anterior</button>
+            }
+            @if (page < meta.totalPages) {
+              <button mat-stroked-button (click)="cargar(page + 1)">Siguiente</button>
+            }
+          </div>
+        </mat-card-actions>
+      }
+    </mat-card>
+  }
+</div>

@@ -9,11 +9,12 @@ import { PagosService } from '../../pagos/services/pagos.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AppCanDirective } from '../../../core/auth/app-can.directive';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
+import { FormatearFechaPipe } from '../../../shared/pipes/formatear-fecha.pipe';
 
 @Component({
   selector: 'app-usuario-cartas',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatIconModule, NgClass, AppCanDirective],
+  imports: [MatCardModule, MatButtonModule, MatIconModule, NgClass, AppCanDirective, FormatearFechaPipe],
   templateUrl: './usuario-cartas.component.html',
   styleUrl: './usuario-cartas.component.scss',
 })
@@ -184,7 +185,4 @@ export class UsuarioCartasComponent implements OnInit {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(v);
   }
 
-  formatearFecha(f: string): string {
-    return new Date(f).toLocaleDateString('es-CO');
-  }
 }

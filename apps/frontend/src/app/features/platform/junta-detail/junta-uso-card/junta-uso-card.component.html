@@ -1,0 +1,60 @@
+@if (uso !== null) {
+  <mat-card class="mt-4">
+    <mat-card-header>
+      <mat-card-title>Uso</mat-card-title>
+      <mat-card-subtitle>{{ uso.mes }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div>
+          <p class="text-xl font-bold text-gray-800">{{ uso.usuariosActivos }}</p>
+          <p class="text-sm text-gray-600">Usuarios activos</p>
+          @if (junta.suscripcion && junta.suscripcion.plan.limiteUsuarios != null) {
+            <div class="mt-1 h-2 bg-gray-200 rounded overflow-hidden">
+              <div
+                class="h-full rounded transition-all"
+                [ngClass]="colorProgreso(progreso(uso.usuariosActivos, junta.suscripcion!.plan.limiteUsuarios!))"
+                [style.width.%]="progreso(uso.usuariosActivos, junta.suscripcion!.plan.limiteUsuarios!)"
+              ></div>
+            </div>
+            <p class="text-xs text-gray-500">{{ uso.usuariosActivos }}/{{ junta.suscripcion!.plan.limiteUsuarios }}</p>
+          }
+        </div>
+        <div>
+          <p class="text-xl font-bold text-gray-800">{{ uso.pagosEsteMes }}</p>
+          <p class="text-sm text-gray-600">Pagos este mes</p>
+        </div>
+        <div>
+          <p class="text-xl font-bold text-gray-800">{{ uso.cartasEsteMes }}</p>
+          <p class="text-sm text-gray-600">Cartas este mes</p>
+          @if (junta.suscripcion && junta.suscripcion.plan.limiteCartasMes != null) {
+            <div class="mt-1 h-2 bg-gray-200 rounded overflow-hidden">
+              <div
+                class="h-full rounded transition-all"
+                [ngClass]="colorProgreso(progreso(uso.cartasEsteMes, junta.suscripcion!.plan.limiteCartasMes!))"
+                [style.width.%]="progreso(uso.cartasEsteMes, junta.suscripcion!.plan.limiteCartasMes!)"
+              ></div>
+            </div>
+            <p class="text-xs text-gray-500">{{ uso.cartasEsteMes }}/{{ junta.suscripcion!.plan.limiteCartasMes }}</p>
+          }
+        </div>
+        <div>
+          <p class="text-xl font-bold text-gray-800">{{ uso.documentosCount }}</p>
+          <p class="text-sm text-gray-600">Documentos</p>
+          @if (junta.suscripcion && junta.suscripcion.plan.limiteStorageMb != null) {
+            <div class="mt-1 h-2 bg-gray-200 rounded overflow-hidden">
+              <div
+                class="h-full rounded transition-all"
+                [ngClass]="colorProgreso(progreso(uso.documentosCount, junta.suscripcion!.plan.limiteStorageMb!))"
+                [style.width.%]="progreso(uso.documentosCount, junta.suscripcion!.plan.limiteStorageMb!)"
+              ></div>
+            </div>
+            <p class="text-xs text-gray-500">{{ uso.documentosCount }}/{{ junta.suscripcion!.plan.limiteStorageMb }}</p>
+          }
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+} @else if (loading) {
+  <p class="mt-4 text-gray-600 text-sm">Cargando uso...</p>
+}

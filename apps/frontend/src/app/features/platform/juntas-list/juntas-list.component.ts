@@ -5,25 +5,42 @@ import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { PlatformService, JuntaListItem } from '../services/platform.service';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { FormsModule } from '@angular/forms';
+import { PlatformJuntasService, JuntaListItem } from '../services/platform-juntas.service';
+import { FormatearFechaPipe } from '../../../shared/pipes/formatear-fecha.pipe';
+
+type ActivoFilter = 'todos' | true | false;
 
 @Component({
   selector: 'app-juntas-list',
   standalone: true,
-  imports: [MatTableModule, MatButtonModule, MatIconModule, MatPaginatorModule, DecimalPipe],
+  imports: [
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule,
+    MatPaginatorModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    FormsModule,
+    DecimalPipe,
+    FormatearFechaPipe,
+  ],
   templateUrl: './juntas-list.component.html',
   styleUrl: './juntas-list.component.scss',
 })
 export class JuntasListComponent implements OnInit {
-  displayedColumns = ['nombre', 'nit', 'montoCarta', 'fechaCreacion', 'acciones'];
+  displayedColumns = ['nombre', 'nit', 'montoCarta', 'estado', 'fechaCreacion', 'acciones'];
   dataSource = new MatTableDataSource<JuntaListItem>([]);
   loading = false;
   total = 0;
   page = 1;
   limit = 10;
+  activoFilter: ActivoFilter = 'todos';
 
   constructor(
-    private readonly platform: PlatformService,
+    private readonly platform: PlatformJuntasService,
     private readonly router: Router
   ) {}
 
@@ -33,7 +50,9 @@ export class JuntasListComponent implements OnInit {
 
   cargar(): void {
     this.loading = true;
-    this.platform.listar(this.page, this.limit).subscribe({
+    const activo =
+      this.activoFilter === 'todos' ? undefined : this.activoFilter;
+    this.platform.listar(this.page, this.limit, activo).subscribe({
       next: (res) => {
         this.dataSource.data = res.data;
         this.total = res.meta.total;
@@ -41,6 +60,12 @@ export class JuntasListComponent implements OnInit {
       },
       error: () => (this.loading = false),
     });
+  }
+
+  cambiarActivo(v: ActivoFilter): void {
+    this.activoFilter = v;
+    this.page = 1;
+    this.cargar();
   }
 
   onPage(e: PageEvent): void {
@@ -55,9 +80,5 @@ export class JuntasListComponent implements OnInit {
 
   crear(): void {
     this.router.navigate(['/platform', 'juntas', 'nueva']);
-  }
-
-  formatearFecha(f: string): string {
-    return new Date(f).toLocaleDateString('es-CO');
   }
 }

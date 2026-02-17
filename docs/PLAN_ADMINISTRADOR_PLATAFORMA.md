@@ -89,7 +89,7 @@
 | Vigencia carta | `vigenciaCartaMeses` (ya existe) | Junta | `PATCH /platform/juntas/:id` |
 | Datos contacto | Teléfono, email, dirección junta | `Junta.telefono`, `email`, `direccion` | - |
 | Región/ciudad | Para reportes | `Junta.ciudad`, `Junta.departamento` | - |
-| Config Wompi | Keys por junta (si cada una tiene cuenta) | `Junta.wompiPublicKey`, `wompiPrivateKey` (encriptados) | - |
+| Config Wompi | Keys por junta (cada junta recibe su dinero) | `Junta.wompi*` (encriptados) | `PATCH /platform/juntas/:id/wompi` – Ver `WOMPI_POR_JUNTA_ROADMAP.md` |
 | Branding | Logo, colores (white-label) | `Junta.logoUrl`, `colorPrimario` | Fase posterior |
 
 ---

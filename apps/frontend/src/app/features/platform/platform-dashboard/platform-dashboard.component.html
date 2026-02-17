@@ -4,6 +4,199 @@
     <p class="text-gray-600">Gestión de Juntas de Acción Comunal</p>
   </header>
 
+  @if (loading) {
+    <p class="text-gray-600">Cargando métricas...</p>
+  } @else if (data) {
+    <section class="mb-8">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Métricas globales</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <mat-card class="border border-gray-100">
+          <mat-card-content class="p-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-blue-100 text-blue-700">
+                <mat-icon fontIcon="business" class="!text-2xl !w-8 !h-8"></mat-icon>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-gray-800">{{ data.totalJuntas | number }}</p>
+                <p class="text-sm text-gray-600">Total juntas</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="border border-gray-100">
+          <mat-card-content class="p-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-green-100 text-green-700">
+                <mat-icon fontIcon="check_circle" class="!text-2xl !w-8 !h-8"></mat-icon>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-gray-800">{{ data.juntasActivas | number }}</p>
+                <p class="text-sm text-gray-600">Juntas activas</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="border border-gray-100">
+          <mat-card-content class="p-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 text-gray-600">
+                <mat-icon fontIcon="cancel" class="!text-2xl !w-8 !h-8"></mat-icon>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-gray-800">{{ data.juntasInactivas | number }}</p>
+                <p class="text-sm text-gray-600">Juntas inactivas</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="border border-gray-100">
+          <mat-card-content class="p-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-amber-100 text-amber-700">
+                <mat-icon fontIcon="trending_up" class="!text-2xl !w-8 !h-8"></mat-icon>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-gray-800">{{ data.juntasNuevasEsteMes | number }}</p>
+                <p class="text-sm text-gray-600">Nuevas este mes</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </section>
+  }
+
+  <section class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Avisos</h2>
+    @if (loadingAvisos) {
+      <p class="text-gray-600 text-sm">Cargando avisos...</p>
+    } @else if (avisos.length === 0) {
+      <mat-card class="border border-gray-100">
+        <mat-card-content class="p-4">
+          <p class="text-gray-600 text-sm">No hay avisos publicados.</p>
+          <button mat-stroked-button color="primary" class="mt-2" (click)="abrirCrearAviso()">
+            Publicar aviso
+          </button>
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <div class="space-y-3">
+        @for (a of avisos; track a.id) {
+          <mat-card class="border border-gray-100" [ngClass]="{ 'opacity-70': !a.activo }">
+            <mat-card-header class="pb-2 flex flex-row items-start justify-between gap-2">
+              <div class="flex-1 min-w-0">
+                <mat-card-title class="!text-base !font-medium flex items-center gap-2 flex-wrap">
+                  {{ a.titulo }}
+                  <span
+                    class="text-xs font-normal px-2 py-0.5 rounded-full"
+                    [ngClass]="{
+                      'bg-amber-100 text-amber-800': a.alcance === 'PLATAFORMA',
+                      'bg-blue-100 text-blue-800': a.alcance === 'TODAS_JUNTAS',
+                      'bg-purple-100 text-purple-800': a.alcance === 'JUNTA_ESPECIFICA'
+                    }"
+                  >
+                    {{ a.alcance === 'PLATAFORMA' ? 'Solo admin' : a.alcance === 'TODAS_JUNTAS' ? 'Todas las juntas' : (a.junta?.nombre ?? 'Junta') }}
+                  </span>
+                  @if (!a.activo) {
+                    <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">Inactivo</span>
+                  }
+                </mat-card-title>
+                <mat-card-subtitle class="!text-xs">
+                  {{ a.fechaPublicacion | date:'medium' }}
+                </mat-card-subtitle>
+              </div>
+              <div class="flex gap-1 shrink-0">
+                <button mat-icon-button matTooltip="Editar" (click)="editarAviso(a)">
+                  <mat-icon fontIcon="edit" class="!text-lg"></mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  [matTooltip]="a.activo ? 'Desactivar' : 'Activar'"
+                  (click)="toggleActivo(a)"
+                >
+                  <mat-icon [fontIcon]="a.activo ? 'visibility_off' : 'visibility'" class="!text-lg"></mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Eliminar" color="warn" (click)="eliminarAviso(a)">
+                  <mat-icon fontIcon="delete" class="!text-lg"></mat-icon>
+                </button>
+              </div>
+            </mat-card-header>
+            <mat-card-content class="pt-0">
+              <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ a.contenido }}</p>
+            </mat-card-content>
+          </mat-card>
+        }
+        <button mat-stroked-button color="primary" (click)="abrirCrearAviso()">
+          Publicar nuevo aviso
+        </button>
+      </div>
+    }
+  </section>
+
+  <section class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Facturación</h2>
+    <mat-card class="border border-gray-100 max-w-md">
+      <mat-card-content class="p-4">
+        <p class="text-sm text-gray-600 mb-3">
+          Genera facturas mensuales para todas las suscripciones activas. El cron las genera automáticamente el día 1 de cada mes.
+        </p>
+        <button
+          mat-stroked-button
+          color="primary"
+          [disabled]="generandoFacturas"
+          (click)="generarFacturasMensuales()"
+        >
+          {{ generandoFacturas ? 'Generando...' : 'Generar facturas mensuales' }}
+        </button>
+        @if (resultadoFacturas) {
+          <p class="mt-2 text-sm" [ngClass]="{
+            'text-green-700': resultadoFacturas.generadas > 0 && resultadoFacturas.errores.length === 0,
+            'text-amber-700': resultadoFacturas.errores.length > 0
+          }">
+            Generadas: {{ resultadoFacturas.generadas }} · Omitidas: {{ resultadoFacturas.omitidas }}
+            @if (resultadoFacturas.errores.length > 0) {
+              <span class="block mt-1">Errores: {{ resultadoFacturas.errores.join('; ') }}</span>
+            }
+          </p>
+        }
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <section class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Reportes exportables</h2>
+    <mat-card class="border border-gray-100">
+      <mat-card-content class="p-4">
+        <p class="text-sm text-gray-600 mb-3">
+          Descarga reportes en formato CSV para análisis externo.
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            mat-stroked-button
+            [disabled]="descargandoReporte !== null"
+            (click)="descargarReporteJuntas()"
+          >
+            {{ descargandoReporte === 'juntas' ? 'Descargando...' : 'Reporte juntas' }}
+          </button>
+          <button
+            mat-stroked-button
+            [disabled]="descargandoReporte !== null"
+            (click)="descargarReporteFacturacion()"
+          >
+            {{ descargandoReporte === 'facturacion' ? 'Descargando...' : 'Reporte facturación' }}
+          </button>
+          <button
+            mat-stroked-button
+            [disabled]="descargandoReporte !== null"
+            (click)="descargarReporteUso()"
+          >
+            {{ descargandoReporte === 'uso' ? 'Descargando...' : 'Reporte uso' }}
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </section>
+
   <section>
     <h2 class="text-lg font-semibold text-gray-800 mb-4">Accesos directos</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -19,6 +212,22 @@
                 <p class="text-sm text-gray-600 mt-1">Listado de juntas. Ver, crear y gestionar.</p>
               </div>
               <mat-icon class="flex-shrink-0 text-gray-400 group-hover:text-blue-500 transition-colors">arrow_forward</mat-icon>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </a>
+      <a routerLink="/platform/planes" class="block group">
+        <mat-card class="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border border-gray-100 overflow-hidden">
+          <mat-card-content class="p-4">
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-purple-100 text-purple-700">
+                <mat-icon fontIcon="subscriptions" class="!text-2xl !w-8 !h-8"></mat-icon>
+              </div>
+              <div class="min-w-0 flex-1">
+                <h3 class="font-semibold text-gray-800 group-hover:text-purple-600 transition-colors">Planes</h3>
+                <p class="text-sm text-gray-600 mt-1">Ver planes y precios.</p>
+              </div>
+              <mat-icon class="flex-shrink-0 text-gray-400 group-hover:text-purple-500 transition-colors">arrow_forward</mat-icon>
             </div>
           </mat-card-content>
         </mat-card>

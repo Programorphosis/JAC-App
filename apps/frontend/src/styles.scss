@@ -180,3 +180,10 @@ body { font-family: Roboto, "Helvetica Neue", sans-serif; }
   background: #fafbfc !important;
   border-radius: 0 0 10px 10px;
 }
+
+/* Modal de avisos al abrir sesión – estilo evento/juego */
+.aviso-modal-panel {
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2) !important;
+}

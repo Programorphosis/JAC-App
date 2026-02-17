@@ -4,6 +4,17 @@
 
 ---
 
+## 0. Dos usos de Wompi (importante)
+
+| Uso | Credenciales | Documentación |
+|-----|--------------|---------------|
+| **Pagos junta** (afiliados → junta) | Por junta, en BD (Junta.wompi*) | `WOMPI_POR_JUNTA_DOC.md` |
+| **Facturación plataforma** (suscripciones) | Variables de entorno (globales) | Esta sección |
+
+Las variables `WOMPI_*` descritas aquí son para **facturación de la plataforma**. Los pagos de afiliados a juntas usan credenciales por junta.
+
+---
+
 ## 1. Producto Wompi a usar
 
 **Recibir pagos** (merchant): el afiliado paga a la junta. Usamos:

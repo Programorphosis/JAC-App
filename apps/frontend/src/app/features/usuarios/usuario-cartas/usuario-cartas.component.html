@@ -12,10 +12,10 @@
           <div class="text-sm text-gray-700 min-w-0">
             <span class="font-medium">Carta {{ c.consecutivo }}/{{ c.anio }}</span>
             @if (c.fechaEmision) {
-              <span class="text-gray-500"> · Emitida {{ formatearFecha(c.fechaEmision) }}</span>
+              <span class="text-gray-500"> · Emitida {{ c.fechaEmision | formatearFecha }}</span>
             }
             @if (c.vigenciaHasta) {
-              <span class="text-gray-500"> · Vigente hasta {{ formatearFecha(c.vigenciaHasta) }}</span>
+              <span class="text-gray-500"> · Vigente hasta {{ c.vigenciaHasta | formatearFecha }}</span>
             }
           </div>
           <button
@@ -159,8 +159,8 @@
                       {{ c.estado }}
                     </span>
                   </td>
-                  <td>{{ formatearFecha(c.fechaSolicitud) }}</td>
-                  <td>{{ c.vigenciaHasta ? formatearFecha(c.vigenciaHasta) : '—' }}</td>
+                  <td>{{ c.fechaSolicitud | formatearFecha }}</td>
+                  <td>{{ c.vigenciaHasta ? (c.vigenciaHasta | formatearFecha) : '—' }}</td>
                   <td>{{ c.consecutivo ? c.consecutivo + '/' + c.anio : '—' }}</td>
                   <td>
                     @if (c.estado === 'APROBADA') {

@@ -79,3 +79,14 @@ export function computePermissions(
 
   return Array.from(set);
 }
+
+/** Permisos para impersonación (PA-8): solo lectura. */
+export function computePermissionsForImpersonation(): Permission[] {
+  return [
+    PERMISSIONS.USUARIOS_VER,
+    PERMISSIONS.PAGOS_VER,
+    PERMISSIONS.TARIFAS_VER,
+    PERMISSIONS.REQUISITOS_VER,
+    PERMISSIONS.AUDITORIAS_VER,
+  ];
+}

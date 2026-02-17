@@ -1,0 +1,127 @@
+<mat-card class="mt-4">
+  <mat-card-header>
+    <mat-card-title>Facturación</mat-card-title>
+    <mat-card-subtitle>Facturas y pagos al proveedor</mat-card-subtitle>
+    <button mat-stroked-button class="ml-auto" (click)="crearFactura.emit()">
+      Crear factura manual
+    </button>
+  </mat-card-header>
+  <mat-card-content>
+    <mat-tab-group>
+      <mat-tab label="Facturas">
+        @if (loadingFacturas) {
+          <p class="py-4 text-gray-600 text-sm">Cargando facturas...</p>
+        } @else if (facturas.length === 0) {
+          <p class="py-4 text-gray-600 text-sm">No hay facturas</p>
+        } @else {
+          <div class="overflow-x-auto mt-2">
+            <table mat-table [dataSource]="facturas" class="w-full">
+              <ng-container matColumnDef="fechaEmision">
+                <th mat-header-cell *matHeaderCellDef>Emisión</th>
+                <td mat-cell *matCellDef="let f">{{ f.fechaEmision | formatearFecha }}</td>
+              </ng-container>
+              <ng-container matColumnDef="fechaVencimiento">
+                <th mat-header-cell *matHeaderCellDef>Vencimiento</th>
+                <td mat-cell *matCellDef="let f">{{ f.fechaVencimiento | formatearFecha }}</td>
+              </ng-container>
+              <ng-container matColumnDef="monto">
+                <th mat-header-cell *matHeaderCellDef>Monto</th>
+                <td mat-cell *matCellDef="let f">{{ f.monto | number }} COP</td>
+              </ng-container>
+              <ng-container matColumnDef="tipo">
+                <th mat-header-cell *matHeaderCellDef>Tipo</th>
+                <td mat-cell *matCellDef="let f">{{ f.tipo }}</td>
+              </ng-container>
+              <ng-container matColumnDef="estado">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let f">
+                  <span [ngClass]="claseEstadoFactura(f.estado)">{{ f.estado }}</span>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                <td mat-cell *matCellDef="let f">
+                  @if (puedeRegistrarPago(f)) {
+                    <button mat-stroked-button color="primary" (click)="registrarPago.emit(f)">
+                      Registrar pago
+                    </button>
+                  }
+                  @if (puedeCancelarFactura(f)) {
+                    <button mat-stroked-button color="warn" (click)="cancelarFactura.emit(f)">
+                      Cancelar
+                    </button>
+                  }
+                  @if (puedeReactivarFactura(f)) {
+                    <button mat-stroked-button color="primary" (click)="reactivarFactura.emit(f)">
+                      Reactivar
+                    </button>
+                  }
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="['fechaEmision', 'fechaVencimiento', 'monto', 'tipo', 'estado', 'acciones']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['fechaEmision', 'fechaVencimiento', 'monto', 'tipo', 'estado', 'acciones']"></tr>
+            </table>
+          </div>
+          @if (facturasMeta && facturasMeta.totalPages > 1) {
+            <div class="flex justify-between items-center mt-2">
+              <span class="text-sm text-gray-600">{{ facturasMeta.total }} facturas</span>
+              <div class="flex gap-2">
+                @if (facturasMeta.page > 1) {
+                  <button mat-stroked-button (click)="cargarFacturas.emit(facturasMeta.page - 1)">Anterior</button>
+                }
+                @if (facturasMeta.page < facturasMeta.totalPages) {
+                  <button mat-stroked-button (click)="cargarFacturas.emit(facturasMeta.page + 1)">Siguiente</button>
+                }
+              </div>
+            </div>
+          }
+        }
+      </mat-tab>
+      <mat-tab label="Historial de pagos">
+        @if (loadingPagos) {
+          <p class="py-4 text-gray-600 text-sm">Cargando pagos...</p>
+        } @else if (pagosPlataforma.length === 0) {
+          <p class="py-4 text-gray-600 text-sm">No hay pagos registrados</p>
+        } @else {
+          <div class="overflow-x-auto mt-2">
+            <table mat-table [dataSource]="pagosPlataforma" class="w-full">
+              <ng-container matColumnDef="fecha">
+                <th mat-header-cell *matHeaderCellDef>Fecha</th>
+                <td mat-cell *matCellDef="let p">{{ p.fecha | formatearFechaHora }}</td>
+              </ng-container>
+              <ng-container matColumnDef="monto">
+                <th mat-header-cell *matHeaderCellDef>Monto</th>
+                <td mat-cell *matCellDef="let p">{{ p.monto | number }} COP</td>
+              </ng-container>
+              <ng-container matColumnDef="metodo">
+                <th mat-header-cell *matHeaderCellDef>Método</th>
+                <td mat-cell *matCellDef="let p">{{ p.metodo }}</td>
+              </ng-container>
+              <ng-container matColumnDef="factura">
+                <th mat-header-cell *matHeaderCellDef>Factura</th>
+                <td mat-cell *matCellDef="let p">
+                  {{ p.factura.fechaEmision | formatearFecha }} · {{ p.factura.monto | number }} COP
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="['fecha', 'monto', 'metodo', 'factura']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['fecha', 'monto', 'metodo', 'factura']"></tr>
+            </table>
+          </div>
+          @if (pagosMeta && pagosMeta.totalPages > 1) {
+            <div class="flex justify-between items-center mt-2">
+              <span class="text-sm text-gray-600">{{ pagosMeta.total }} pagos</span>
+              <div class="flex gap-2">
+                @if (pagosMeta.page > 1) {
+                  <button mat-stroked-button (click)="cargarPagos.emit(pagosMeta.page - 1)">Anterior</button>
+                }
+                @if (pagosMeta.page < pagosMeta.totalPages) {
+                  <button mat-stroked-button (click)="cargarPagos.emit(pagosMeta.page + 1)">Siguiente</button>
+                }
+              </div>
+            </div>
+          }
+        }
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card-content>
+</mat-card>

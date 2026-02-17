@@ -9,6 +9,7 @@ import {
   usuariosGuard,
   crearUsuarioGuard,
   auditoriasGuard,
+  facturasPlataformaGuard,
 } from './core/auth/permission.guard';
 
 export const routes: Routes = [
@@ -76,6 +77,12 @@ export const routes: Routes = [
           import('./features/auditorias/auditorias-list/auditorias-list.component').then((m) => m.AuditoriasListComponent),
       },
       {
+        path: 'facturas-plataforma',
+        canActivate: [facturasPlataformaGuard],
+        loadComponent: () =>
+          import('./features/facturas-plataforma/facturas-plataforma/facturas-plataforma.component').then((m) => m.FacturasPlataformaComponent),
+      },
+      {
         path: 'platform',
         canActivate: [platformAdminGuard],
         loadComponent: () =>
@@ -100,6 +107,16 @@ export const routes: Routes = [
             path: 'juntas/:id',
             loadComponent: () =>
               import('./features/platform/junta-detail/junta-detail.component').then((m) => m.JuntaDetailComponent),
+          },
+          {
+            path: 'auditoria',
+            loadComponent: () =>
+              import('./features/platform/auditoria-plataforma/auditoria-plataforma.component').then((m) => m.AuditoriaPlataformaComponent),
+          },
+          {
+            path: 'planes',
+            loadComponent: () =>
+              import('./features/platform/planes-list/planes-list.component').then((m) => m.PlanesListComponent),
           },
         ],
       },

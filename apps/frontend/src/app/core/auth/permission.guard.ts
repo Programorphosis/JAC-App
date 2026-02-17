@@ -17,6 +17,7 @@ export function requirePermission(permission: string): CanActivateFn {
 }
 
 export const pagosGuard = requirePermission(PERMISSIONS.PAGOS_GESTIONAR);
+export const facturasPlataformaGuard = requirePermission(PERMISSIONS.PAGOS_VER);
 export const tarifasGuard = requirePermission(PERMISSIONS.TARIFAS_VER);
 export const cartasGuard = requirePermission(PERMISSIONS.CARTAS_VALIDAR);
 export const requisitosGuard = requirePermission(PERMISSIONS.REQUISITOS_VER);

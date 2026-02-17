@@ -37,9 +37,17 @@
                 <mat-icon matListItemIcon>dashboard</mat-icon>
                 <span matListItemTitle>Inicio</span>
               </a>
-              <a mat-list-item routerLink="/platform/juntas" routerLinkActive="active">
+              <a mat-list-item routerLink="/platform/juntas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
                 <mat-icon matListItemIcon>business</mat-icon>
                 <span matListItemTitle>Juntas</span>
+              </a>
+              <a mat-list-item routerLink="/platform/planes" routerLinkActive="active">
+                <mat-icon matListItemIcon>subscriptions</mat-icon>
+                <span matListItemTitle>Planes</span>
+              </a>
+              <a mat-list-item routerLink="/platform/auditoria" routerLinkActive="active">
+                <mat-icon matListItemIcon>history</mat-icon>
+                <span matListItemTitle>Auditoría</span>
               </a>
             } @else {
               <a mat-list-item routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
@@ -57,6 +65,10 @@
               <a mat-list-item *appCan="auth.permissions.PAGOS_GESTIONAR" routerLink="/pagos" routerLinkActive="active">
                 <mat-icon matListItemIcon>payment</mat-icon>
                 <span matListItemTitle>Pagos</span>
+              </a>
+              <a mat-list-item *appCan="auth.permissions.PAGOS_VER" routerLink="/facturas-plataforma" routerLinkActive="active">
+                <mat-icon matListItemIcon>receipt_long</mat-icon>
+                <span matListItemTitle>Facturas plataforma</span>
               </a>
               <a mat-list-item *appCan="auth.permissions.REQUISITOS_VER" routerLink="/requisitos" routerLinkActive="active">
                 <mat-icon matListItemIcon>assignment</mat-icon>
@@ -78,6 +90,17 @@
           </mat-nav-list>
         </mat-sidenav>
         <mat-sidenav-content class="min-h-0 min-w-0">
+          @if (auth.isImpersonando()) {
+            <div class="bg-amber-100 border-b border-amber-300 px-4 py-2 flex items-center justify-between gap-2">
+              <span class="text-amber-900 text-sm font-medium flex items-center gap-1">
+                <mat-icon class="!text-lg !w-5 !h-5">visibility</mat-icon>
+                Viendo como junta (solo lectura)
+              </span>
+              <button mat-stroked-button color="warn" (click)="salirImpersonacion()" [disabled]="saliendoImpersonacion">
+                {{ saliendoImpersonacion ? 'Saliendo...' : 'Salir de impersonación' }}
+              </button>
+            </div>
+          }
           <div class="p-2 sm:p-4 overflow-auto min-h-0 min-w-0">
             <router-outlet />
           </div>

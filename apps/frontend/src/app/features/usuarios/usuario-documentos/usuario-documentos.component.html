@@ -71,7 +71,7 @@
                     {{ d.tipo }}
                   </span>
                 </td>
-                <td>{{ formatearFecha(d.fechaSubida) }}</td>
+                <td>{{ d.fechaSubida | formatearFecha }}</td>
                 <td>
                   <button mat-stroked-button (click)="descargar(d)">Descargar</button>
                 </td>

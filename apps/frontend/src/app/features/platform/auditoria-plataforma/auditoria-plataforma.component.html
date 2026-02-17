@@ -1,0 +1,53 @@
+<mat-card class="listado-card">
+  <mat-card-header>
+    <mat-card-title>Auditoría de plataforma</mat-card-title>
+    <mat-card-subtitle>Acciones sobre juntas (crear, actualizar, dar de baja)</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
+      <div class="table-responsive">
+        <table mat-table [dataSource]="dataSource" class="w-full" style="min-width: 600px">
+          <ng-container matColumnDef="fecha">
+            <th mat-header-cell *matHeaderCellDef>Fecha</th>
+            <td mat-cell *matCellDef="let a">{{ a.fecha | formatearFechaHora }}</td>
+          </ng-container>
+          <ng-container matColumnDef="accion">
+            <th mat-header-cell *matHeaderCellDef>Acción</th>
+            <td mat-cell *matCellDef="let a">{{ a.accion }}</td>
+          </ng-container>
+          <ng-container matColumnDef="junta">
+            <th mat-header-cell *matHeaderCellDef>Junta</th>
+            <td mat-cell *matCellDef="let a">{{ a.junta?.nombre ?? '-' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="ejecutadoPor">
+            <th mat-header-cell *matHeaderCellDef>Ejecutado por</th>
+            <td mat-cell *matCellDef="let a">
+              {{ a.ejecutadoPor.nombres | formatearNombre }} {{ a.ejecutadoPor.apellidos | formatearNombre }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="metadata">
+            <th mat-header-cell *matHeaderCellDef>Detalle</th>
+            <td mat-cell *matCellDef="let a">{{ resumirMetadata(a.metadata) }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+              {{ loading ? 'Cargando...' : 'No hay registros' }}
+            </td>
+          </tr>
+        </table>
+      </div>
+      <mat-paginator
+        [length]="total"
+        [pageSize]="limit"
+        [pageIndex]="page - 1"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="onPage($event)"
+      >
+      </mat-paginator>
+    </div>
+  </mat-card-content>
+</mat-card>

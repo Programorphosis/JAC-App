@@ -60,17 +60,141 @@ enum TipoCambioRequisito {
   OBLIGACION
 }
 
+enum EstadoSuscripcion {
+  ACTIVA
+  SUSPENDIDA
+  CANCELADA
+  PRUEBA
+  VENCIDA
+}
+
+enum EstadoFactura {
+  PENDIENTE
+  PAGADA
+  PARCIAL
+  VENCIDA
+  CANCELADA
+}
+
+enum AlcanceAviso {
+  PLATAFORMA
+  TODAS_JUNTAS
+  JUNTA_ESPECIFICA
+}
+
+enum TipoFactura {
+  MENSUAL
+  MANUAL
+  AJUSTE
+}
+
+enum MetodoPagoFactura {
+  EFECTIVO
+  TRANSFERENCIA
+  ONLINE
+  CHEQUE
+  OTRO
+}
+
+//////////////////////////////////////////////////////
+// PLANES Y SUSCRIPCIONES (PA-4)
+//////////////////////////////////////////////////////
+
+model Plan {
+  id                String   @id @default(uuid())
+  nombre            String   @unique
+  precioMensual     Int      // COP
+  precioAnual       Int      // COP
+  limiteUsuarios    Int?     // null = ilimitado
+  limiteStorageMb   Int?     // null = ilimitado
+  limiteCartasMes   Int?     // null = ilimitado
+  diasPrueba        Int      @default(0)
+  activo            Boolean  @default(true)
+  fechaCreacion     DateTime @default(now())
+
+  suscripciones     Suscripcion[]
+}
+
+model Suscripcion {
+  id                String            @id @default(uuid())
+  juntaId           String            @unique
+  junta             Junta             @relation(fields: [juntaId], references: [id], onDelete: Cascade)
+  planId            String
+  plan              Plan              @relation(fields: [planId], references: [id])
+  fechaInicio       DateTime         @default(now())
+  fechaVencimiento  DateTime
+  estado            EstadoSuscripcion @default(PRUEBA)
+
+  facturas          Factura[]
+
+  @@index([juntaId])
+  @@index([planId])
+}
+
+//////////////////////////////////////////////////////
+// FACTURACIÓN PLATAFORMA (PA-6)
+//////////////////////////////////////////////////////
+
+model Factura {
+  id                String         @id @default(uuid())
+  juntaId           String
+  junta             Junta         @relation(fields: [juntaId], references: [id], onDelete: Cascade)
+  suscripcionId     String?
+  suscripcion       Suscripcion?   @relation(fields: [suscripcionId], references: [id], onDelete: SetNull)
+  monto             Int            // COP
+  fechaEmision      DateTime      @default(now())
+  fechaVencimiento  DateTime
+  estado            EstadoFactura @default(PENDIENTE)
+  tipo              TipoFactura   @default(MENSUAL)
+  referenciaExterna String?
+  metadata          Json?
+  creadoPorId       String?
+  creadoPor         Usuario?      @relation("FacturaCreadaPor", fields: [creadoPorId], references: [id], onDelete: SetNull)
+  fechaCreacion     DateTime      @default(now())
+
+  pagos             PagoFactura[]
+
+  @@index([juntaId])
+  @@index([suscripcionId])
+  @@index([estado])
+  @@index([fechaEmision])
+}
+
+model PagoFactura {
+  id                String            @id @default(uuid())
+  facturaId         String
+  factura           Factura           @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  monto             Int               // COP
+  fecha             DateTime         @default(now())
+  metodo            MetodoPagoFactura
+  referencia        String?
+  referenciaExterna String?
+  fechaCreacion     DateTime         @default(now())
+
+  @@index([facturaId])
+}
+
 //////////////////////////////////////////////////////
 // JUNTA (multi-tenant base)
 //////////////////////////////////////////////////////
 
 model Junta {
-  id                  String   @id @default(uuid())
+  id                  String    @id @default(uuid())
   nombre              String
-  nit                 String?  @unique
-  fechaCreacion       DateTime @default(now())
+  nit                 String?   @unique
+  fechaCreacion       DateTime  @default(now())
   montoCarta          Int?
-  vigenciaCartaMeses  Int?     @default(3)  // meses de validez de la carta; null = 3 por defecto
+  vigenciaCartaMeses  Int?      @default(3)  // meses de validez de la carta; null = 3 por defecto
+  activo              Boolean   @default(true)
+  fechaBaja           DateTime?
+
+  // PA-2: datos de contacto y región
+  telefono            String?
+  email               String?
+  direccion           String?
+  ciudad              String?
+  departamento        String?
+  enMantenimiento     Boolean   @default(false)
 
   usuarios         Usuario[]
   tarifas          Tarifa[]
@@ -80,7 +204,28 @@ model Junta {
   requisitos       RequisitoTipo[]
   cartas           Carta[]
   auditorias       Auditoria[]
+  suscripcion     Suscripcion?
+  facturas        Factura[]
+  notas           NotaJunta[]
+  avisos          AvisoPlataforma[]
 }
+
+//////////////////////////////////////////////////////
+// NOTAS JUNTA (PA-7 – Operaciones y soporte)
+//////////////////////////////////////////////////////
+
+model NotaJunta {
+  id           String   @id @default(uuid())
+  juntaId      String
+  junta        Junta    @relation(fields: [juntaId], references: [id], onDelete: Cascade)
+  contenido    String
+  creadoPorId  String
+  creadoPor    Usuario  @relation(fields: [creadoPorId], references: [id], onDelete: Cascade)
+  fechaCreacion DateTime @default(now())
+
+  @@index([juntaId])
+}
+
 
 //////////////////////////////////////////////////////
 // USUARIOS
@@ -117,6 +262,8 @@ model Usuario {
   auditorias        Auditoria[]
   intencionesPago   IntencionPago[]
   intencionesIniciadas IntencionPago[] @relation("IntencionIniciadaPor")
+  facturasCreadas  Factura[]         @relation("FacturaCreadaPor")
+  notasJunta       NotaJunta[]
 
   @@unique([juntaId, numeroDocumento])
   @@index([juntaId])
@@ -371,6 +518,26 @@ model Consecutivo {
   valorActual Int
 
   @@unique([juntaId, tipo, anio])
+}
+
+//////////////////////////////////////////////////////
+// AVISOS PLATAFORMA (PA-9)
+//////////////////////////////////////////////////////
+
+model AvisoPlataforma {
+  id                String        @id @default(uuid())
+  titulo            String
+  contenido         String        @db.Text
+  fechaPublicacion  DateTime      @default(now())
+  activo            Boolean       @default(true)
+  alcance           AlcanceAviso  @default(TODAS_JUNTAS)
+  juntaId           String?
+  junta             Junta?        @relation(fields: [juntaId], references: [id], onDelete: SetNull)
+  fechaCreacion     DateTime      @default(now())
+
+  @@index([activo])
+  @@index([alcance])
+  @@index([juntaId])
 }
 
 //////////////////////////////////////////////////////

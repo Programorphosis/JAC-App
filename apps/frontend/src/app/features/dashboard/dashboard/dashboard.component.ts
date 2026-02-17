@@ -4,9 +4,12 @@ import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { DatePipe } from '@angular/common';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UsuariosService, DeudaResult } from '../../usuarios/services/usuarios.service';
 import { CartasService, EstadoGeneralResult, CartaItem } from '../../cartas/services/cartas.service';
+import { AvisosService, AvisoPlataforma } from '../../../core/services/avisos.service';
+import { FacturasPlataformaService } from '../../../core/services/facturas-plataforma.service';
 import { formatearNombre } from '../../../shared/utils/formatear-nombre.util';
 
 export interface Shortcut {
@@ -21,7 +24,7 @@ export interface Shortcut {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatIconModule, RouterLink, NgClass],
+  imports: [MatCardModule, MatButtonModule, MatIconModule, RouterLink, NgClass, DatePipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -29,12 +32,16 @@ export class DashboardComponent implements OnInit {
   deuda = signal<DeudaResult | null>(null);
   estadoCarta = signal<EstadoGeneralResult | null>(null);
   cartas = signal<CartaItem[]>([]);
+  avisos = signal<AvisoPlataforma[]>([]);
+  facturasPendientes = signal<number>(0);
   loading = false;
 
   constructor(
     readonly auth: AuthService,
     private readonly usuarios: UsuariosService,
-    private readonly cartasSvc: CartasService
+    private readonly cartasSvc: CartasService,
+    private readonly avisosSvc: AvisosService,
+    private readonly facturasSvc: FacturasPlataformaService
   ) {}
 
   /** Accesos directos según permisos del usuario. */
@@ -191,6 +198,14 @@ export class DashboardComponent implements OnInit {
       });
       this.cartasSvc.listarPorUsuario(user.id).subscribe({
         next: (c) => this.cartas.set(c),
+      });
+    }
+    this.avisosSvc.listarActivos().subscribe({
+      next: (a) => this.avisos.set(a),
+    });
+    if (this.auth.can(this.auth.permissions.PAGOS_VER) && this.auth.currentUser()?.juntaId) {
+      this.facturasSvc.listarPendientes().subscribe({
+        next: (f) => this.facturasPendientes.set(f.length),
       });
     }
   }

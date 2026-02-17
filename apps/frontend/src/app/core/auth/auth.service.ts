@@ -26,6 +26,8 @@ export interface AuthUser {
   requisitoTipoIds?: string[];
   /** @deprecated Mantenido para compatibilidad. */
   requisitoTipoId?: string | null;
+  /** PA-8: true cuando platform admin está viendo como junta (solo lectura). */
+  impersonando?: boolean;
 }
 
 export interface LoginRequest {
@@ -59,6 +61,9 @@ export class AuthService {
       this.userSignal()?.roles?.includes('PLATFORM_ADMIN') === true
   );
 
+  /** PA-8: true cuando está en modo impersonación (viendo como junta). */
+  readonly isImpersonando = computed(() => this.userSignal()?.impersonando === true);
+
   constructor(
     private readonly http: HttpClient,
     private readonly router: Router
@@ -86,6 +91,8 @@ export class AuthService {
     sessionStorage.removeItem(STORAGE_ACCESS);
     sessionStorage.removeItem(STORAGE_REFRESH);
     sessionStorage.removeItem(STORAGE_USER);
+    sessionStorage.removeItem('jac_avisos_sesion_mostrados');
+    sessionStorage.removeItem('jac_facturas_pendientes_sesion_mostrado');
     this.userSignal.set(null);
     this.router.navigate(['/login']);
   }
@@ -202,6 +209,26 @@ export class AuthService {
 
   hasRole(rol: RolNombre): boolean {
     return this.userSignal()?.roles?.includes(rol) ?? false;
+  }
+
+  /** PA-8: Impersonar junta (platform admin). Navega a /app tras éxito. */
+  impersonar(juntaId: string): Observable<AuthResult> {
+    return this.http
+      .post<{ data: AuthResult }>(`${environment.apiUrl}/platform/impersonar/${juntaId}`, {})
+      .pipe(
+        tap((res) => this.handleAuthSuccess(res.data)),
+        map((res) => res.data)
+      );
+  }
+
+  /** PA-8: Salir de impersonación. Restaura tokens de platform admin. */
+  salirImpersonacion(): Observable<AuthResult> {
+    return this.http
+      .post<{ data: AuthResult }>(`${environment.apiUrl}/platform/salir-impersonacion`, {})
+      .pipe(
+        tap((res) => this.handleAuthSuccess(res.data)),
+        map((res) => res.data)
+      );
   }
 
   private handleAuthSuccess(result: AuthResult): void {

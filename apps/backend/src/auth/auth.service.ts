@@ -4,7 +4,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../domain/services/audit.service';
 import * as bcrypt from 'bcrypt';
 import { RolNombre } from '@prisma/client';
-import { computePermissions } from './permissions-from-roles';
+import {
+  computePermissions,
+  computePermissionsForImpersonation,
+} from './permissions-from-roles';
 import type { Permission } from './permissions.constants';
 
 export interface LoginInput {
@@ -19,6 +22,8 @@ export interface JwtPayload {
   juntaId: string | null;
   roles: RolNombre[];
   tipo: 'access' | 'refresh';
+  /** PA-8: true cuando platform admin está viendo como junta (solo lectura). */
+  impersonando?: boolean;
 }
 
 export interface AuthResult {
@@ -35,6 +40,8 @@ export interface AuthResult {
     permissions: Permission[];
     esModificador: boolean;
     requisitoTipoIds: string[];
+    /** PA-8: true cuando está en modo impersonación. */
+    impersonando?: boolean;
   };
 }
 
@@ -61,11 +68,20 @@ export class AuthService {
       include: {
         roles: { include: { rol: true } },
         requisitosComoModificador: { select: { id: true } },
+        junta: { select: { activo: true, enMantenimiento: true } },
       },
     });
 
     if (!usuario || !usuario.activo) {
       throw new UnauthorizedException('Credenciales inválidas');
+    }
+    if (usuario.juntaId && usuario.junta) {
+      if (!usuario.junta.activo) {
+        throw new UnauthorizedException('La junta no está activa');
+      }
+      if (usuario.junta.enMantenimiento) {
+        throw new UnauthorizedException('La junta está en mantenimiento. Intente más tarde.');
+      }
     }
 
     const ok = await bcrypt.compare(dto.password, usuario.passwordHash);
@@ -188,17 +204,20 @@ export class AuthService {
       const roles = usuario.roles.map((ur) => ur.rol.nombre);
       const requisitoTipoIds = usuario.requisitosComoModificador?.map((r) => r.id) ?? [];
       const esModificador = requisitoTipoIds.length > 0;
-      const permissions = computePermissions(
-        roles,
-        esModificador,
-        usuario.juntaId,
-      );
+
+      // PA-8: Preservar impersonación en refresh
+      const impersonando = payload.impersonando === true && payload.juntaId;
+      const juntaId = impersonando ? payload.juntaId : usuario.juntaId;
+      const permissions = impersonando
+        ? computePermissionsForImpersonation()
+        : computePermissions(roles, esModificador, usuario.juntaId);
 
       const newPayload: JwtPayload = {
         sub: usuario.id,
-        juntaId: usuario.juntaId,
+        juntaId,
         roles,
         tipo: 'access',
+        ...(impersonando && { impersonando: true }),
       };
 
       const expiresIn = 900;
@@ -220,15 +239,153 @@ export class AuthService {
           nombres: usuario.nombres,
           apellidos: usuario.apellidos,
           numeroDocumento: usuario.numeroDocumento,
-          juntaId: usuario.juntaId,
+          juntaId,
           roles,
           permissions,
           esModificador,
           requisitoTipoIds,
+          ...(impersonando && { impersonando: true }),
         },
       };
     } catch {
       throw new UnauthorizedException('Token de refresco inválido');
     }
+  }
+
+  /**
+   * PA-8: Genera tokens de impersonación para que un platform admin vea la app como junta (solo lectura).
+   */
+  async impersonar(platformAdminId: string, juntaId: string): Promise<AuthResult> {
+    const [usuario, junta] = await Promise.all([
+      this.prisma.usuario.findUniqueOrThrow({
+        where: { id: platformAdminId },
+        include: { roles: { include: { rol: true } } },
+      }),
+      this.prisma.junta.findUnique({ where: { id: juntaId } }),
+    ]);
+
+    if (!usuario.activo || usuario.juntaId !== null) {
+      throw new UnauthorizedException('Solo platform admin puede impersonar');
+    }
+    const roles = usuario.roles.map((ur) => ur.rol.nombre);
+    if (!roles.includes(RolNombre.PLATFORM_ADMIN)) {
+      throw new UnauthorizedException('Se requiere rol PLATFORM_ADMIN');
+    }
+    if (!junta) {
+      throw new UnauthorizedException('Junta no encontrada');
+    }
+
+    const permissions = computePermissionsForImpersonation();
+    const payload: JwtPayload = {
+      sub: usuario.id,
+      juntaId,
+      roles,
+      tipo: 'access',
+      impersonando: true,
+    };
+    const refreshPayload: JwtPayload = {
+      ...payload,
+      tipo: 'refresh',
+    };
+
+    const expiresIn = 900;
+    const accessToken = this.jwtService.sign(payload, { expiresIn: `${expiresIn}s` });
+    const refreshToken = this.jwtService.sign(refreshPayload, {
+      expiresIn: 604800,
+      secret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+    });
+
+    await this.audit.registerEvent({
+      juntaId,
+      entidad: 'Auth',
+      entidadId: usuario.id,
+      accion: 'IMPERSONACION_INICIO',
+      metadata: { platformAdminId, juntaNombre: junta.nombre },
+      ejecutadoPorId: platformAdminId,
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn,
+      user: {
+        id: usuario.id,
+        nombres: usuario.nombres,
+        apellidos: usuario.apellidos,
+        numeroDocumento: usuario.numeroDocumento,
+        juntaId,
+        roles,
+        permissions,
+        esModificador: false,
+        requisitoTipoIds: [],
+        impersonando: true,
+      },
+    };
+  }
+
+  /**
+   * PA-8: Restaura tokens normales de platform admin tras salir de impersonación.
+   * @param juntaIdImpersonada - junta que se estaba viendo (para auditoría)
+   */
+  async salirImpersonacion(
+    platformAdminId: string,
+    juntaIdImpersonada: string,
+  ): Promise<AuthResult> {
+    const usuario = await this.prisma.usuario.findUniqueOrThrow({
+      where: { id: platformAdminId },
+      include: {
+        roles: { include: { rol: true } },
+        requisitosComoModificador: { select: { id: true } },
+      },
+    });
+
+    if (!usuario.activo || usuario.juntaId !== null) {
+      throw new UnauthorizedException('Usuario no es platform admin');
+    }
+
+    const roles = usuario.roles.map((ur) => ur.rol.nombre);
+    const esModificador = (usuario.requisitosComoModificador?.length ?? 0) > 0;
+    const permissions = computePermissions(roles, esModificador, null);
+
+    const payload: JwtPayload = {
+      sub: usuario.id,
+      juntaId: null,
+      roles,
+      tipo: 'access',
+    };
+    const refreshPayload: JwtPayload = { ...payload, tipo: 'refresh' };
+
+    const expiresIn = 900;
+    const accessToken = this.jwtService.sign(payload, { expiresIn: `${expiresIn}s` });
+    const refreshToken = this.jwtService.sign(refreshPayload, {
+      expiresIn: 604800,
+      secret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+    });
+
+    await this.audit.registerEvent({
+      juntaId: juntaIdImpersonada,
+      entidad: 'Auth',
+      entidadId: platformAdminId,
+      accion: 'IMPERSONACION_FIN',
+      metadata: { platformAdminId },
+      ejecutadoPorId: platformAdminId,
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn,
+      user: {
+        id: usuario.id,
+        nombres: usuario.nombres,
+        apellidos: usuario.apellidos,
+        numeroDocumento: usuario.numeroDocumento,
+        juntaId: null,
+        roles,
+        permissions,
+        esModificador,
+        requisitoTipoIds: usuario.requisitosComoModificador?.map((r) => r.id) ?? [],
+      },
+    };
   }
 }

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../../domain/services/audit.service';
+import { LimitesService } from '../../infrastructure/limits/limites.service';
 import * as bcrypt from 'bcrypt';
 import { RolNombre } from '@prisma/client';
 import type { CreateUserDto } from './dto/create-user.dto';
@@ -19,6 +20,7 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly limites: LimitesService,
   ) {}
 
   /** Verifica que SECRETARIA y TESORERA sean únicos por junta. Excluye usuarioId si se proporciona. */
@@ -150,6 +152,8 @@ export class UsersService {
   }
 
   async crear(dto: CreateUserDto, juntaId: string, creadoPorId: string) {
+    await this.limites.validarCrearUsuario(juntaId);
+
     const existente = await this.prisma.usuario.findUnique({
       where: {
         juntaId_numeroDocumento: { juntaId, numeroDocumento: dto.numeroDocumento },

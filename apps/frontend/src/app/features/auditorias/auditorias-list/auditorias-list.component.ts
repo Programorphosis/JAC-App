@@ -13,6 +13,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { FormsModule } from '@angular/forms';
 import { AuditoriasService, AuditoriaItem } from '../services/auditorias.service';
 import { FormatearNombrePipe } from '../../../shared/pipes/formatear-nombre.pipe';
+import { FormatearFechaHoraPipe } from '../../../shared/pipes/formatear-fecha-hora.pipe';
 
 type SortBy = 'fecha' | 'accion' | 'entidad';
 
@@ -31,6 +32,7 @@ type SortBy = 'fecha' | 'accion' | 'entidad';
     FormsModule,
     ReactiveFormsModule,
     FormatearNombrePipe,
+    FormatearFechaHoraPipe,
   ],
   templateUrl: './auditorias-list.component.html',
   styleUrl: './auditorias-list.component.scss',
@@ -115,11 +117,6 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   iconoOrden(campo: SortBy): string {
     if (this.sortBy !== campo) return 'unfold_more';
     return this.sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward';
-  }
-
-  formatearFecha(s: string): string {
-    const d = new Date(s);
-    return d.toLocaleString('es-CO');
   }
 
   resumirMetadata(m: Record<string, unknown>): string {

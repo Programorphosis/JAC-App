@@ -1,0 +1,66 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>{{ junta.nombre }}</mat-card-title>
+    <mat-card-subtitle>NIT: {{ junta.nit || '-' }}</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <p>Monto carta: {{ junta.montoCarta != null ? (junta.montoCarta | number) + ' COP' : '-' }}</p>
+    <p>Fecha creación: {{ junta.fechaCreacion | formatearFecha }}</p>
+    @if (junta.telefono || junta.email || junta.direccion || junta.ciudad || junta.departamento) {
+      <p>Contacto: {{ junta.telefono || '-' }} · {{ junta.email || '-' }}</p>
+      <p>Ubicación: {{ junta.direccion || '-' }} {{ junta.ciudad ? ', ' + junta.ciudad : '' }} {{ junta.departamento ? '(' + junta.departamento + ')' : '' }}</p>
+    }
+    @if (junta.enMantenimiento) {
+      <p class="text-amber-700 font-medium">En mantenimiento</p>
+    }
+    <p>
+      Estado:
+      <span [class]="junta.activo ? 'text-green-700 font-medium' : 'text-gray-600'">
+        {{ junta.activo ? 'Activa' : 'Inactiva' }}
+      </span>
+      @if (junta.fechaBaja) {
+        <span class="text-gray-600"> (baja: {{ junta.fechaBaja | formatearFecha }})</span>
+      }
+    </p>
+    <p>Usuarios: {{ junta._count.usuarios }}</p>
+    <p>Pagos: {{ junta._count.pagos }}</p>
+    <p>Cartas: {{ junta._count.cartas }}</p>
+    @if (alertas.length > 0) {
+      <mat-card class="mt-4 border-l-4 border-amber-500">
+        <mat-card-header>
+          <mat-card-title>Alertas de límites</mat-card-title>
+          <mat-card-subtitle>Uso cercano al límite del plan</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="space-y-2">
+            @for (a of alertas; track a.tipo) {
+              <li class="flex items-center gap-2">
+                <span class="flex-1 text-sm">{{ a.mensaje }}</span>
+                <span [class]="a.porcentaje >= 100 ? 'text-red-600 font-medium' : 'text-amber-700'">
+                  {{ a.porcentaje }}%
+                </span>
+                <div class="w-24 h-2 bg-gray-200 rounded overflow-hidden">
+                  <div
+                    class="h-full rounded transition-all"
+                    [ngClass]="colorProgreso(a.porcentaje)"
+                    [style.width.%]="barWidth(a.porcentaje)"
+                  ></div>
+                </div>
+              </li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <div class="flex gap-2 mt-4">
+      <button mat-raised-button color="primary" (click)="editar.emit()">Editar</button>
+      <button mat-raised-button [color]="junta.activo ? 'warn' : 'primary'" (click)="toggleActivo.emit()">
+        {{ junta.activo ? 'Desactivar' : 'Activar' }}
+      </button>
+      @if (junta.activo) {
+        <button mat-raised-button color="warn" (click)="darBaja.emit()">Dar de baja</button>
+      }
+    </div>
+  </mat-card-content>
+</mat-card>

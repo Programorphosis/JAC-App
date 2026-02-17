@@ -16,6 +16,7 @@ import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AppCanDirective } from '../../../core/auth/app-can.directive';
 import { FormatearNombrePipe } from '../../../shared/pipes/formatear-nombre.pipe';
+import { FormatearFechaLargaPipe } from '../../../shared/pipes/formatear-fecha-larga.pipe';
 
 const TAB_DEUDA = 0;
 const TAB_HISTORIAL = 1;
@@ -40,6 +41,7 @@ const TAB_DOCUMENTOS = 4;
     UsuarioDocumentosComponent,
     AppCanDirective,
     FormatearNombrePipe,
+    FormatearFechaLargaPipe,
   ],
   templateUrl: './usuario-detail.component.html',
   styleUrl: './usuario-detail.component.scss',
@@ -153,16 +155,6 @@ export class UsuarioDetailComponent implements OnInit {
 
   roles(): string {
     return (this.usuario?.roles || []).join(', ');
-  }
-
-  /** Formato: 01 de enero de 2026 */
-  formatearFecha(f: string): string {
-    if (!f) return '—';
-    const d = new Date(f);
-    const dia = d.getDate().toString().padStart(2, '0');
-    const mes = d.toLocaleDateString('es-CO', { month: 'long' });
-    const anio = d.getFullYear();
-    return `${dia} de ${mes} de ${anio}`;
   }
 
   /** Etiqueta legible para cada rol. */

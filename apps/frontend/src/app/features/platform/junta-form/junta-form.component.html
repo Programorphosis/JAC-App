@@ -19,6 +19,52 @@
         <input matInput formControlName="montoCarta" type="number" />
       </mat-form-field>
 
+      @if (!modoEdicion && planes.length > 0) {
+        <h3 class="text-lg font-medium">Suscripción</h3>
+        <mat-form-field appearance="outline">
+          <mat-label>Plan</mat-label>
+          <mat-select formControlName="planId">
+            <mat-option value="">Por defecto (Básico)</mat-option>
+            @for (p of planes; track p.id) {
+              <mat-option [value]="p.id">
+                {{ p.nombre }} – {{ p.precioMensual | number }} COP/mes
+                @if (p.diasPrueba > 0) {
+                  <span class="text-gray-500">({{ p.diasPrueba }} días prueba)</span>
+                }
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Días de prueba (opcional)</mat-label>
+          <input matInput formControlName="diasPrueba" type="number" min="0" placeholder="Usar del plan" />
+        </mat-form-field>
+      }
+
+      <mat-form-field appearance="outline">
+        <mat-label>Teléfono junta</mat-label>
+        <input matInput formControlName="telefono" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Email junta</mat-label>
+        <input matInput formControlName="email" type="email" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Dirección</mat-label>
+        <input matInput formControlName="direccion" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Ciudad</mat-label>
+        <input matInput formControlName="ciudad" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Departamento</mat-label>
+        <input matInput formControlName="departamento" />
+      </mat-form-field>
+      @if (modoEdicion) {
+        <mat-slide-toggle formControlName="enMantenimiento">En mantenimiento</mat-slide-toggle>
+      }
+
       @if (!modoEdicion) {
         <h3 class="text-lg font-medium">Admin inicial</h3>
         <mat-form-field appearance="outline">

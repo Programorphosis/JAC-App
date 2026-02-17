@@ -39,6 +39,50 @@
     </div>
   }
 
+  <!-- Alerta facturas pendientes (admin, tesorera, secretaria) -->
+  @if (auth.can(auth.permissions.PAGOS_VER) && facturasPendientes() > 0) {
+    <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <p class="font-semibold text-amber-800">Facturas pendientes de pago</p>
+          <p class="text-sm text-amber-700 mt-1">
+            Su junta tiene {{ facturasPendientes() }} factura(s) pendiente(s) de pago a la plataforma.
+          </p>
+        </div>
+        <a
+          mat-raised-button
+          color="primary"
+          routerLink="/facturas-plataforma"
+          class="shrink-0"
+        >
+          Ver facturas
+        </a>
+      </div>
+    </div>
+  }
+
+  <!-- Avisos de plataforma -->
+  @if (avisos().length > 0) {
+    <section class="mb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Avisos</h2>
+      <div class="space-y-3">
+        @for (a of avisos(); track a.id) {
+          <mat-card class="border border-gray-100">
+            <mat-card-header class="pb-2">
+              <mat-card-title class="!text-base !font-medium">{{ a.titulo }}</mat-card-title>
+              <mat-card-subtitle class="!text-xs">
+                {{ a.fechaPublicacion | date:'medium' }}
+              </mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content class="pt-0">
+              <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ a.contenido }}</p>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    </section>
+  }
+
   <!-- Accesos directos -->
   <section>
     <h2 class="text-lg font-semibold text-gray-800 mb-4">Accesos directos</h2>

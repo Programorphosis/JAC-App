@@ -220,15 +220,15 @@
 
 ### Backend
 
-- [ ] `POST /platform/impersonar/:juntaId` – genera JWT temporal con juntaId de esa junta, rol limitado (ej. solo lectura)
-- [ ] `POST /platform/salir-impersonacion` – volver al token normal
-- [ ] Auditoría: registrar IMPERSONACION_INICIO, IMPERSONACION_FIN
+- [x] `POST /platform/impersonar/:juntaId` – genera JWT temporal con juntaId de esa junta, rol limitado (solo lectura)
+- [x] `POST /platform/salir-impersonacion` – volver al token normal
+- [x] Auditoría: registrar IMPERSONACION_INICIO, IMPERSONACION_FIN
 
 ### Frontend
 
-- [ ] Botón "Ver como junta" en detalle junta
-- [ ] Banner visible cuando está en modo impersonación
-- [ ] Botón "Salir de impersonación"
+- [x] Botón "Ver como junta" en detalle junta
+- [x] Banner visible cuando está en modo impersonación
+- [x] Botón "Salir de impersonación"
 
 ### Criterio de cierre
 
@@ -242,18 +242,20 @@
 
 ### Schema
 
-- [ ] `AvisoPlataforma` (id, titulo, contenido, fechaPublicacion, activo) – opcional
-- [ ] Checklist: puede ser metadata en Junta o tabla separada
+- [x] `AvisoPlataforma` (id, titulo, contenido, fechaPublicacion, activo)
+- [ ] Checklist: puede ser metadata en Junta o tabla separada (opcional)
 
 ### Backend
 
-- [ ] `GET /platform/avisos` – avisos activos
+- [x] `GET /platform/avisos` – avisos activos
+- [x] `POST /platform/avisos` – crear aviso
 - [ ] `GET /platform/juntas/:id/checklist` – estado checklist (opcional)
 - [ ] `PATCH /platform/juntas/:id/checklist` – marcar paso completado (opcional)
 
 ### Frontend
 
-- [ ] Dashboard: sección Avisos
+- [x] Dashboard: sección Avisos
+- [x] Diálogo crear aviso
 - [ ] Detalle junta: checklist de activación (si se implementa)
 
 ### Criterio de cierre
@@ -271,15 +273,15 @@
 - [ ] 2FA para usuarios PLATFORM_ADMIN (TOTP)
 - [ ] `GET /platform/sesiones` – sesiones activas del platform admin
 - [ ] `DELETE /platform/sesiones/:id` – revocar sesión
-- [ ] `GET /platform/reportes/juntas` – export CSV/Excel
-- [ ] `GET /platform/reportes/facturacion` – export
-- [ ] `GET /platform/reportes/uso` – export
+- [x] `GET /platform/reportes/juntas` – export CSV
+- [x] `GET /platform/reportes/facturacion` – export CSV
+- [x] `GET /platform/reportes/uso` – export CSV
 
 ### Frontend
 
 - [ ] Configuración 2FA en perfil platform admin
 - [ ] Vista Sesiones activas
-- [ ] Botones exportar reportes (juntas, facturación, uso)
+- [x] Botones exportar reportes (juntas, facturación, uso) en dashboard
 
 ### Criterio de cierre
 
@@ -324,3 +326,4 @@ PA-3 ──→ PA-10 (Reportes export)
 - `PLAN_ADMINISTRADOR_PLATAFORMA.md` – Plan completo
 - `flujoBootstrapYOnboarding.md` – Bootstrap y creación juntas
 - `ROADMAP.md` – Roadmap general del sistema
+- `WOMPI_POR_JUNTA_ROADMAP.md` – Roadmap exclusivo: credenciales Wompi por junta (cada junta recibe su dinero)

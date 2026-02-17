@@ -1,0 +1,42 @@
+@if (resumen !== null) {
+  <mat-card class="mt-4">
+    <mat-card-header>
+      <mat-card-title>Resumen</mat-card-title>
+      <mat-card-subtitle>Totales y actividad reciente</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+        <div>
+          <p class="text-2xl font-bold text-gray-800">{{ resumen.totalUsuarios }}</p>
+          <p class="text-sm text-gray-600">Usuarios</p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-gray-800">{{ resumen.totalPagos }}</p>
+          <p class="text-sm text-gray-600">Pagos totales</p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-gray-800">{{ resumen.totalCartas }}</p>
+          <p class="text-sm text-gray-600">Cartas emitidas</p>
+        </div>
+      </div>
+      @if (resumen.pagosRecientes.length > 0) {
+        <p class="text-sm font-medium text-gray-700 mb-2">Pagos recientes</p>
+        <ul class="text-sm text-gray-600 space-y-1">
+          @for (p of resumen.pagosRecientes; track p.id) {
+            <li>{{ p.usuario.nombres }} {{ p.usuario.apellidos }}: {{ p.monto | number }} COP ({{ p.fechaPago | formatearFechaHora }})</li>
+          }
+        </ul>
+      }
+      @if (resumen.cartasRecientes.length > 0) {
+        <p class="text-sm font-medium text-gray-700 mt-3 mb-2">Cartas recientes</p>
+        <ul class="text-sm text-gray-600 space-y-1">
+          @for (c of resumen.cartasRecientes; track c.id) {
+            <li>#{{ c.consecutivo ?? '-' }} {{ c.anio }} – {{ c.usuario.nombres }} {{ c.usuario.apellidos }}</li>
+          }
+        </ul>
+      }
+    </mat-card-content>
+  </mat-card>
+} @else if (loading) {
+  <p class="mt-4 text-gray-600 text-sm">Cargando resumen...</p>
+}
