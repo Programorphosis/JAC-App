@@ -11,17 +11,17 @@
         <p class="text-center">Verificando pago...</p>
       } @else if (resultado) {
         @if (resultado.registrado) {
-          <p class="text-green-700 font-semibold">Pago registrado correctamente.</p>
+          <p class="text-green-700 font-semibold">{{ resultado.mensaje }}</p>
           @if (resultado.consecutivo) {
-            <p>Consecutivo: {{ resultado.consecutivo }}</p>
+            <p class="text-gray-600">Consecutivo: {{ resultado.consecutivo }}</p>
           }
           @if (resultado.monto) {
-            <p>Monto: {{ formatearMoneda(resultado.monto) }}</p>
+            <p class="text-gray-600">Monto: {{ formatearMoneda(resultado.monto) }}</p>
           }
         } @else {
-          <p class="text-amber-700">El pago no pudo ser registrado.</p>
+          <p class="text-amber-700 font-medium">{{ resultado.mensaje }}</p>
           @if (resultado.status) {
-            <p>Estado en Wompi: {{ resultado.status }}</p>
+            <p class="text-sm text-gray-600 mt-1">Estado en Wompi: {{ resultado.status }}</p>
           }
         }
         <button mat-raised-button color="primary" (click)="volver()" class="mt-4">

@@ -37,6 +37,29 @@ export class PagosController {
   ) {}
 
   /**
+   * GET /pagos/mi-historial – Historial de pagos del usuario actual (solo propio).
+   * AFILIADO: único acceso a listar pagos (solo ver, en Mi cuenta).
+   */
+  @Get('mi-historial')
+  @UseGuards(RolesGuard)
+  @Roles(RolNombre.AFILIADO)
+  async miHistorial(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Request() req?: { user: JwtUser },
+  ) {
+    const juntaId = req!.user.juntaId!;
+    const usuarioId = req!.user.id!;
+    const p = page ? parseInt(page, 10) : 1;
+    const l = limit ? parseInt(limit, 10) : 20;
+    return this.pagos.listar(juntaId, p, l, {
+      usuarioId,
+      sortBy: 'fechaPago',
+      sortOrder: 'desc',
+    });
+  }
+
+  /**
    * GET /pagos – Listar pagos de la junta. TESORERA, ADMIN, SECRETARIA.
    */
   @Get()
@@ -209,19 +232,30 @@ export class PagosController {
   }
 
   /**
-   * GET /pagos/online/verificar?transaction_id=xxx
+   * GET /pagos/online/verificar?transaction_id=xxx&junta_id=yyy
    * Rescate al retorno: consulta Wompi y registra si APPROVED.
+   * WOMPI_POR_JUNTA_DOC §4.3: junta_id obligatorio para credenciales.
    * TESORERA, AFILIADO, SECRETARIA (para verificar su propio pago al retornar).
    */
   @Get('online/verificar')
   @UseGuards(RolesGuard)
   @Roles(RolNombre.TESORERA, RolNombre.AFILIADO, RolNombre.SECRETARIA)
-  async verificarPagoOnline(@Query('transaction_id') transactionId: string) {
+  async verificarPagoOnline(
+    @Query('transaction_id') transactionId: string,
+    @Query('junta_id') juntaId: string,
+    @Request() req: { user: JwtUser },
+  ) {
     if (!transactionId?.trim()) {
       throw new BadRequestException('transaction_id es requerido');
     }
+    if (!juntaId?.trim()) {
+      throw new BadRequestException('junta_id es requerido');
+    }
+    if (req.user.juntaId !== juntaId) {
+      throw new BadRequestException('junta_id no coincide con su junta');
+    }
 
-    const result = await this.pagos.consultarYRegistrarSiAprobado(transactionId);
+    const result = await this.pagos.consultarYRegistrarSiAprobado(transactionId, juntaId);
     return {
       data: result,
       meta: { timestamp: new Date().toISOString() },

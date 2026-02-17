@@ -13,8 +13,8 @@
 | ✔ Planeación        | Funcional y arquitectónica cerrada |
 | ✔ Modelo ER         | Definido y alineado a SCHEMA BASE v1 |
 | ✔ Principios        | Auditoría, consecutivos, multi-tenant |
-| ⏳ Backend          | En fase estructural |
-| ⏳ Prisma           | Congelado estructuralmente |
+| ✔ Backend           | Fases 1-8 implementadas; pagos, cartas, requisitos, facturación, platform admin |
+| ✔ Prisma            | Schema estable; migraciones aplicadas |
 
 El roadmap está ordenado por dependencias. No se debe avanzar de fase sin confirmación explícita (según chatmode del proyecto) y una evaluacion minuciosa de lo creado con el fin de evitar el maximo posible de retrabajo o posibles errores o incongruencias con el modelo de negocio o los fines de el projecto, esta evaluacion como el desarrollo debe basarse en la documentacion.
 
@@ -57,9 +57,9 @@ El roadmap está ordenado por dependencias. No se debe avanzar de fase sin confi
 
 ### 0.5.1 Estructura del Monorepo
 
-- [ ] Crear estructura de carpetas (`apps/backend`, `apps/frontend`, `docker/`)
-- [ ] Inicializar workspace root con `package.json`
-- [ ] Configurar `.gitignore` (excluir `.env`, `node_modules`, `dist`, etc.)
+- [x] Crear estructura de carpetas (`apps/backend`, `apps/frontend`, `docker/`)
+- [x] Inicializar workspace root con `package.json`
+- [x] Configurar `.gitignore` (excluir `.env`, `node_modules`, `dist`, etc.)
 
 ### 0.5.2 Configuración Docker (Desarrollo Local)
 
@@ -77,29 +77,29 @@ El roadmap está ordenado por dependencias. No se debe avanzar de fase sin confi
 
 ### 0.5.4 Variables de Entorno
 
-- [ ] Crear `.env.example` para backend con todas las variables necesarias
-- [ ] Crear `.env.example` para frontend
+- [x] Crear `.env.example` para backend con todas las variables necesarias
+- [x] Crear `.env.example` para frontend
 - [ ] Crear `.env.development`, `.env.staging`, `.env.production` (sin valores sensibles)
 - [ ] Documentar qué variables son secretas y cómo gestionarlas
 
 ### 0.5.5 Inicialización de Proyectos
 
-- [ ] Inicializar proyecto NestJS en `apps/backend`
-- [ ] Inicializar proyecto Angular en `apps/frontend`
-- [ ] Configurar Prisma en backend
-- [ ] Configurar Angular Material + Tailwind en frontend
-- [ ] Configurar scripts de build y start en ambos proyectos
+- [x] Inicializar proyecto NestJS en `apps/backend`
+- [x] Inicializar proyecto Angular en `apps/frontend`
+- [x] Configurar Prisma en backend
+- [x] Configurar Angular Material + Tailwind en frontend
+- [x] Configurar scripts de build y start en ambos proyectos
 
 ### 0.5.6 Base de Datos
 
-- [ ] Configurar conexión PostgreSQL desde Docker
+- [x] Configurar conexión PostgreSQL desde Docker
 - [ ] Crear script de inicialización de base de datos
-- [ ] Configurar migraciones de Prisma
+- [x] Configurar migraciones de Prisma
 - [ ] Configurar script de backup automático
 
 ### 0.5.7 Health Checks y Logs
 
-- [ ] Implementar endpoint `/health` en backend
+- [x] Implementar endpoint `/health` en backend
 - [ ] Configurar health checks en docker-compose
 - [ ] Configurar logs por servicio
 - [ ] Configurar rotación de logs (opcional)
@@ -112,12 +112,12 @@ El roadmap está ordenado por dependencias. No se debe avanzar de fase sin confi
 
 ### 0.5.9 Bootstrap y Platform Admin
 
-- [ ] Migración: roles base (PLATFORM_ADMIN, ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, AFILIADO); `Usuario.juntaId` opcional
-- [ ] Servicio `JuntaService.createJunta(...)` reutilizable (Application layer)
-- [ ] Endpoint `POST /api/bootstrap` (crea platform admin + primera junta; solo si no hay juntas)
-- [ ] Endpoints protegidos: GET/POST/PATCH `/api/platform/juntas`, GET `/api/platform/juntas/:id`
-- [ ] Guard: rutas `/api/platform/*` solo con rol PLATFORM_ADMIN
-- [ ] Generación de contraseñas temporales seguras; auditoría de creación/edición de juntas
+- [x] Migración: roles base (PLATFORM_ADMIN, ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, AFILIADO); `Usuario.juntaId` opcional
+- [x] Servicio `JuntaService.createJunta(...)` reutilizable (Application layer)
+- [x] Endpoint `POST /api/bootstrap` (crea platform admin + primera junta; solo si no hay juntas)
+- [x] Endpoints protegidos: GET/POST/PATCH/DELETE `/api/platform/juntas`, GET `/api/platform/juntas/:id`
+- [x] Guard: rutas `/api/platform/*` solo con rol PLATFORM_ADMIN
+- [x] Generación de contraseñas temporales seguras; auditoría de creación/edición de juntas
 - [ ] (Opcional) Script CLI `seed:create-junta` como respaldo
 
 **Criterio de cierre:** Monorepo estructurado, Docker funcionando en desarrollo local, base de datos PostgreSQL conectada, proyectos backend y frontend inicializados. Bootstrap crea platform admin y primera junta; endpoints de plataforma protegidos.
@@ -152,13 +152,13 @@ El roadmap está ordenado por dependencias. No se debe avanzar de fase sin confi
 
 ### 1.3 Bootstrap y Platform Admin
 
-- [ ] Migración: roles base (incl. PLATFORM_ADMIN); `Usuario.juntaId` opcional.
-- [ ] Servicio `JuntaService.createJunta(...)` en Application layer (reutilizable).
-- [ ] Endpoint `POST /api/bootstrap` (crea platform admin + primera junta; solo si no hay juntas).
-- [ ] Endpoints `/api/platform/juntas`: GET (listar), GET/:id (detalle), POST (crear), PATCH/:id (edición básica).
-- [ ] Guard para PLATFORM_ADMIN en rutas de plataforma.
-- [ ] Generación de contraseñas temporales seguras; auditoría.
-- [ ] **Criterio:** Bootstrap funciona; creación de nuevas juntas vía API protegida por platform admin.
+- [x] Migración: roles base (incl. PLATFORM_ADMIN); `Usuario.juntaId` opcional.
+- [x] Servicio `JuntaService.createJunta(...)` en Application layer (reutilizable).
+- [x] Endpoint `POST /api/bootstrap` (crea platform admin + primera junta; solo si no hay juntas).
+- [x] Endpoints `/api/platform/juntas`: GET (listar), GET/:id (detalle), POST (crear), PATCH/:id (edición básica).
+- [x] Guard para PLATFORM_ADMIN en rutas de plataforma.
+- [x] Generación de contraseñas temporales seguras; auditoría.
+- [x] **Criterio:** Bootstrap funciona; creación de nuevas juntas vía API protegida por platform admin.
 
 **Referencia:** `flujoBootstrapYOnboarding.md`.
 
@@ -180,11 +180,11 @@ Orden recomendado:
 
 **Entregables por servicio:**
 
-- [ ] **DebtService:** `calculateUserDebt(usuarioId, fechaCorte?)`; sin escritura; errores explícitos si falta historial/tarifa.
-- [ ] **AuditService:** `registerEvent({ juntaId, entidad, entidadId, accion, metadata, ejecutadoPorId })`.
-- [ ] **PaymentService:** `registerJuntaPayment(...)`; recibe solo método y referencia externa; monto = deuda calculada dentro de transacción; `referenciaExterna` para idempotencia.
-- [ ] **RequisitoService:** `updateEstadoRequisito`, `updateObligacionRequisito`, `applyMonthlyCutoff(juntaId?)`; historial en toda modificación.
-- [ ] **LetterService:** `emitLetter(cartaId, emitidaPorId)`; validaciones dentro de transacción; consecutivo anual; generación `qrToken` y PDF.
+- [x] **DebtService:** `calculateUserDebt(usuarioId, fechaCorte?)`; sin escritura; errores explícitos si falta historial/tarifa.
+- [x] **AuditService:** `registerEvent({ juntaId, entidad, entidadId, accion, metadata, ejecutadoPorId })`.
+- [x] **PaymentService:** `registerJuntaPayment(...)`; recibe solo método y referencia externa; monto = deuda calculada dentro de transacción; `referenciaExterna` para idempotencia.
+- [x] **RequisitoService:** `updateEstadoRequisito`, `updateObligacionRequisito`, `applyMonthlyCutoff(juntaId?)`; historial en toda modificación.
+- [x] **LetterService:** `emitLetter(cartaId, emitidaPorId)`; validaciones dentro de transacción; consecutivo anual; generación `qrToken` y PDF.
 
 **Reglas técnicas:**
 
@@ -202,19 +202,19 @@ Orden recomendado:
 
 ### 3.1 Autenticación y autorización
 
-- [ ] JWT con `userId`, `juntaId` (null para Platform Admin), `roles` (nunca `juntaId` desde frontend).
+- [x] JWT con `userId`, `juntaId` (null para Platform Admin), `roles` (nunca `juntaId` desde frontend).
 - [ ] Refresh token rotativo; revocación en DB si se define.
-- [ ] Guards por rol: PLATFORM_ADMIN (solo /api/platform/*), ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, AFILIADO (operaciones acotadas por junta).
-- [ ] Middleware: extraer `juntaId` del token; operaciones de junta exigen juntaId; platform admin solo en rutas de plataforma.
+- [x] Guards por rol: PLATFORM_ADMIN (solo /api/platform/*), ADMIN, SECRETARIA, TESORERA, RECEPTOR_AGUA, AFILIADO (operaciones acotadas por junta).
+- [x] Middleware: extraer `juntaId` del token; operaciones de junta exigen juntaId; platform admin solo en rutas de plataforma.
 
 **Referencias:** `00_ARQUITECTURA_RECTOR copy.md`, `investigacionImplementacionDeSeguridadDeLaApp.md`.
 
 ### 3.2 Módulos Application (orden sugerido)
 
-- [ ] **users:** CRUD usuarios (solo ADMIN/SECRETARIA); carga inicial; filtro por `juntaId`.
-- [ ] **historial_laboral:** Alta de registros (sin editar históricos); usado por DebtService.
-- [ ] **tarifas:** Alta/consulta tarifas versionadas por junta y fecha.
-- [ ] **auth:** Login, refresh, permisos.
+- [x] **users:** CRUD usuarios (solo ADMIN/SECRETARIA); carga inicial; filtro por `juntaId`.
+- [x] **historial_laboral:** Alta de registros (sin editar históricos); usado por DebtService.
+- [x] **tarifas:** Alta/consulta tarifas versionadas por junta y fecha.
+- [x] **auth:** Login, refresh, permisos.
 
 Cada módulo: DTO → validación → llamada a Domain/Prisma → auditoría cuando corresponda.
 
@@ -239,16 +239,16 @@ Cada módulo: DTO → validación → llamada a Domain/Prisma → auditoría cua
 
 ### 5.1 Pago efectivo
 
-- [ ] `POST /pagos` (tipo JUNTA, método EFECTIVO): body con `usuarioId`; backend calcula deuda y exige monto exacto; transacción serializable; auditoría.
-- [ ] Validación: monto = deuda calculada **dentro** de la transacción.
+- [x] `POST /pagos` (tipo JUNTA, método EFECTIVO): body con `usuarioId`; backend calcula deuda y exige monto exacto; transacción serializable; auditoría.
+- [x] Validación: monto = deuda calculada **dentro** de la transacción.
 
 ### 5.2 Pago online (Wompi)
 
-- [ ] `POST /pagos/online/intencion`: recalcular deuda; crear intención en Wompi con monto exacto; guardar referencia temporal (pendiente).
-- [ ] Webhook `POST /webhooks/wompi`: verificar firma; estado APPROVED; monto exacto; llamar **una función única** `registerPaymentFromProvider(transactionData)` (idempotencia por `referenciaExterna`).
-- [ ] Endpoint de retorno (redirect): al volver el usuario, consultar transacción en Wompi y, si APPROVED, llamar misma lógica de registro (rescate si falló webhook).
-- [ ] Job de reconciliación nocturna: transacciones APPROVED del día en Wompi vs base; registrar faltantes.
-- [ ] Transacción serializable + unique en `referenciaExterna` para evitar doble pago y condición de carrera.
+- [x] `POST /pagos/online/intencion`: recalcular deuda; crear intención en Wompi con monto exacto; guardar referencia temporal (pendiente).
+- [x] Webhook `POST /webhooks/wompi`: verificar firma; estado APPROVED; monto exacto; llamar **una función única** `registerPaymentFromProvider(transactionData)` (idempotencia por `referenciaExterna`).
+- [x] Endpoint de retorno (redirect): al volver el usuario, consultar transacción en Wompi y, si APPROVED, llamar misma lógica de registro (rescate si falló webhook).
+- [x] Job de reconciliación nocturna: transacciones APPROVED del día en Wompi vs base; registrar faltantes.
+- [x] Transacción serializable + unique en `referenciaExterna` para evitar doble pago y condición de carrera.
 
 **Referencias:** `flujoDePagos.md`, `flujoDePagosCasoFallaWebhook.md`, `flujoDePagosCondicionDeCarrera.md`.
 
@@ -311,41 +311,41 @@ Cada módulo: DTO → validación → llamada a Domain/Prisma → auditoría cua
 
 ### 9.0 Cimiento del Frontend Angular
 
-- [ ] Proyecto Angular en `apps/frontend`.
-- [ ] Angular Material + Tailwind configurados.
-- [ ] AuthService, AuthGuard, JWT Interceptor, login funcional.
-- [ ] Layout base (toolbar, sidenav según rol).
-- [ ] Variables de entorno: `apiUrl`.
+- [x] Proyecto Angular en `apps/frontend`.
+- [x] Angular Material + Tailwind configurados.
+- [x] AuthService, AuthGuard, JWT Interceptor, login funcional.
+- [x] Layout base (toolbar, sidenav según rol).
+- [x] Variables de entorno: `apiUrl`.
 
 ### 9.1 Panel de Platform Admin (prioritario para multi-tenant)
 
-- [ ] Ruta `/platform` en la misma app Angular; guard que exige rol PLATFORM_ADMIN.
-- [ ] Login: mismo auth; si usuario tiene PLATFORM_ADMIN y juntaId null, puede acceder a `/platform`.
-- [ ] Listado de juntas: tabla Material (nombre, NIT, monto carta, fecha creación); acciones Ver / Editar.
-- [ ] Crear junta: formulario (nombre, NIT, monto carta, datos admin inicial); POST /api/platform/juntas; mostrar credenciales temporales al crear.
-- [ ] Detalle/edición de junta: ver y editar datos básicos (nombre, NIT, monto carta).
-- [ ] (Opcional) Resumen por junta: cifras básicas (usuarios, pagos recientes).
+- [x] Ruta `/platform` en la misma app Angular; guard que exige rol PLATFORM_ADMIN.
+- [x] Login: mismo auth; si usuario tiene PLATFORM_ADMIN y juntaId null, puede acceder a `/platform`.
+- [x] Listado de juntas: tabla Material (nombre, NIT, monto carta, fecha creación); acciones Ver / Editar.
+- [x] Crear junta: formulario (nombre, NIT, monto carta, datos admin inicial); POST /api/platform/juntas; mostrar credenciales temporales al crear.
+- [x] Detalle/edición de junta: ver y editar datos básicos (nombre, NIT, monto carta).
+- [x] (Opcional) Resumen por junta: cifras básicas (usuarios, pagos recientes).
 
 ### 9.2 Módulo Usuarios y Deuda
 
-- [ ] Listado usuarios, crear/editar, historial laboral, consulta deuda, tarifas.
+- [x] Listado usuarios, crear/editar, historial laboral, consulta deuda, tarifas.
 
 ### 9.3 Módulo Pagos
 
-- [ ] Registro pago efectivo JUNTA/CARTA; intención pago online; verificación retorno.
+- [x] Registro pago efectivo JUNTA/CARTA; intención pago online; verificación retorno.
 
 ### 9.4 Requisitos Adicionales
 
-- [ ] CRUD RequisitoTipo; cambio estado/obligación por usuario.
+- [x] CRUD RequisitoTipo; cambio estado/obligación por usuario.
 
 ### 9.5 Módulo Cartas y Documentos
 
-- [ ] Estado general, subida documentos, solicitar carta, validar carta, descargar PDF.
+- [x] Estado general, subida documentos, solicitar carta, validar carta, descargar PDF.
 
 ### 9.6 Reglas transversales
 
-- [ ] Todas las llamadas con JWT; nunca enviar `juntaId` en body; backend impone junta desde token.
-- [ ] No enviar montos de pago desde frontend para JUNTA; solo disparar intención o registro asistido.
+- [x] Todas las llamadas con JWT; nunca enviar `juntaId` en body; backend impone junta desde token.
+- [x] No enviar montos de pago desde frontend para JUNTA; solo disparar intención o registro asistido.
 
 ---
 
@@ -353,9 +353,9 @@ Cada módulo: DTO → validación → llamada a Domain/Prisma → auditoría cua
 
 **Objetivo:** Consulta deuda, pago online, solicitud de carta (flujo digital). Misma app Angular.
 
-- [ ] Consulta deuda propia; botón “Pagar ahora” que llama a intención de pago (monto fijado por backend).
-- [ ] Subida de documento (recibo requisito, ej. agua); solicitud de carta; seguimiento estado.
-- [ ] Mismo backend que flujo presencial; solo cambia quién ejecuta las acciones (usuario vs personal).
+- [x] Consulta deuda propia; botón “Pagar ahora” que llama a intención de pago (monto fijado por backend).
+- [x] Subida de documento (recibo requisito, ej. agua); solicitud de carta; seguimiento estado.
+- [x] Mismo backend que flujo presencial; solo cambia quién ejecuta las acciones (usuario vs personal).
 
 **Referencia:** `flujoSolicitudCarta.md`, `flujoDePagos.md`, `ARQUITECTURA_FRONTEND_ANGULAR.md`.
 
@@ -365,10 +365,10 @@ Cada módulo: DTO → validación → llamada a Domain/Prisma → auditoría cua
 
 **Objetivo:** Pagos online robustos y reconciliación.
 
-- [ ] Flujo completo: intención → redirect Wompi → retorno → verificación en API Wompi → registro con `registerPaymentFromProvider`.
-- [ ] Webhook idempotente; reintentos manejados.
-- [ ] Job de reconciliación (diario): comparar APPROVED en Wompi vs `pagos`; insertar faltantes con misma función de registro.
-- [ ] Pruebas: doble intención, webhook duplicado, fallo de webhook + rescate por retorno.
+- [x] Flujo completo: intención → redirect Wompi → retorno → verificación en API Wompi → registro con `registerPaymentFromProvider`.
+- [x] Webhook idempotente; reintentos manejados.
+- [x] Job de reconciliación (diario): comparar APPROVED en Wompi vs `pagos`; insertar faltantes con misma función de registro.
+- [x] Pruebas: doble intención, webhook duplicado, fallo de webhook + rescate por retorno.
 
 **Referencias:** `flujoDePagosCasoFallaWebhook.md`, `flujoDePagosCondicionDeCarrera.md`.
 

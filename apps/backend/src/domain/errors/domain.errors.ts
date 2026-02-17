@@ -181,6 +181,17 @@ export class IntencionPagoNoEncontradaError extends DomainError {
   }
 }
 
+/** Junta sin credenciales Wompi configuradas. WOMPI_POR_JUNTA_DOC §8 */
+export class WompiNoConfiguradoError extends DomainError {
+  constructor(juntaId: string) {
+    super(
+      'Tu junta no tiene configurados los pagos online. Comunícate con el administrador de tu junta para más información.',
+      'WOMPI_NO_CONFIGURADO',
+    );
+    this.name = 'WompiNoConfiguradoError';
+  }
+}
+
 export class BootstrapYaEjecutadoError extends DomainError {
   constructor() {
     super('Bootstrap ya fue ejecutado. No se puede repetir.', 'BOOTSTRAP_YA_EJECUTADO');

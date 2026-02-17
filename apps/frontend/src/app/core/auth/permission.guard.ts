@@ -24,3 +24,4 @@ export const requisitosGuard = requirePermission(PERMISSIONS.REQUISITOS_VER);
 export const usuariosGuard = requirePermission(PERMISSIONS.USUARIOS_VER);
 export const crearUsuarioGuard = requirePermission(PERMISSIONS.USUARIOS_CREAR);
 export const auditoriasGuard = requirePermission(PERMISSIONS.AUDITORIAS_VER);
+export const configuracionGuard = requirePermission(PERMISSIONS.JUNTA_CONFIG_WOMPI);

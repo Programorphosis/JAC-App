@@ -19,6 +19,7 @@ export function computePermissions(
 
   // ADMIN
   if (roles.includes(RolNombre.ADMIN)) {
+    set.add(PERMISSIONS.JUNTA_CONFIG_WOMPI);
     set.add(PERMISSIONS.USUARIOS_VER);
     set.add(PERMISSIONS.USUARIOS_CREAR);
     set.add(PERMISSIONS.USUARIOS_EDITAR);

@@ -12,6 +12,7 @@ import { UsuarioHistorialComponent } from '../usuario-historial/usuario-historia
 import { UsuarioRequisitosComponent } from '../usuario-requisitos/usuario-requisitos.component';
 import { UsuarioCartasComponent } from '../usuario-cartas/usuario-cartas.component';
 import { UsuarioDocumentosComponent } from '../usuario-documentos/usuario-documentos.component';
+import { UsuarioPagosComponent } from '../usuario-pagos/usuario-pagos.component';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AppCanDirective } from '../../../core/auth/app-can.directive';
@@ -22,7 +23,8 @@ const TAB_DEUDA = 0;
 const TAB_HISTORIAL = 1;
 const TAB_REQUISITOS = 2;
 const TAB_CARTAS = 3;
-const TAB_DOCUMENTOS = 4;
+const TAB_PAGOS = 4;
+const TAB_DOCUMENTOS = 5;
 
 @Component({
   selector: 'app-usuario-detail',
@@ -39,6 +41,7 @@ const TAB_DOCUMENTOS = 4;
     UsuarioRequisitosComponent,
     UsuarioCartasComponent,
     UsuarioDocumentosComponent,
+    UsuarioPagosComponent,
     AppCanDirective,
     FormatearNombrePipe,
     FormatearFechaLargaPipe,
@@ -69,6 +72,7 @@ export class UsuarioDetailComponent implements OnInit {
     if (tab === 'cartas') this.tabSeleccionado = TAB_CARTAS;
     else if (tab === 'deuda') this.tabSeleccionado = TAB_DEUDA;
     else if (tab === 'documentos') this.tabSeleccionado = TAB_DOCUMENTOS;
+    else if (tab === 'pagos') this.tabSeleccionado = TAB_PAGOS;
   }
 
   cargar(id: string): void {
@@ -121,6 +125,17 @@ export class UsuarioDetailComponent implements OnInit {
       u?.id &&
       this.usuario &&
       this.usuario.id !== u.id
+    );
+  }
+
+  /** AFILIADO viendo su propia cuenta: muestra tab Pagos (historial propio). */
+  esAfiliadoEnMiCuenta(): boolean {
+    const u = this.auth.currentUser();
+    return !!(
+      this.auth.hasRole('AFILIADO') &&
+      u?.id &&
+      this.usuario &&
+      this.usuario.id === u.id
     );
   }
 

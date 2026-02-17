@@ -10,6 +10,7 @@ import {
   crearUsuarioGuard,
   auditoriasGuard,
   facturasPlataformaGuard,
+  configuracionGuard,
 } from './core/auth/permission.guard';
 
 export const routes: Routes = [
@@ -81,6 +82,28 @@ export const routes: Routes = [
         canActivate: [facturasPlataformaGuard],
         loadComponent: () =>
           import('./features/facturas-plataforma/facturas-plataforma/facturas-plataforma.component').then((m) => m.FacturasPlataformaComponent),
+      },
+      {
+        path: 'facturas-plataforma/retorno',
+        canActivate: [facturasPlataformaGuard],
+        loadComponent: () =>
+          import('./features/facturas-plataforma/facturas-retorno/facturas-retorno.component').then((m) => m.FacturasRetornoComponent),
+      },
+      {
+        path: 'configuracion',
+        canActivate: [configuracionGuard],
+        loadComponent: () =>
+          import('./features/configuracion/configuracion/configuracion.component').then((m) => m.ConfiguracionComponent),
+      },
+      {
+        path: 'mi-junta',
+        loadComponent: () =>
+          import('./features/mi-junta/mi-junta/mi-junta.component').then((m) => m.MiJuntaComponent),
+      },
+      {
+        path: 'ayuda',
+        loadComponent: () =>
+          import('./features/ayuda/ayuda/ayuda.component').then((m) => m.AyudaComponent),
       },
       {
         path: 'platform',

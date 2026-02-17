@@ -6,12 +6,15 @@ import {
 import { DebtService } from '../../domain/services/debt.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WompiService } from '../../infrastructure/wompi/wompi.service';
+import type { WompiCredenciales } from '../../infrastructure/wompi/wompi.types';
+import { EncryptionService } from '../../infrastructure/encryption/encryption.service';
 import {
   DeudaCeroError,
   PagoDuplicadoError,
   PagoCartaPendienteError,
   UsuarioNoEncontradoError,
   IntencionPagoNoEncontradaError,
+  WompiNoConfiguradoError,
 } from '../../domain/errors';
 import { validateCartaPagoPreconditions } from '../../domain/helpers/carta-pago-validation.helper';
 import { TipoIntencionPago, TipoPago } from '@prisma/client';
@@ -51,7 +54,36 @@ export class PagosService {
     private readonly debtService: DebtService,
     private readonly prisma: PrismaService,
     private readonly wompi: WompiService,
+    private readonly encryption: EncryptionService,
   ) {}
+
+  /**
+   * Obtiene credenciales Wompi de la junta (desencriptadas).
+   * WOMPI_POR_JUNTA_DOC §4.1
+   * publicKey: para checkout URL si el payment link no lo provee (evita Formato inválido).
+   */
+  private async obtenerCredencialesWompiJunta(
+    juntaId: string,
+  ): Promise<WompiCredenciales & { publicKey?: string }> {
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+      select: { wompiPrivateKey: true, wompiPublicKey: true, wompiEnvironment: true },
+    });
+    if (!junta?.wompiPrivateKey) {
+      throw new WompiNoConfiguradoError(juntaId);
+    }
+    const privateKey = this.encryption.decrypt(junta.wompiPrivateKey);
+    const environment = (junta.wompiEnvironment || 'sandbox') as 'sandbox' | 'production';
+    let publicKey: string | undefined;
+    if (junta.wompiPublicKey) {
+      const raw = this.encryption.decrypt(junta.wompiPublicKey).trim();
+      // Wompi: pub_test_xxx o pub_prod_xxx, solo alfanuméricos y guiones bajos
+      if (/^pub_(test|prod)_[a-zA-Z0-9_]+$/.test(raw)) {
+        publicKey = raw;
+      }
+    }
+    return { privateKey, environment, publicKey };
+  }
 
   /**
    * Lista pagos de la junta con filtros opcionales.
@@ -278,19 +310,25 @@ export class PagosService {
       throw new DeudaCeroError(usuarioId);
     }
 
+    const credenciales = await this.obtenerCredencialesWompiJunta(juntaId);
+    const baseRedirect = process.env.WOMPI_REDIRECT_URL || 'http://localhost:4200/pagos/retorno';
+    const redirectUrl = `${baseRedirect}?junta_id=${juntaId}`;
+
     const montoCents = deuda.total * 100;
     const referencia = this.generarReferencia();
-    const redirectUrl = process.env.WOMPI_REDIRECT_URL || 'http://localhost:4200/pagos/retorno';
 
-    const link = await this.wompi.crearPaymentLink({
-      name: `Pago cuota junta - ${referencia}`,
-      description: 'Pago de cuota de junta de acción comunal',
-      amountInCents: montoCents,
-      currency: 'COP',
-      singleUse: true,
-      redirectUrl,
-      sku: referencia,
-    });
+    const link = await this.wompi.crearPaymentLink(
+      {
+        name: `Pago cuota junta - ${referencia}`,
+        description: 'Pago de cuota de junta de acción comunal',
+        amountInCents: montoCents,
+        currency: 'COP',
+        singleUse: true,
+        redirectUrl,
+        sku: referencia,
+      },
+      credenciales,
+    );
 
     await this.prisma.intencionPago.create({
       data: {
@@ -304,8 +342,13 @@ export class PagosService {
       },
     });
 
+    const baseCheckout = `https://checkout.wompi.co/l/${link.id}`;
+    const checkoutUrl = credenciales.publicKey
+      ? `${baseCheckout}?public-key=${encodeURIComponent(credenciales.publicKey)}`
+      : baseCheckout;
+
     return {
-      checkoutUrl: `https://checkout.wompi.co/l/${link.id}`,
+      checkoutUrl,
       referencia,
       monto: deuda.total,
       montoCents,
@@ -357,19 +400,25 @@ export class PagosService {
       juntaId,
     });
 
+    const credenciales = await this.obtenerCredencialesWompiJunta(juntaId);
+    const baseRedirect = process.env.WOMPI_REDIRECT_URL || 'http://localhost:4200/pagos/retorno';
+    const redirectUrl = `${baseRedirect}?junta_id=${juntaId}`;
+
     const montoCents = junta!.montoCarta! * 100;
     const referencia = this.generarReferencia();
-    const redirectUrl = process.env.WOMPI_REDIRECT_URL || 'http://localhost:4200/pagos/retorno';
 
-    const link = await this.wompi.crearPaymentLink({
-      name: `Pago carta laboral - ${referencia}`,
-      description: 'Pago de carta laboral - Junta de Acción Comunal',
-      amountInCents: montoCents,
-      currency: 'COP',
-      singleUse: true,
-      redirectUrl,
-      sku: referencia,
-    });
+    const link = await this.wompi.crearPaymentLink(
+      {
+        name: `Pago carta laboral - ${referencia}`,
+        description: 'Pago de carta laboral - Junta de Acción Comunal',
+        amountInCents: montoCents,
+        currency: 'COP',
+        singleUse: true,
+        redirectUrl,
+        sku: referencia,
+      },
+      credenciales,
+    );
 
     await this.prisma.intencionPago.create({
       data: {
@@ -383,8 +432,13 @@ export class PagosService {
       },
     });
 
+    const baseCheckoutCarta = `https://checkout.wompi.co/l/${link.id}`;
+    const checkoutUrlCarta = credenciales.publicKey
+      ? `${baseCheckoutCarta}?public-key=${encodeURIComponent(credenciales.publicKey)}`
+      : baseCheckoutCarta;
+
     return {
-      checkoutUrl: `https://checkout.wompi.co/l/${link.id}`,
+      checkoutUrl: checkoutUrlCarta,
       referencia,
       monto: junta!.montoCarta!,
       montoCents,
@@ -450,17 +504,27 @@ export class PagosService {
   /**
    * Consulta transacción en Wompi y registra pago si está APPROVED.
    * Usado en el retorno del usuario tras pagar (rescate si webhook falló).
+   * WOMPI_POR_JUNTA_DOC §4.3: usa credenciales de la junta.
+   * codigo: para que el frontend muestre el mensaje correcto al usuario.
    */
-  async consultarYRegistrarSiAprobado(transactionId: string): Promise<
-    | { registrado: true; pagoId: string; monto: number; consecutivo: number }
-    | { registrado: false; status?: string }
-  > {
-    const tx = await this.wompi.obtenerTransaccion(transactionId);
+  async consultarYRegistrarSiAprobado(
+    transactionId: string,
+    juntaId: string,
+  ): Promise<VerificarPagoResult> {
+    const credenciales = await this.obtenerCredencialesWompiJunta(juntaId);
+    const tx = await this.wompi.obtenerTransaccion(transactionId, credenciales);
     if (!tx) {
-      return { registrado: false };
+      return {
+        registrado: false,
+        codigo: 'TRANSACCION_NO_ENCONTRADA',
+        mensaje:
+          'No se pudo consultar la transacción en Wompi. Verifica que el ID sea correcto o intenta más tarde.',
+      };
     }
     if (tx.status !== 'APPROVED') {
-      return { registrado: false, status: tx.status };
+      const codigo = this.codigoEstadoWompi(tx.status);
+      const mensaje = this.mensajeEstadoWompi(tx.status);
+      return { registrado: false, codigo, mensaje, status: tx.status };
     }
 
     try {
@@ -472,18 +536,74 @@ export class PagosService {
       });
       return {
         registrado: true,
+        codigo: 'REGISTRADO_AHORA',
         pagoId: result.pagoId,
         monto: result.monto,
         consecutivo: result.consecutivo,
+        mensaje: 'Pago registrado correctamente.',
       };
     } catch (err) {
       if (err instanceof PagoDuplicadoError) {
-        return { registrado: true, pagoId: '', monto: 0, consecutivo: 0 };
+        return {
+          registrado: true,
+          codigo: 'YA_REGISTRADO',
+          pagoId: '',
+          monto: 0,
+          consecutivo: 0,
+          mensaje:
+            'El pago ya fue registrado correctamente. Puedes verlo en el listado de pagos.',
+        };
       }
       if (err instanceof IntencionPagoNoEncontradaError) {
-        return { registrado: false, status: tx.status };
+        return {
+          registrado: false,
+          codigo: 'INTENCION_NO_ENCONTRADA',
+          status: tx.status,
+          mensaje:
+            'No se encontró la intención de pago o el monto no coincide. Contacta al administrador.',
+        };
       }
       throw err;
     }
   }
+
+  private codigoEstadoWompi(status: string): VerificarPagoCodigo {
+    const pendientes = ['PENDING', 'IN_PROCESS', 'CREATED'];
+    const rechazados = ['DECLINED', 'VOIDED', 'ERROR'];
+    if (pendientes.includes(status)) return 'TRANSACCION_PENDIENTE';
+    if (rechazados.includes(status)) return 'TRANSACCION_RECHAZADA';
+    return 'ESTADO_DESCONOCIDO';
+  }
+
+  private mensajeEstadoWompi(status: string): string {
+    const pendientes = ['PENDING', 'IN_PROCESS', 'CREATED'];
+    const rechazados = ['DECLINED', 'VOIDED', 'ERROR'];
+    if (pendientes.includes(status)) {
+      return 'El pago está pendiente de procesamiento. Si ya pagaste, espera unos minutos y vuelve a verificar.';
+    }
+    if (rechazados.includes(status)) {
+      return 'El pago no fue aprobado. Si crees que es un error, contacta a tu entidad financiera o intenta con otro método.';
+    }
+    return `Estado del pago: ${status}. Si ya pagaste, contacta al administrador.`;
+  }
+}
+
+/** Códigos para que el frontend muestre el mensaje correcto en retorno de pago. */
+export type VerificarPagoCodigo =
+  | 'REGISTRADO_AHORA'
+  | 'YA_REGISTRADO'
+  | 'TRANSACCION_NO_ENCONTRADA'
+  | 'TRANSACCION_PENDIENTE'
+  | 'TRANSACCION_RECHAZADA'
+  | 'INTENCION_NO_ENCONTRADA'
+  | 'ESTADO_DESCONOCIDO';
+
+export interface VerificarPagoResult {
+  registrado: boolean;
+  codigo: VerificarPagoCodigo;
+  mensaje: string;
+  pagoId?: string;
+  monto?: number;
+  consecutivo?: number;
+  status?: string;
 }

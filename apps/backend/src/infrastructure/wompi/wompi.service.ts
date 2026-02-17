@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { WompiCredenciales } from './wompi.types';
 
 export interface CrearPaymentLinkParams {
   name: string;
@@ -24,25 +25,41 @@ interface WompiPaymentLinkResponse {
   };
 }
 
+function getBaseUrl(env: string): string {
+  return env === 'production'
+    ? 'https://production.wompi.co/v1'
+    : 'https://sandbox.wompi.co/v1';
+}
+
 /**
  * Cliente HTTP para la API de Wompi (recibir pagos).
- * Referencia: docs.wompi.co, WOMPI_VARIABLES_ENTORNO.md
+ * WOMPI_POR_JUNTA_DOC: credenciales por llamada; fallback a env para transición.
  */
 @Injectable()
 export class WompiService {
-  private readonly baseUrl: string;
-  private readonly privateKey: string;
-
-  constructor() {
+  /**
+   * Obtiene credenciales desde parámetro o env (fallback para facturación plataforma).
+   */
+  private credencialesDesdeEnv(): WompiCredenciales {
     const env = process.env.WOMPI_ENVIRONMENT || 'sandbox';
-    this.baseUrl =
-      env === 'production'
-        ? 'https://production.wompi.co/v1'
-        : 'https://sandbox.wompi.co/v1';
-    this.privateKey = process.env.WOMPI_PRIVATE_KEY || '';
+    const privateKey = process.env.WOMPI_PRIVATE_KEY || '';
+    return {
+      privateKey,
+      environment: env === 'production' ? 'production' : 'sandbox',
+    };
   }
 
-  async crearPaymentLink(params: CrearPaymentLinkParams): Promise<{ id: string }> {
+  /**
+   * Crea payment link en Wompi.
+   * Si credenciales no se pasan, usa env (fallback).
+   */
+  async crearPaymentLink(
+    params: CrearPaymentLinkParams,
+    credenciales?: WompiCredenciales,
+  ): Promise<{ id: string }> {
+    const creds = credenciales ?? this.credencialesDesdeEnv();
+    const baseUrl = getBaseUrl(creds.environment);
+
     const body = {
       name: params.name,
       description: params.description,
@@ -54,10 +71,10 @@ export class WompiService {
       sku: params.sku ?? null,
     };
 
-    const res = await fetch(`${this.baseUrl}/payment_links`, {
+    const res = await fetch(`${baseUrl}/payment_links`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.privateKey}`,
+        Authorization: `Bearer ${creds.privateKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
@@ -73,9 +90,64 @@ export class WompiService {
   }
 
   /**
-   * Consulta una transacción por ID (para rescate al retorno).
+   * Obtiene detalles del payment link (para reconciliación).
+   * Algunas implementaciones de Wompi incluyen la transacción asociada.
+   * Si no existe el endpoint o no hay transacción, retorna null.
    */
-  async obtenerTransaccion(transactionId: string): Promise<{
+  async obtenerPaymentLink(
+    paymentLinkId: string,
+    credenciales?: WompiCredenciales,
+  ): Promise<{
+    id: string;
+    transactions?: Array<{
+      id: string;
+      status: string;
+      amount_in_cents: number;
+      reference?: string;
+      payment_link_id?: string;
+    }>;
+  } | null> {
+    const creds = credenciales ?? this.credencialesDesdeEnv();
+    const baseUrl = getBaseUrl(creds.environment);
+
+    try {
+      const res = await fetch(`${baseUrl}/payment_links/${paymentLinkId}`, {
+        headers: {
+          Authorization: `Bearer ${creds.privateKey}`,
+        },
+      });
+
+      if (!res.ok) return null;
+
+      const json = (await res.json()) as { data?: unknown };
+      const data = json.data as Record<string, unknown> | undefined;
+      if (!data) return null;
+
+      const transactions = data.transactions as Array<{
+        id: string;
+        status: string;
+        amount_in_cents: number;
+        reference?: string;
+        payment_link_id?: string;
+      }> | undefined;
+
+      return {
+        id: String(data.id ?? paymentLinkId),
+        transactions: Array.isArray(transactions) ? transactions : undefined,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Consulta una transacción por ID (para rescate al retorno).
+   * Si credenciales no se pasan, usa env (fallback).
+   */
+  async obtenerTransaccion(
+    transactionId: string,
+    credenciales?: WompiCredenciales,
+  ): Promise<{
     id: string;
     status: string;
     amount_in_cents: number;
@@ -83,12 +155,15 @@ export class WompiService {
     reference?: string;
     payment_link_id?: string;
   } | null> {
+    const creds = credenciales ?? this.credencialesDesdeEnv();
+    const baseUrl = getBaseUrl(creds.environment);
+
     try {
       const res = await fetch(
-        `${this.baseUrl}/transactions/${transactionId}`,
+        `${baseUrl}/transactions/${transactionId}`,
         {
           headers: {
-            Authorization: `Bearer ${this.privateKey}`,
+            Authorization: `Bearer ${creds.privateKey}`,
           },
         },
       );

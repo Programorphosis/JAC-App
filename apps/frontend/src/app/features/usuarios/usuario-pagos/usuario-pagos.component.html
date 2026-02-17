@@ -1,0 +1,45 @@
+<div class="flex flex-col gap-4">
+  <p class="text-sm text-gray-600">Historial de tus pagos (cuota junta, carta). Solo lectura.</p>
+  @if (loading) {
+    <div class="flex justify-center py-8">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (pagos.length === 0) {
+    <p class="text-gray-500 py-4">No tienes pagos registrados.</p>
+  } @else {
+    <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
+      <table mat-table [dataSource]="pagos" class="w-full" style="min-width: 400px">
+        <ng-container matColumnDef="fechaPago">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let p">{{ p.fechaPago | formatearFechaHora }}</td>
+        </ng-container>
+        <ng-container matColumnDef="tipo">
+          <th mat-header-cell *matHeaderCellDef>Tipo</th>
+          <td mat-cell *matCellDef="let p">{{ p.tipo }}</td>
+        </ng-container>
+        <ng-container matColumnDef="metodo">
+          <th mat-header-cell *matHeaderCellDef>Método</th>
+          <td mat-cell *matCellDef="let p">{{ p.metodo }}</td>
+        </ng-container>
+        <ng-container matColumnDef="monto">
+          <th mat-header-cell *matHeaderCellDef>Monto</th>
+          <td mat-cell *matCellDef="let p">{{ formatearMoneda(p.monto) }}</td>
+        </ng-container>
+        <ng-container matColumnDef="consecutivo">
+          <th mat-header-cell *matHeaderCellDef>Consec.</th>
+          <td mat-cell *matCellDef="let p">{{ p.consecutivo }}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+      <mat-paginator
+        [length]="total"
+        [pageSize]="limit"
+        [pageIndex]="page - 1"
+        [pageSizeOptions]="[5, 10, 20]"
+        (page)="onPage($event)"
+        showFirstLastButtons
+      ></mat-paginator>
+    </div>
+  }
+</div>

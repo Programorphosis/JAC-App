@@ -54,37 +54,63 @@
                 <mat-icon matListItemIcon>dashboard</mat-icon>
                 <span matListItemTitle>Inicio</span>
               </a>
+              <mat-expansion-panel class="layout-mi-jac-panel" [(expanded)]="miJacExpanded" hideToggle="false" (click)="$event.stopPropagation()">
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="flex items-center gap-2">
+                    <mat-icon class="!text-[1.25rem] !w-6 !h-6">account_balance</mat-icon>
+                    <span>Mi JAC</span>
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <mat-nav-list (click)="onNavItemClick()">
+                  <a mat-list-item routerLink="/mi-junta" routerLinkActive="active" class="layout-nav-nested">
+                    <mat-icon matListItemIcon>info</mat-icon>
+                    <span matListItemTitle>Información</span>
+                  </a>
+                  <a mat-list-item *appCan="auth.permissions.PAGOS_VER" routerLink="/facturas-plataforma" routerLinkActive="active" class="layout-nav-nested">
+                    <mat-icon matListItemIcon>receipt_long</mat-icon>
+                    <span matListItemTitle>Facturas</span>
+                  </a>
+                  <a mat-list-item *appCan="auth.permissions.REQUISITOS_VER" routerLink="/requisitos" routerLinkActive="active" class="layout-nav-nested">
+                    <mat-icon matListItemIcon>assignment</mat-icon>
+                    <span matListItemTitle>Requisitos</span>
+                  </a>
+                  <a mat-list-item *appCan="auth.permissions.TARIFAS_VER" routerLink="/tarifas" routerLinkActive="active" class="layout-nav-nested">
+                    <mat-icon matListItemIcon>attach_money</mat-icon>
+                    <span matListItemTitle>Tarifas</span>
+                  </a>
+                  <a mat-list-item *appCan="auth.permissions.JUNTA_CONFIG_WOMPI" routerLink="/configuracion" routerLinkActive="active" class="layout-nav-nested">
+                    <mat-icon matListItemIcon>settings</mat-icon>
+                    <span matListItemTitle>Configuración</span>
+                  </a>
+                </mat-nav-list>
+              </mat-expansion-panel>
+              <a mat-list-item *appCan="auth.permissions.JUNTA_CONFIG_WOMPI" routerLink="/configuracion" routerLinkActive="active">
+                <mat-icon matListItemIcon>settings</mat-icon>
+                <span matListItemTitle>Configuración</span>
+              </a>
               <a mat-list-item *appCan="auth.permissions.USUARIOS_VER" routerLink="/usuarios" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                 <mat-icon matListItemIcon>people</mat-icon>
                 <span matListItemTitle>Usuarios</span>
-              </a>
-              <a mat-list-item [routerLink]="['/usuarios', auth.currentUser()?.id]" routerLinkActive="active">
-                <mat-icon matListItemIcon>person</mat-icon>
-                <span matListItemTitle>Mi cuenta</span>
               </a>
               <a mat-list-item *appCan="auth.permissions.PAGOS_GESTIONAR" routerLink="/pagos" routerLinkActive="active">
                 <mat-icon matListItemIcon>payment</mat-icon>
                 <span matListItemTitle>Pagos</span>
               </a>
-              <a mat-list-item *appCan="auth.permissions.PAGOS_VER" routerLink="/facturas-plataforma" routerLinkActive="active">
-                <mat-icon matListItemIcon>receipt_long</mat-icon>
-                <span matListItemTitle>Facturas plataforma</span>
-              </a>
-              <a mat-list-item *appCan="auth.permissions.REQUISITOS_VER" routerLink="/requisitos" routerLinkActive="active">
-                <mat-icon matListItemIcon>assignment</mat-icon>
-                <span matListItemTitle>Requisitos</span>
-              </a>
               <a mat-list-item *appCan="auth.permissions.CARTAS_VALIDAR" routerLink="/cartas" routerLinkActive="active">
                 <mat-icon matListItemIcon>mail</mat-icon>
                 <span matListItemTitle>Cartas</span>
               </a>
-              <a mat-list-item *appCan="auth.permissions.TARIFAS_VER" routerLink="/tarifas" routerLinkActive="active">
-                <mat-icon matListItemIcon>attach_money</mat-icon>
-                <span matListItemTitle>Tarifas</span>
-              </a>
               <a mat-list-item *appCan="auth.permissions.AUDITORIAS_VER" routerLink="/auditorias" routerLinkActive="active">
                 <mat-icon matListItemIcon>history</mat-icon>
                 <span matListItemTitle>Auditorías</span>
+              </a>
+              <a mat-list-item [routerLink]="['/usuarios', auth.currentUser()?.id]" routerLinkActive="active">
+                <mat-icon matListItemIcon>person</mat-icon>
+                <span matListItemTitle>Mi cuenta</span>
+              </a>
+              <a mat-list-item routerLink="/ayuda" routerLinkActive="active">
+                <mat-icon matListItemIcon>help_outline</mat-icon>
+                <span matListItemTitle>Ayuda</span>
               </a>
             }
           </mat-nav-list>

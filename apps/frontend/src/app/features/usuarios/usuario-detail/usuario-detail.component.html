@@ -152,7 +152,7 @@
         </mat-tab>
       </mat-tab-group>
     } @else if (!esAdminViendoMiCuenta()) {
-      <mat-tab-group [selectedIndex]="tabSeleccionado" class="mat-tabs-mi-cuenta">
+      <mat-tab-group [(selectedIndex)]="tabSeleccionado" class="mat-tabs-mi-cuenta">
         <mat-tab label="Deuda">
           <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-deuda [usuarioId]="usuario.id" /></div>
         </mat-tab>
@@ -165,6 +165,11 @@
         <mat-tab label="Cartas">
           <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-cartas [usuarioId]="usuario.id" /></div>
         </mat-tab>
+        @if (esAfiliadoEnMiCuenta()) {
+          <mat-tab label="Pagos">
+            <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-pagos /></div>
+          </mat-tab>
+        }
         <mat-tab label="Documentos">
           <div class="pt-4 min-w-0 overflow-hidden"><app-usuario-documentos [usuarioId]="usuario.id" /></div>
         </mat-tab>

@@ -25,7 +25,10 @@ import { DocumentosModule } from './application/documentos/documentos.module';
 import { CartasModule } from './application/cartas/cartas.module';
 import { PublicModule } from './application/public/public.module';
 import { AuditoriasModule } from './application/auditorias/auditorias.module';
+import { MiJuntaModule } from './application/mi-junta/mi-junta.module';
+import { WompiReconciliationModule } from './application/wompi-reconciliation/wompi-reconciliation.module';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
+import { EncryptionModule } from './infrastructure/encryption/encryption.module';
 
 @Module({
   imports: [
@@ -37,6 +40,7 @@ import { DomainExceptionFilter } from './common/filters/domain-exception.filter'
       },
     ]),
     PrismaModule,
+    EncryptionModule,
     HealthModule,
     AuthModule,
     BootstrapModule,
@@ -57,6 +61,8 @@ import { DomainExceptionFilter } from './common/filters/domain-exception.filter'
     CartasModule,
     PublicModule,
     AuditoriasModule,
+    MiJuntaModule,
+    WompiReconciliationModule,
   ],
   controllers: [AppController],
   providers: [

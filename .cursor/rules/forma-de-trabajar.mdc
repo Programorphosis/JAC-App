@@ -1,1 +1,56 @@
-en los fixxes siempre explicame el error
+---
+description: Cómo el agente se comunica con el usuario y explica cada cambio antes de hacerlo
+alwaysApply: true
+---
+
+# Forma de trabajar – Comunicación del agente
+
+## Objetivo
+
+Que cada implementación sea **transparente y educativa**. El usuario aprende Angular y Nest mientras el agente trabaja; por eso debe saber exactamente qué se va a tocar y por qué.
+
+---
+
+## Regla principal: anunciar antes de actuar
+
+**Antes de modificar cualquier archivo** (o texto, componente, servicio, etc.), el agente debe **decir qué va a hacer**, aunque sea en una frase corta.
+
+### Ejemplos
+
+| Acción | Antes de hacerlo, decir algo como: |
+|--------|-------------------------------------|
+| Editar un componente | "Voy a añadir el método `toggleActivo()` en el componente y envolver la llamada en el diálogo de confirmación." |
+| Crear un archivo | "Creo un nuevo servicio `EncryptionService` en `infrastructure/encryption/` con métodos `encrypt` y `decrypt`." |
+| Modificar un template | "Añado el botón 'Reactivar' en la columna de acciones, visible solo cuando `puedeReactivarFactura(f)` sea true." |
+| Corregir un error | "Corrijo el error: el `juntaId` puede ser null en el callback; añado la aserción no-null." |
+| Refactorizar | "Refactorizo `WompiService` para que reciba credenciales por parámetro en lugar de usar env en el constructor." |
+
+---
+
+## Cómo comunicar
+
+1. **Breve pero concreto**: "Voy a X" o "En Y añado Z".
+2. **Archivo + cambio**: indicar qué archivo se toca y qué se hace.
+3. **Contexto del framework**: si aplica, mencionar qué parte de Angular o Nest se usa (ej. "inyección de dependencias", "directiva estructural", "guard", "interceptor").
+
+---
+
+## En errores y fixes
+
+Siempre explicar:
+- **Qué error**: el mensaje o síntoma.
+- **Por qué ocurre**: la causa técnica.
+- **Qué se corrige**: el cambio concreto y el motivo.
+
+---
+
+## Excepciones
+
+- Respuestas puramente informativas (sin tocar código).
+- Cuando el usuario pida explícitamente "hazlo sin explicar" o similar.
+
+---
+
+## Resumen
+
+> Antes de cada edición: una frase que diga qué va a hacer y dónde. Así el usuario puede seguir el flujo con Find y aprender Angular y Nest.

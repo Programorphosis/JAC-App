@@ -6,6 +6,7 @@ import {
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../../domain/services/audit.service';
+import { WompiService } from '../../infrastructure/wompi/wompi.service';
 import {
   EstadoFactura,
   TipoFactura,
@@ -21,12 +22,14 @@ export type RegistrarPagoFacturaDtoConId = RegistrarPagoFacturaDto & { facturaId
 /**
  * Servicio de facturación plataforma (PA-6).
  * Facturas por junta, pagos al proveedor, job mensual.
+ * Pago online: FACTURACION_PLATAFORMA_PAGO_ONLINE_ANALISIS.md
  */
 @Injectable()
 export class PlatformFacturasService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly wompi: WompiService,
   ) {}
 
   /** Lista facturas de una junta. */
@@ -186,6 +189,192 @@ export class PlatformFacturasService {
         total,
         totalPages: Math.ceil(total / limit),
       },
+    };
+  }
+
+  /**
+   * Crea intención de pago online de factura (junta → plataforma).
+   * Usa credenciales WOMPI_* de env (cuenta plataforma).
+   * FACTURACION_PLATAFORMA_PAGO_ONLINE_ANALISIS.md
+   */
+  async crearIntencionPagoFactura(
+    facturaId: string,
+    juntaId: string,
+    iniciadoPorId: string,
+  ): Promise<{ checkoutUrl: string; referencia: string }> {
+    const factura = await this.prisma.factura.findFirst({
+      where: { id: facturaId, juntaId },
+      include: { pagos: true },
+    });
+    if (!factura) throw new NotFoundException('Factura no encontrada');
+
+    if (factura.estado === EstadoFactura.PAGADA) {
+      throw new BadRequestException('La factura ya está pagada');
+    }
+    if (factura.estado === EstadoFactura.CANCELADA) {
+      throw new BadRequestException('No se pueden pagar facturas canceladas');
+    }
+
+    const totalPagado = factura.pagos.reduce((s, p) => s + p.monto, 0);
+    const montoPendiente = factura.monto - totalPagado;
+    if (montoPendiente <= 0) {
+      throw new BadRequestException('No hay monto pendiente por pagar');
+    }
+
+    const montoCents = montoPendiente * 100;
+    const referencia = `FAC-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const baseRedirect =
+      process.env.WOMPI_REDIRECT_URL_FACTURAS ||
+      (process.env.WOMPI_REDIRECT_URL
+        ? process.env.WOMPI_REDIRECT_URL.replace('/pagos/retorno', '/facturas-plataforma/retorno')
+        : 'http://localhost:4200/facturas-plataforma/retorno');
+    const redirectUrl = `${baseRedirect}?factura_id=${facturaId}`;
+
+    const link = await this.wompi.crearPaymentLink(
+      {
+        name: `Pago factura plataforma - ${referencia}`,
+        description: 'Pago de factura de suscripción a la plataforma',
+        amountInCents: montoCents,
+        currency: 'COP',
+        singleUse: true,
+        redirectUrl,
+        sku: referencia,
+      },
+      undefined, // usa credenciales env (plataforma)
+    );
+
+    await this.prisma.intencionPagoFactura.create({
+      data: {
+        facturaId,
+        juntaId,
+        montoCents,
+        wompiLinkId: link.id,
+        iniciadoPorId,
+      },
+    });
+
+    const publicKey = process.env.WOMPI_PUBLIC_KEY;
+    const baseCheckout = `https://checkout.wompi.co/l/${link.id}`;
+    const checkoutUrl = publicKey
+      ? `${baseCheckout}?public-key=${encodeURIComponent(publicKey)}`
+      : baseCheckout;
+
+    return { checkoutUrl, referencia };
+  }
+
+  /**
+   * Registra pago de factura desde proveedor (webhook o retorno).
+   * Idempotente por referenciaExterna = transactionId.
+   * FACTURACION_PLATAFORMA_PAGO_ONLINE_ANALISIS.md
+   */
+  async registrarPagoDesdeProveedorFactura(params: {
+    transactionId: string;
+    amountInCents: number;
+    paymentLinkId: string;
+  }): Promise<{ yaRegistrado: boolean }> {
+    const { transactionId, amountInCents, paymentLinkId } = params;
+
+    const intencion = await this.prisma.intencionPagoFactura.findUnique({
+      where: { wompiLinkId: paymentLinkId },
+      include: { factura: { include: { pagos: true } } },
+    });
+
+    if (!intencion || intencion.montoCents !== amountInCents) {
+      throw new BadRequestException('Intención de pago no encontrada o monto no coincide');
+    }
+
+    const factura = intencion.factura;
+    const existePago = factura.pagos.some((p) => p.referenciaExterna === transactionId);
+    if (existePago) {
+      return { yaRegistrado: true };
+    }
+
+    const monto = Math.round(amountInCents / 100);
+    await this.registrarPago(
+      intencion.juntaId,
+      {
+        facturaId: factura.id,
+        monto,
+        metodo: MetodoPagoFactura.ONLINE,
+        referenciaExterna: transactionId,
+      },
+      intencion.iniciadoPorId,
+    );
+
+    return { yaRegistrado: false };
+  }
+
+  /**
+   * Consulta transacción en Wompi y registra pago si está APPROVED.
+   * Rescate cuando el webhook no llegó o falló.
+   */
+  async consultarYRegistrarPagoFactura(
+    transactionId: string,
+    facturaId: string,
+    juntaId: string,
+  ): Promise<{
+    registrado: boolean;
+    codigo: string;
+    mensaje: string;
+    estado?: string;
+  }> {
+    const factura = await this.prisma.factura.findFirst({
+      where: { id: facturaId, juntaId },
+      include: { pagos: true },
+    });
+    if (!factura) {
+      return { registrado: false, codigo: 'FACTURA_NO_ENCONTRADA', mensaje: 'Factura no encontrada' };
+    }
+
+    const tx = await this.wompi.obtenerTransaccion(transactionId, undefined);
+    if (!tx) {
+      return {
+        registrado: false,
+        codigo: 'TRANSACCION_NO_ENCONTRADA',
+        mensaje: 'No se pudo consultar la transacción',
+      };
+    }
+
+    if (tx.status !== 'APPROVED') {
+      return {
+        registrado: false,
+        codigo: 'TRANSACCION_NO_APROBADA',
+        mensaje: `Estado: ${tx.status}`,
+        estado: tx.status,
+      };
+    }
+
+    const paymentLinkId = tx.payment_link_id ?? null;
+    if (!paymentLinkId) {
+      return {
+        registrado: false,
+        codigo: 'SIN_PAYMENT_LINK',
+        mensaje: 'Transacción sin payment_link_id',
+      };
+    }
+
+    const intencion = await this.prisma.intencionPagoFactura.findUnique({
+      where: { wompiLinkId: paymentLinkId },
+    });
+    if (!intencion || intencion.facturaId !== facturaId) {
+      return {
+        registrado: false,
+        codigo: 'INTENCION_NO_COINCIDE',
+        mensaje: 'La transacción no corresponde a esta factura',
+      };
+    }
+
+    const { yaRegistrado } = await this.registrarPagoDesdeProveedorFactura({
+      transactionId: tx.id,
+      amountInCents: tx.amount_in_cents,
+      paymentLinkId,
+    });
+
+    return {
+      registrado: true,
+      codigo: yaRegistrado ? 'YA_REGISTRADO' : 'REGISTRADO_AHORA',
+      mensaje: yaRegistrado ? 'El pago ya estaba registrado' : 'Pago registrado correctamente',
     };
   }
 

@@ -1,9 +1,11 @@
 import { Component, inject, computed, effect, OnInit } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
+import { filter, map } from 'rxjs/operators';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -13,7 +15,6 @@ import { AppCanDirective } from '../../auth/app-can.directive';
 import { FormatearNombrePipe } from '../../../shared/pipes/formatear-nombre.pipe';
 import { AvisosSesionService } from '../../services/avisos-sesion.service';
 import { FacturasPendientesSesionService } from '../../services/facturas-pendientes-sesion.service';
-import { map } from 'rxjs/operators';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
@@ -25,6 +26,7 @@ import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
     RouterLinkActive,
     MatSidenavModule,
     MatListModule,
+    MatExpansionModule,
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
@@ -54,6 +56,9 @@ export class LayoutComponent implements OnInit {
 
   saliendoImpersonacion = false;
 
+  /** Mi JAC expandido cuando alguna ruta hija está activa. */
+  miJacExpanded = false;
+
   constructor() {
     // Desktop: sidenav abierto por defecto. Móvil: cerrado. Al cambiar breakpoint, sincronizar.
     effect(() => {
@@ -65,6 +70,25 @@ export class LayoutComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Mantener Mi JAC expandido cuando estamos en una ruta hija.
+    const url = this.router.url;
+    this.miJacExpanded =
+      url.startsWith('/mi-junta') ||
+      url.startsWith('/facturas-plataforma') ||
+      url.startsWith('/requisitos') ||
+      url.startsWith('/tarifas') ||
+      url.startsWith('/configuracion');
+    this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe((e) => {
+        const u = e.url;
+        this.miJacExpanded =
+          u.startsWith('/mi-junta') ||
+          u.startsWith('/facturas-plataforma') ||
+          u.startsWith('/requisitos') ||
+          u.startsWith('/tarifas') ||
+          u.startsWith('/configuracion');
+      });
     // Avisos al abrir sesión, luego facturas pendientes (modales independientes, orquestados aquí)
     setTimeout(() => {
       this.avisosSesion.mostrarAlAbrirSesion(() => {

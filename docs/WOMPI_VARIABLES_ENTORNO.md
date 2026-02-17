@@ -1,4 +1,4 @@
-# Variables de entorno para integración Wompi – Fase 5
+# Variables de entorno para integración Wompi
 
 **Referencia:** docs.wompi.co (Colombia – recibir pagos), flujoDePagos.md
 
@@ -6,12 +6,14 @@
 
 ## 0. Dos usos de Wompi (importante)
 
-| Uso | Credenciales | Documentación |
-|-----|--------------|---------------|
-| **Pagos junta** (afiliados → junta) | Por junta, en BD (Junta.wompi*) | `WOMPI_POR_JUNTA_DOC.md` |
-| **Facturación plataforma** (suscripciones) | Variables de entorno (globales) | Esta sección |
+| Uso | Credenciales | Dónde se configuran | Documentación |
+|-----|--------------|---------------------|---------------|
+| **Pagos junta** (afiliados → junta) | Por junta, en BD (Junta.wompi*) | Admin plataforma o Mi JAC → Configuración | `WOMPI_POR_JUNTA_DOC.md`, `WOMPI_CONFIGURAR_JUNTA.md` |
+| **Facturación plataforma** (suscripciones junta → plataforma) | Variables de entorno (globales) | `.env` del backend | Esta sección |
 
-Las variables `WOMPI_*` descritas aquí son para **facturación de la plataforma**. Los pagos de afiliados a juntas usan credenciales por junta.
+**Resumen:**
+- Las variables `WOMPI_*` en `.env` son **solo para facturación de la plataforma** (cobro de suscripciones a juntas).
+- Los pagos de afiliados a juntas usan credenciales por junta (en BD, encriptadas). No usan estas variables.
 
 ---
 
@@ -62,10 +64,20 @@ No usamos "Pagos a Terceros" (payouts), que es para enviar dinero.
 
 ---
 
-## 3. Resumen para `.env`
+## 3. Variable para credenciales por junta
+
+| Variable | Descripción | Uso |
+|----------|-------------|-----|
+| `ENCRYPTION_MASTER_KEY` | Clave AES-256 (32 bytes hex) para encriptar credenciales Wompi en BD | Obligatoria si hay juntas con Wompi configurado. Ver `WOMPI_POR_JUNTA_DOC.md`. |
+
+Generar: `openssl rand -hex 32`
+
+---
+
+## 4. Resumen para `.env`
 
 ```env
-# ========== WOMPI (Pagos online) ==========
+# ========== WOMPI (Facturación plataforma – reservado) ==========
 # Obtener en: comercios.wompi.co → Desarrollo → Programadores
 # Y en: Mi cuenta → Secretos para integración técnica
 
@@ -82,16 +94,21 @@ WOMPI_INTEGRITY_SECRET=test_integrity_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 # Secreto de eventos (verificar firma de webhooks)
 WOMPI_EVENTS_SECRET=test_events_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# URL de retorno (donde Wompi redirige al usuario tras pagar)
+# URL base de retorno (donde Wompi redirige al usuario tras pagar)
+# El sistema añade ?junta_id=X automáticamente para pagos junta
 # Debe ser una URL pública de tu frontend
 WOMPI_REDIRECT_URL=http://localhost:4200/pagos/retorno
+
+# URL de retorno para pago de facturas (junta → plataforma)
+# Si no se define, se deriva de WOMPI_REDIRECT_URL
+WOMPI_REDIRECT_URL_FACTURAS=http://localhost:4200/facturas-plataforma/retorno
 ```
 
 ---
 
-## 4. Configuración en Dashboard Wompi
+## 5. Configuración en Dashboard Wompi
 
-### 4.1 URL de eventos (webhook)
+### 5.1 URL de eventos (webhook)
 
 Configurar en: **Desarrollo → Programadores** (o equivalente para recibir pagos).
 
@@ -100,7 +117,7 @@ Configurar en: **Desarrollo → Programadores** (o equivalente para recibir pago
 
 Debe ser HTTPS y responder 200 OK.
 
-### 4.2 Registro
+### 5.2 Registro
 
 1. Registrarse en [comercios.wompi.co](https://comercios.wompi.co)
 2. Activar producto de **recibir pagos** (no Pagos a Terceros)
@@ -108,7 +125,7 @@ Debe ser HTTPS y responder 200 OK.
 
 ---
 
-## 5. Checklist antes de desarrollo
+## 6. Checklist antes de desarrollo
 
 - [ ] Cuenta en comercios.wompi.co
 - [ ] `WOMPI_PRIVATE_KEY` (sandbox)
@@ -120,6 +137,6 @@ Debe ser HTTPS y responder 200 OK.
 
 ---
 
-## 6. Producción
+## 7. Producción
 
 Para producción, repetir con llaves `prv_prod_*`, `pub_prod_*`, `prod_integrity_*`, `prod_events_*` y `WOMPI_ENVIRONMENT=production`.

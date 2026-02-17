@@ -133,6 +133,29 @@ mat-sidenav-container {
   }
 }
 
+/* Mi JAC: expansion panel integrado en sidenav */
+.layout-mi-jac-panel {
+  background: transparent !important;
+  box-shadow: none !important;
+
+  .mat-mdc-expansion-panel-header {
+    padding: 0 16px;
+    height: 48px;
+  }
+
+  .mat-mdc-expansion-panel-body {
+    padding: 0;
+  }
+
+  .mat-mdc-expansion-panel-header-title {
+    margin-right: 0;
+  }
+}
+
+.layout-nav-nested {
+  padding-left: 2.5rem !important;
+}
+
 /* Sidenav: pulir items activos */
 mat-nav-list a.active {
   background-color: rgba(13, 71, 161, 0.12) !important;

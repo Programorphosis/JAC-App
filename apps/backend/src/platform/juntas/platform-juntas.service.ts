@@ -6,6 +6,7 @@ import {
   CreateJuntaResult,
 } from '../../application/junta/junta.service';
 import { AuditService } from '../../domain/services/audit.service';
+import { EncryptionService } from '../../infrastructure/encryption/encryption.service';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { RolNombre, EstadoSuscripcion } from '@prisma/client';
@@ -40,6 +41,7 @@ export class PlatformJuntasService {
     private readonly juntaService: JuntaService,
     private readonly audit: AuditService,
     private readonly limites: LimitesService,
+    private readonly encryption: EncryptionService,
   ) {}
 
   async listar(page = 1, limit = 20, activo?: boolean) {
@@ -99,6 +101,7 @@ export class PlatformJuntasService {
         ciudad: true,
         departamento: true,
         enMantenimiento: true,
+        wompiPrivateKey: true,
         _count: { select: { usuarios: true, pagos: true, cartas: true } },
         suscripcion: {
           select: {
@@ -137,12 +140,70 @@ export class PlatformJuntasService {
         }
       : null;
 
+    const wompiConfigurado = !!junta.wompiPrivateKey;
+    const { wompiPrivateKey: _, ...rest } = junta;
+
     return {
       data: {
-        ...junta,
+        ...rest,
         admin: adminInfo,
+        wompiConfigurado,
       },
     };
+  }
+
+  /**
+   * Actualiza credenciales Wompi de la junta.
+   * String vacío = borrar (null). Credenciales se encriptan antes de guardar.
+   * WOMPI_POR_JUNTA_DOC §3.1
+   */
+  async actualizarWompi(
+    juntaId: string,
+    dto: {
+      wompiPrivateKey?: string | null;
+      wompiPublicKey?: string | null;
+      wompiIntegritySecret?: string | null;
+      wompiEventsSecret?: string | null;
+      wompiEnvironment?: string | null;
+    },
+    ejecutadoPorId: string,
+  ) {
+    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    if (!junta) throw new NotFoundException('Junta no encontrada');
+
+    const data: Record<string, unknown> = {};
+
+    const enc = (v: string | null | undefined): string | null => {
+      if (v === undefined) return undefined as unknown as string | null;
+      if (v === null || v.trim() === '') return null;
+      return this.encryption.encrypt(v.trim());
+    };
+
+    if (dto.wompiPrivateKey !== undefined) data.wompiPrivateKey = enc(dto.wompiPrivateKey);
+    if (dto.wompiPublicKey !== undefined) data.wompiPublicKey = enc(dto.wompiPublicKey);
+    if (dto.wompiIntegritySecret !== undefined)
+      data.wompiIntegritySecret = enc(dto.wompiIntegritySecret);
+    if (dto.wompiEventsSecret !== undefined) data.wompiEventsSecret = enc(dto.wompiEventsSecret);
+    if (dto.wompiEnvironment !== undefined)
+      data.wompiEnvironment = dto.wompiEnvironment && dto.wompiEnvironment.trim() ? dto.wompiEnvironment.trim() : null;
+
+    await this.prisma.junta.update({
+      where: { id: juntaId },
+      data,
+    });
+
+    await this.audit.registerEvent({
+      juntaId,
+      entidad: 'Junta',
+      entidadId: juntaId,
+      accion: 'CONFIG_WOMPI_JUNTA',
+      metadata: {
+        camposActualizados: Object.keys(data).filter((k) => !k.startsWith('_')),
+      },
+      ejecutadoPorId,
+    });
+
+    return { ok: true };
   }
 
   /** Lista usuarios de la junta (para selector cambiar admin). */

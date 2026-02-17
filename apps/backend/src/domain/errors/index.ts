@@ -25,6 +25,7 @@ export {
   MontoCartaNoConfiguradoError,
   CartaVigenteError,
   IntencionPagoNoEncontradaError,
+  WompiNoConfiguradoError,
   BootstrapYaEjecutadoError,
   AlmacenamientoNoConfiguradoError,
   ArchivoSobrepasaTamanioError,

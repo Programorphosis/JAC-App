@@ -52,4 +52,27 @@ export class FacturasPlataformaService {
       .get<{ data: FacturaPlataformaItem[] }>(`${this.base}/pendientes`)
       .pipe(map((r) => r.data));
   }
+
+  /** Crea intención de pago online. Redirige a checkout Wompi. */
+  crearIntencionPago(facturaId: string): Observable<{ checkoutUrl: string; referencia: string }> {
+    return this.http.post<{ checkoutUrl: string; referencia: string }>(
+      `${this.base}/intencion`,
+      { facturaId },
+    );
+  }
+
+  /** Verifica pago tras retorno de Wompi. */
+  verificarPago(
+    facturaId: string,
+    transactionId: string,
+  ): Observable<{ registrado: boolean; codigo: string; mensaje: string; estado?: string }> {
+    return this.http.get<{
+      registrado: boolean;
+      codigo: string;
+      mensaje: string;
+      estado?: string;
+    }>(`${this.base}/verificar`, {
+      params: { factura_id: facturaId, transaction_id: transactionId },
+    });
+  }
 }

@@ -29,22 +29,22 @@
 
 ### Schema
 
-- [ ] `Junta.activo Boolean @default(true)`
-- [ ] `Junta.fechaBaja DateTime?`
-- [ ] `Junta.estado` (enum: ACTIVA, SUSPENDIDA, ARCHIVADA) – opcional en esta fase; puede usarse solo `activo` al inicio.
+- [x] `Junta.activo Boolean @default(true)`
+- [x] `Junta.fechaBaja DateTime?`
+- [x] `Junta.estado` (enum: ACTIVA, SUSPENDIDA, ARCHIVADA) – opcional en esta fase; puede usarse solo `activo` al inicio.
 
 ### Backend
 
-- [ ] `PATCH /platform/juntas/:id` – incluir `activo`, `fechaBaja`
-- [ ] `DELETE /platform/juntas/:id` – soft delete (activo=false, fechaBaja=now)
-- [ ] Auditoría: registrar CREACION_JUNTA, ACTUALIZACION_JUNTA, BAJA_JUNTA con `ejecutadoPorId` = platform admin
-- [ ] `GET /platform/auditoria` – listar auditoría de plataforma (entidad Junta o accion contiene PLATFORM)
+- [x] `PATCH /platform/juntas/:id` – incluir `activo`, `fechaBaja`
+- [x] `DELETE /platform/juntas/:id` – soft delete (activo=false, fechaBaja=now)
+- [x] Auditoría: registrar CREACION_JUNTA, ACTUALIZACION_JUNTA, BAJA_JUNTA con `ejecutadoPorId` = platform admin
+- [x] `GET /platform/auditoria` – listar auditoría de plataforma (entidad Junta o accion contiene PLATFORM)
 
 ### Frontend
 
-- [ ] Listado juntas: columna estado (Activa/Inactiva), filtro por estado
-- [ ] Detalle junta: botón Activar/Desactivar, botón Eliminar (soft) con confirmación
-- [ ] Vista Auditoría plataforma: tabla de acciones recientes
+- [x] Listado juntas: columna estado (Activa/Inactiva), filtro por estado
+- [x] Detalle junta: botón Activar/Desactivar, botón Eliminar (soft) con confirmación
+- [x] Vista Auditoría plataforma: tabla de acciones recientes
 
 ### Criterio de cierre
 
@@ -58,25 +58,25 @@
 
 ### Schema
 
-- [ ] `Junta.telefono String?`
-- [ ] `Junta.email String?`
-- [ ] `Junta.direccion String?`
-- [ ] `Junta.ciudad String?`
-- [ ] `Junta.departamento String?`
-- [ ] `Junta.enMantenimiento Boolean @default(false)`
+- [x] `Junta.telefono String?`
+- [x] `Junta.email String?`
+- [x] `Junta.direccion String?`
+- [x] `Junta.ciudad String?`
+- [x] `Junta.departamento String?`
+- [x] `Junta.enMantenimiento Boolean @default(false)`
 
 ### Backend
 
-- [ ] `PATCH /platform/juntas/:id` – incluir nuevos campos
-- [ ] `POST /platform/juntas/:id/admin/reset-password` – genera temporal, envía (o muestra) al platform admin
-- [ ] `PATCH /platform/juntas/:id/admin` – body: `{ nuevoAdminUsuarioId }` para reasignar ADMIN
-- [ ] `POST /platform/juntas/:id/admin/reenviar-credenciales` – regenera temporal para admin actual
-- [ ] `PATCH /platform/juntas/:id/admin/bloquear` – desactiva usuario admin
+- [x] `PATCH /platform/juntas/:id` – incluir nuevos campos
+- [x] `POST /platform/juntas/:id/admin/reset-password` – genera temporal, envía (o muestra) al platform admin
+- [x] `PATCH /platform/juntas/:id/admin` – body: `{ nuevoAdminUsuarioId }` para reasignar ADMIN
+- [x] `POST /platform/juntas/:id/admin/reenviar-credenciales` – regenera temporal para admin actual
+- [x] `PATCH /platform/juntas/:id/admin/bloquear` – desactiva usuario admin
 
 ### Frontend
 
-- [ ] Formulario junta: campos contacto, región, en mantenimiento
-- [ ] Detalle junta: sección "Admin de junta" con acciones Reset, Cambiar, Bloquear, Reenviar credenciales
+- [x] Formulario junta: campos contacto, región, en mantenimiento
+- [x] Detalle junta: sección "Admin de junta" con acciones Reset, Cambiar, Bloquear, Reenviar credenciales
 
 ### Criterio de cierre
 
@@ -90,15 +90,15 @@
 
 ### Backend
 
-- [ ] `GET /platform/dashboard` – total juntas, activas, nuevas este mes, (ingresos si hay facturación)
-- [ ] `GET /platform/juntas/:id/resumen` – usuarios, pagos recientes, cartas emitidas
-- [ ] `GET /platform/juntas/:id/uso` – usuarios activos, pagos/mes, cartas/mes, storage (si S3 por junta)
+- [x] `GET /platform/dashboard` – total juntas, activas, nuevas este mes, (ingresos si hay facturación)
+- [x] `GET /platform/juntas/:id/resumen` – usuarios, pagos recientes, cartas emitidas
+- [x] `GET /platform/juntas/:id/uso` – usuarios activos, pagos/mes, cartas/mes, storage (si S3 por junta)
 
 ### Frontend
 
-- [ ] Dashboard: cards con cifras globales, gráfico juntas nuevas (opcional)
-- [ ] Detalle junta: pestaña o sección Resumen con métricas
-- [ ] Detalle junta: pestaña Uso (cuando aplique)
+- [x] Dashboard: cards con cifras globales, gráfico juntas nuevas (opcional)
+- [x] Detalle junta: pestaña o sección Resumen con métricas
+- [x] Detalle junta: pestaña Uso (cuando aplique)
 
 ### Criterio de cierre
 
@@ -112,23 +112,23 @@
 
 ### Schema
 
-- [ ] `Plan` (id, nombre, precioMensual, precioAnual, limiteUsuarios, limiteStorageMb, limiteCartasMes, diasPrueba)
-- [ ] `Suscripcion` (juntaId, planId, fechaInicio, fechaVencimiento, estado: ACTIVA|SUSPENDIDA|CANCELADA|PRUEBA|VENCIDA)
-- [ ] Migración: crear planes base (Básico, Premium, etc.)
+- [x] `Plan` (id, nombre, precioMensual, precioAnual, limiteUsuarios, limiteStorageMb, limiteCartasMes, diasPrueba)
+- [x] `Suscripcion` (juntaId, planId, fechaInicio, fechaVencimiento, estado: ACTIVA|SUSPENDIDA|CANCELADA|PRUEBA|VENCIDA)
+- [x] Migración: crear planes base (Básico, Premium, etc.)
 
 ### Backend
 
-- [ ] `GET /platform/planes` – listar planes
-- [ ] `GET /platform/juntas/:id/suscripcion` – suscripción actual
-- [ ] `POST /platform/juntas/:id/suscripcion` – crear suscripción (al crear junta o manual)
-- [ ] `PATCH /platform/juntas/:id/suscripcion` – cambiar plan, renovar, cancelar
-- [ ] Integrar en `JuntaService.createJunta`: crear Suscripción con plan por defecto y días de prueba si aplica
+- [x] `GET /platform/planes` – listar planes
+- [x] `GET /platform/juntas/:id/suscripcion` – suscripción actual
+- [x] `POST /platform/juntas/:id/suscripcion` – crear suscripción (al crear junta o manual)
+- [x] `PATCH /platform/juntas/:id/suscripcion` – cambiar plan, renovar, cancelar
+- [x] Integrar en `JuntaService.createJunta`: crear Suscripción con plan por defecto y días de prueba si aplica
 
 ### Frontend
 
-- [ ] Listado planes (vista simple)
-- [ ] Crear junta: selector de plan, días de prueba
-- [ ] Detalle junta: sección Suscripción (plan, fechas, estado, cambiar plan)
+- [x] Listado planes (vista simple)
+- [x] Crear junta: selector de plan, días de prueba
+- [x] Detalle junta: sección Suscripción (plan, fechas, estado, cambiar plan)
 
 ### Criterio de cierre
 
@@ -138,24 +138,41 @@
 
 ## PA-5 – Límites y cuotas
 
-**Objetivo:** Validar límites por plan y alertas.
+**Objetivo:** Motor centralizado de límites SaaS con planes estándar, ilimitados y personalizados.
 
-### Backend
+**Plan detallado:** `Motor de Límites, Cuotas y Planes Personalizados.md`  
+**Roadmap:** `ROADMAP_PA5_LIMITES.md`
 
-- [ ] Servicio `LimitesService`: validar usuarios, storage, cartas antes de operaciones
-- [ ] En `UsersService.create`: verificar `count(usuarios) < plan.limiteUsuarios`
-- [ ] En emisión carta: verificar `cartasEsteMes < plan.limiteCartasMes` (si aplica)
-- [ ] Cálculo storage por junta (documentos S3)
-- [ ] `GET /platform/juntas/:id/alertas` – alertas por límites cercanos
+### Estado actual
 
-### Frontend
+- [x] `LimitesService` base (validarCrearUsuario, validarEmitirCarta, validarStorage)
+- [x] Integrado en UsersService y Cartas
+- [x] `GET /platform/juntas/:id/alertas`
+- [x] Frontend: barras de progreso y alertas en junta-detail
+- [ ] Integrado en upload documentos
+- [ ] Storage real (Documento.sizeBytes)
+- [ ] Overrides por suscripción
+- [ ] Flags ilimitados en Plan
+- [ ] Política de vencimiento
 
-- [ ] Detalle junta: indicadores de uso vs límite (barra progreso, colores)
-- [ ] Alertas en dashboard o en detalle junta
+### Backend (pendiente)
+
+- [ ] Enriquecer Plan (flags ilimitados, descripcion, esPersonalizable)
+- [ ] Enriquecer Suscripción (overrides, esPlanPersonalizado, precioPersonalizado)
+- [ ] Documento.sizeBytes; cálculo storage real
+- [ ] Refactor LimitesService: límites efectivos, overrides, ilimitados, vencimiento
+- [ ] Integrar validarStorage en DocumentosService
+
+### Frontend (pendiente)
+
+- [ ] Usar límites efectivos (con overrides) en lugar de plan directo
+- [ ] Indicador plan personalizado
+- [ ] Niveles alerta 80% / 95% / 100%
+- [ ] Dashboard: juntas cercanas a límite, juntas vencidas
 
 ### Criterio de cierre
 
-- Límites aplicados. Alertas visibles al acercarse a cuotas.
+- Límites aplicados en todas las operaciones críticas. Storage real. Overrides y planes personalizados operativos. Alertas y bloqueo por vencimiento.
 
 ---
 
@@ -165,21 +182,25 @@
 
 ### Schema
 
-- [ ] `Factura` (juntaId, monto, fechaEmision, fechaVencimiento, estado, referenciaExterna, metadata)
-- [ ] `PagoFactura` (facturaId, monto, fecha, metodo, referencia) – opcional
+- [x] `Factura` (juntaId, monto, fechaEmision, fechaVencimiento, estado, referenciaExterna, metadata)
+- [x] `PagoFactura` (facturaId, monto, fecha, metodo, referencia) – opcional
 
 ### Backend
 
-- [ ] `GET /platform/juntas/:id/facturas` – listar facturas de junta
-- [ ] `POST /platform/juntas/:id/facturas` – crear factura (manual o por job)
-- [ ] `GET /platform/juntas/:id/pagos-plataforma` – historial pagos
+- [x] `GET /platform/juntas/:id/facturas` – listar facturas de junta
+- [x] `POST /platform/juntas/:id/facturas` – crear factura (manual o por job)
+- [x] `GET /platform/juntas/:id/pagos-plataforma` – historial pagos
 - [ ] Job: generar facturas mensuales por suscripciones activas (opcional)
 
 ### Frontend
 
-- [ ] Detalle junta: pestaña Facturación (lista facturas, estado)
-- [ ] Crear factura manual
-- [ ] Vista historial pagos
+- [x] Detalle junta: pestaña Facturación (lista facturas, estado)
+- [x] Crear factura manual
+- [x] Vista historial pagos
+
+### Pago online (implementado)
+
+- [x] Pago online de facturas (junta paga con tarjeta vía Wompi). Ver `FACTURACION_PLATAFORMA_PAGO_ONLINE_ANALISIS.md`.
 
 ### Criterio de cierre
 
@@ -193,20 +214,20 @@
 
 ### Schema
 
-- [ ] `NotaJunta` (juntaId, contenido, creadoPorId, fechaCreacion)
+- [x] `NotaJunta` (juntaId, contenido, creadoPorId, fechaCreacion)
 
 ### Backend
 
-- [ ] `GET /platform/juntas/:id/notas` – listar notas
-- [ ] `POST /platform/juntas/:id/notas` – crear nota
-- [ ] `GET /platform/juntas/:id/exportar` – exportar datos junta (JSON/CSV según definición)
-- [ ] `Junta.enMantenimiento` – ya en PA-2; validar en login que junta no esté en mantenimiento
+- [x] `GET /platform/juntas/:id/notas` – listar notas
+- [x] `POST /platform/juntas/:id/notas` – crear nota
+- [x] `GET /platform/juntas/:id/exportar` – exportar datos junta (JSON/CSV según definición)
+- [x] `Junta.enMantenimiento` – ya en PA-2; validar en login que junta no esté en mantenimiento
 
 ### Frontend
 
-- [ ] Detalle junta: pestaña Notas (soporte)
-- [ ] Botón Exportar datos
-- [ ] Toggle Modo mantenimiento en edición
+- [x] Detalle junta: pestaña Notas (soporte)
+- [x] Botón Exportar datos
+- [x] Toggle Modo mantenimiento en edición
 
 ### Criterio de cierre
 

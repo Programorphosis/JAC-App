@@ -25,6 +25,10 @@ import { PagoRegistrarDialogComponent } from '../pago-registrar-dialog/pago-regi
 import { JuntaInfoCardComponent } from './junta-info-card/junta-info-card.component';
 import { JuntaSuscripcionCardComponent } from './junta-suscripcion-card/junta-suscripcion-card.component';
 import { JuntaAdminCardComponent } from './junta-admin-card/junta-admin-card.component';
+import {
+  JuntaWompiCardComponent,
+  WompiConfigGuardar,
+} from './junta-wompi-card/junta-wompi-card.component';
 import { JuntaResumenCardComponent } from './junta-resumen-card/junta-resumen-card.component';
 import { JuntaUsoCardComponent } from './junta-uso-card/junta-uso-card.component';
 import { JuntaFacturacionCardComponent } from './junta-facturacion-card/junta-facturacion-card.component';
@@ -55,6 +59,7 @@ import { AuthService } from '../../../core/auth/auth.service';
     JuntaInfoCardComponent,
     JuntaSuscripcionCardComponent,
     JuntaAdminCardComponent,
+    JuntaWompiCardComponent,
     JuntaResumenCardComponent,
     JuntaUsoCardComponent,
     JuntaFacturacionCardComponent,
@@ -83,6 +88,7 @@ export class JuntaDetailComponent implements OnInit {
   loadingNotas = false;
   nuevaNotaTexto = '';
   guardandoNota = false;
+  guardandoWompi = false;
   impersonando = false;
 
   constructor(
@@ -241,6 +247,24 @@ export class JuntaDetailComponent implements OnInit {
         error: () => {},
       });
     });
+  }
+
+  guardarWompi(body: WompiConfigGuardar): void {
+    if (!this.junta) return;
+    this.guardandoWompi = true;
+    this.platform
+      .actualizarWompi(this.junta.id, body)
+      .pipe(handleApiError(this.snackBar))
+      .subscribe({
+        next: () => {
+          this.guardandoWompi = false;
+          this.junta = { ...this.junta!, wompiConfigurado: !!body.wompiPrivateKey };
+          this.snackBar.open('Configuración Wompi guardada', 'Cerrar', { duration: 2000 });
+        },
+        error: () => {
+          this.guardandoWompi = false;
+        },
+      });
   }
 
   private abrirConfirmacion(data: ConfirmDialogData) {

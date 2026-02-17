@@ -8,6 +8,7 @@ import { FacturasPlataformaService, FacturaPlataformaItem, EstadoFacturaJunta } 
 import { FormatearFechaPipe } from '../../../shared/pipes/formatear-fecha.pipe';
 import { handleApiError } from '../../../shared/operators/handle-api-error.operator';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-facturas-plataforma',
@@ -29,10 +30,12 @@ export class FacturasPlataformaComponent implements OnInit {
   meta: { page: number; limit: number; total: number; totalPages: number } | null = null;
   loading = false;
   page = 1;
+  pagandoId: string | null = null;
 
   constructor(
     private readonly facturasSvc: FacturasPlataformaService,
-    private readonly snackBar: MatSnackBar
+    private readonly snackBar: MatSnackBar,
+    readonly auth: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -75,5 +78,25 @@ export class FacturasPlataformaComponent implements OnInit {
   montoPendiente(f: FacturaPlataformaItem): number {
     const pagado = f.pagos.reduce((s, p) => s + p.monto, 0);
     return f.monto - pagado;
+  }
+
+  puedePagar(f: FacturaPlataformaItem): boolean {
+    if (f.estado === 'PAGADA' || f.estado === 'CANCELADA') return false;
+    return this.montoPendiente(f) > 0;
+  }
+
+  pagarAhora(f: FacturaPlataformaItem): void {
+    this.pagandoId = f.id;
+    this.facturasSvc
+      .crearIntencionPago(f.id)
+      .pipe(handleApiError(this.snackBar))
+      .subscribe({
+        next: (r) => {
+          window.location.href = r.checkoutUrl;
+        },
+        error: () => {
+          this.pagandoId = null;
+        },
+      });
   }
 }

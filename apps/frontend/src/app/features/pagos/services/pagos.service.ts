@@ -23,8 +23,19 @@ export interface IntencionPagoResult {
   montoCents: number;
 }
 
+export type VerificarPagoCodigo =
+  | 'REGISTRADO_AHORA'
+  | 'YA_REGISTRADO'
+  | 'TRANSACCION_NO_ENCONTRADA'
+  | 'TRANSACCION_PENDIENTE'
+  | 'TRANSACCION_RECHAZADA'
+  | 'INTENCION_NO_ENCONTRADA'
+  | 'ESTADO_DESCONOCIDO';
+
 export interface VerificarPagoResult {
   registrado: boolean;
+  codigo: VerificarPagoCodigo;
+  mensaje: string;
   pagoId?: string;
   monto?: number;
   consecutivo?: number;
@@ -97,12 +108,20 @@ export class PagosService {
       .pipe(map((r) => r.data));
   }
 
-  verificarPagoOnline(transactionId: string): Observable<VerificarPagoResult> {
+  verificarPagoOnline(transactionId: string, juntaId: string): Observable<VerificarPagoResult> {
     return this.http
       .get<{ data: VerificarPagoResult }>(`${this.base}/online/verificar`, {
-        params: { transaction_id: transactionId },
+        params: { transaction_id: transactionId, junta_id: juntaId },
       })
       .pipe(map((r) => r.data));
+  }
+
+  /** Historial de pagos del usuario actual (AFILIADO en Mi cuenta). Solo lectura. */
+  listarMiHistorial(params?: { page?: number; limit?: number }): Observable<PagosListResponse> {
+    const httpParams: Record<string, string> = {};
+    if (params?.page != null) httpParams['page'] = String(params.page);
+    if (params?.limit != null) httpParams['limit'] = String(params.limit);
+    return this.http.get<PagosListResponse>(`${this.base}/mi-historial`, { params: httpParams });
   }
 
   listar(params?: {

@@ -19,6 +19,7 @@ import { CrearSuscripcionDto } from '../dto/crear-suscripcion.dto';
 import { ActualizarSuscripcionDto } from '../dto/actualizar-suscripcion.dto';
 import { CambiarAdminDto } from '../dto/cambiar-admin.dto';
 import { ActualizarJuntaDto } from '../dto/actualizar-junta.dto';
+import { ActualizarWompiJuntaDto } from '../dto/actualizar-wompi-junta.dto';
 
 @Controller('platform/juntas')
 @UseGuards(AuthGuard('jwt'), PlatformAdminGuard)
@@ -133,6 +134,15 @@ export class PlatformJuntasController {
     @Request() req: { user: JwtUser },
   ) {
     return this.juntas.crear(body, req.user.id);
+  }
+
+  @Patch(':id/wompi')
+  async actualizarWompi(
+    @Param('id') id: string,
+    @Body() body: ActualizarWompiJuntaDto,
+    @Request() req: { user: JwtUser },
+  ) {
+    return this.juntas.actualizarWompi(id, body, req.user.id);
   }
 
   @Patch(':id')

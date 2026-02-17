@@ -153,11 +153,30 @@ model Factura {
   fechaCreacion     DateTime      @default(now())
 
   pagos             PagoFactura[]
+  intencionesPago   IntencionPagoFactura[]
 
   @@index([juntaId])
   @@index([suscripcionId])
   @@index([estado])
   @@index([fechaEmision])
+}
+
+/// Intención de pago online de factura plataforma (junta → plataforma).
+/// FACTURACION_PLATAFORMA_PAGO_ONLINE_ANALISIS.md
+model IntencionPagoFactura {
+  id             String   @id @default(uuid())
+  facturaId      String
+  factura        Factura  @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  juntaId        String
+  junta          Junta    @relation(fields: [juntaId], references: [id], onDelete: Cascade)
+  montoCents     Int
+  wompiLinkId    String   @unique
+  iniciadoPorId  String
+  iniciadoPor    Usuario  @relation("IntencionPagoFacturaIniciadaPor", fields: [iniciadoPorId], references: [id], onDelete: Cascade)
+  fechaCreacion  DateTime @default(now())
+
+  @@index([juntaId])
+  @@index([facturaId])
 }
 
 model PagoFactura {
@@ -196,6 +215,13 @@ model Junta {
   departamento        String?
   enMantenimiento     Boolean   @default(false)
 
+  // Wompi por junta – credenciales encriptadas (WOMPI_POR_JUNTA_DOC)
+  wompiPrivateKey      String?   // prv_test_... o prv_prod_...
+  wompiPublicKey       String?   // pub_test_... o pub_prod_...
+  wompiIntegritySecret String?   // test_integrity_... o prod_integrity_...
+  wompiEventsSecret    String?   // test_events_... o prod_events_...
+  wompiEnvironment     String?   // "sandbox" | "production"
+
   usuarios         Usuario[]
   tarifas          Tarifa[]
   consecutivos     Consecutivo[]
@@ -206,6 +232,7 @@ model Junta {
   auditorias       Auditoria[]
   suscripcion     Suscripcion?
   facturas        Factura[]
+  intencionesPagoFactura IntencionPagoFactura[]
   notas           NotaJunta[]
   avisos          AvisoPlataforma[]
 }
@@ -262,6 +289,7 @@ model Usuario {
   auditorias        Auditoria[]
   intencionesPago   IntencionPago[]
   intencionesIniciadas IntencionPago[] @relation("IntencionIniciadaPor")
+  intencionesPagoFactura IntencionPagoFactura[] @relation("IntencionPagoFacturaIniciadaPor")
   facturasCreadas  Factura[]         @relation("FacturaCreadaPor")
   notasJunta       NotaJunta[]
 

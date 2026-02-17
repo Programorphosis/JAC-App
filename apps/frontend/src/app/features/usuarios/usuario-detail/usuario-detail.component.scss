@@ -1,7 +1,30 @@
 /* Tab body: permitir scroll horizontal en tablas y evitar overflow */
 .mat-tabs-mi-cuenta {
-  .mat-mdc-tab-body-content {
+  ::ng-deep .mat-mdc-tab-body-content {
     overflow-x: auto;
     min-width: 0;
+  }
+
+  /* Barra de pestañas: scroll con el dedo en móvil.
+   * Quitar transform para habilitar overflow; mantener flechas como indicador visual. */
+  ::ng-deep .mat-mdc-tab-header {
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+  }
+  ::ng-deep .mat-mdc-tab-label-container {
+    overflow-x: auto !important;
+    width: 100% !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+  }
+  ::ng-deep .mat-mdc-tab-list {
+    transform: none !important;
+    flex-wrap: nowrap;
+  }
+  ::ng-deep .mat-mdc-tab-labels {
+    flex-wrap: nowrap;
+    justify-content: flex-start !important;
   }
 }

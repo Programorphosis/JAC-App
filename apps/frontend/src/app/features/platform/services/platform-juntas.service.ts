@@ -48,6 +48,7 @@ export interface JuntaDetalle extends JuntaListItem {
   _count: { usuarios: number; pagos: number; cartas: number };
   admin: JuntaAdminInfo | null;
   suscripcion: JuntaSuscripcionInfo | null;
+  wompiConfigurado?: boolean;
 }
 
 export interface JuntaUsuarioItem {
@@ -142,6 +143,19 @@ export class PlatformJuntasService {
     return this.http
       .patch<{ data: JuntaDetalle }>(`${this.base}/${id}`, body)
       .pipe(map((r) => r.data));
+  }
+
+  actualizarWompi(
+    juntaId: string,
+    body: {
+      wompiPrivateKey?: string | null;
+      wompiPublicKey?: string | null;
+      wompiIntegritySecret?: string | null;
+      wompiEventsSecret?: string | null;
+      wompiEnvironment?: string | null;
+    }
+  ): Observable<{ ok: boolean }> {
+    return this.http.patch<{ ok: boolean }>(`${this.base}/${juntaId}/wompi`, body);
   }
 
   darBaja(id: string): Observable<JuntaDetalle> {

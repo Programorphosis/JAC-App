@@ -36,6 +36,9 @@ export const PERMISSIONS = {
 
   // Historial laboral
   HISTORIAL_CREAR: 'historial:crear',
+
+  // Configuración junta (solo ADMIN)
+  JUNTA_CONFIG_WOMPI: 'junta:configWompi',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

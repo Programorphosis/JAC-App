@@ -1,7 +1,7 @@
 # Documentación técnica: Wompi por junta
 
 **Versión:** 1.0  
-**Estado:** En desarrollo  
+**Estado:** Implementado  
 **Última actualización:** 2025-02-17
 
 ---
@@ -82,6 +82,18 @@ model Junta {
 - `junta_id` obligatorio.
 - Validar que `req.user.juntaId === junta_id`.
 - Usar credenciales de junta_id para consultar Wompi.
+
+**Respuesta 200:** `{ data: { registrado, codigo, mensaje, pagoId?, monto?, consecutivo?, status? } }`
+
+| codigo | registrado | Descripción |
+|--------|------------|-------------|
+| REGISTRADO_AHORA | true | Verificar registró el pago (rescate si webhook falló) |
+| YA_REGISTRADO | true | Webhook ya lo registró; mensaje positivo al usuario |
+| TRANSACCION_NO_ENCONTRADA | false | No se pudo consultar en Wompi |
+| TRANSACCION_PENDIENTE | false | PENDING, IN_PROCESS, CREATED |
+| TRANSACCION_RECHAZADA | false | DECLINED, VOIDED, ERROR |
+| INTENCION_NO_ENCONTRADA | false | Intención no existe o monto no coincide |
+| ESTADO_DESCONOCIDO | false | Otro estado en Wompi |
 
 ---
 
@@ -209,4 +221,7 @@ Las variables `WOMPI_*` actuales se reservan para facturación de la plataforma.
 - Plan: `WOMPI_POR_JUNTA_PLAN.md`
 - Roadmap: `WOMPI_POR_JUNTA_ROADMAP.md`
 - Variables env: `WOMPI_VARIABLES_ENTORNO.md`
+- Guía configuración: `WOMPI_CONFIGURAR_JUNTA.md`
+- Webhook: `WOMPI_WEBHOOK_CONFIG.md`
+- Tarjetas prueba: `WOMPI_TARJETAS_PRUEBA_SANDBOX.md`
 - Flujo pagos: `flujoDePagos.md`

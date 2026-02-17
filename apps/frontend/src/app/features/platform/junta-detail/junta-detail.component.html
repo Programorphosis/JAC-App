@@ -57,6 +57,11 @@
         (cambiarAdmin)="abrirCambiarAdmin()"
         (bloquearAdmin)="bloquearAdmin()"
       />
+      <app-junta-wompi-card
+        [junta]="junta"
+        [guardando]="guardandoWompi"
+        (guardar)="guardarWompi($event)"
+      />
       <app-junta-resumen-card [resumen]="resumen" [loading]="loadingResumen" />
       <app-junta-uso-card [junta]="junta" [uso]="uso" [loading]="loadingUso" />
       <app-junta-facturacion-card

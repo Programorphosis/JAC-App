@@ -10,8 +10,10 @@ import {
 import { SkipThrottle } from '@nestjs/throttler';
 import { createHash } from 'crypto';
 import { PagosService } from '../pagos/pagos.service';
+import { PlatformFacturasService } from '../../platform/facturas/platform-facturas.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import { EncryptionService } from '../../infrastructure/encryption/encryption.service';
 import { PagoDuplicadoError } from '../../domain/errors/domain.errors';
-import { ConflictException } from '@nestjs/common';
 
 interface WompiEventBody {
   event: string;
@@ -26,9 +28,11 @@ interface WompiEventBody {
     };
   };
   sent_at: string;
+  /** Wompi envía timestamp en root (docs) o dentro de signature */
+  timestamp?: number;
   signature?: {
     properties: string[];
-    timestamp: number;
+    timestamp?: number;
     checksum: string;
   };
 }
@@ -36,12 +40,18 @@ interface WompiEventBody {
 /**
  * Webhooks externos (Wompi).
  * Sin autenticación JWT: el webhook viene de Wompi.
- * Verificación por firma HMAC con WOMPI_EVENTS_SECRET.
+ * WOMPI_POR_JUNTA_DOC §4.2: validación por wompiEventsSecret de la junta.
+ * FACTURACION_PLATAFORMA_PAGO_ONLINE_ANALISIS.md: rama facturas con WOMPI_EVENTS_SECRET.
  */
 @Controller('webhooks')
 @SkipThrottle() // Wompi envía webhooks; no aplicar rate limit
 export class WebhooksController {
-  constructor(private readonly pagos: PagosService) {}
+  constructor(
+    private readonly pagos: PagosService,
+    private readonly facturas: PlatformFacturasService,
+    private readonly prisma: PrismaService,
+    private readonly encryption: EncryptionService,
+  ) {}
 
   @Post('wompi')
   @HttpCode(HttpStatus.OK)
@@ -62,11 +72,73 @@ export class WebhooksController {
       return { received: true };
     }
 
-    const secret = process.env.WOMPI_EVENTS_SECRET;
-    if (!secret) {
-      throw new BadRequestException('Webhook no configurado');
+    const paymentLinkId = tx.payment_link_id ?? null;
+    if (!paymentLinkId) {
+      return { received: true };
     }
 
+    const intencion = await this.prisma.intencionPago.findUnique({
+      where: { wompiLinkId: paymentLinkId },
+      select: { juntaId: true },
+    });
+
+    if (intencion) {
+      // Rama pagos junta (afiliados → junta)
+      const junta = await this.prisma.junta.findUnique({
+        where: { id: intencion.juntaId },
+        select: { wompiEventsSecret: true },
+      });
+      if (!junta?.wompiEventsSecret) {
+        throw new BadRequestException('Junta sin webhook configurado');
+      }
+
+      const secret = this.encryption.decrypt(junta.wompiEventsSecret);
+      this.validarChecksumWompi(body, headerChecksum, secret);
+
+      try {
+        await this.pagos.registrarPagoDesdeProveedor({
+          transactionId: tx.id,
+          amountInCents: tx.amount_in_cents,
+          paymentLinkId: tx.payment_link_id ?? undefined,
+          reference: tx.reference ?? undefined,
+        });
+      } catch (err) {
+        const esDuplicado =
+          err instanceof PagoDuplicadoError ||
+          (err instanceof Error && (err as Error & { code?: string }).code === 'PAGO_DUPLICADO');
+        if (esDuplicado) return { received: true };
+        throw err;
+      }
+      return { received: true };
+    }
+
+    // Rama facturación plataforma (junta → plataforma)
+    const intencionFactura = await this.prisma.intencionPagoFactura.findUnique({
+      where: { wompiLinkId: paymentLinkId },
+    });
+    if (intencionFactura) {
+      const secret = process.env.WOMPI_EVENTS_SECRET;
+      if (!secret) {
+        throw new BadRequestException('Plataforma sin WOMPI_EVENTS_SECRET configurado');
+      }
+      this.validarChecksumWompi(body, headerChecksum, secret);
+
+      await this.facturas.registrarPagoDesdeProveedorFactura({
+        transactionId: tx.id,
+        amountInCents: tx.amount_in_cents,
+        paymentLinkId,
+      });
+      return { received: true };
+    }
+
+    return { received: true };
+  }
+
+  private validarChecksumWompi(
+    body: WompiEventBody,
+    headerChecksum: string,
+    secret: string,
+  ): void {
     const checksum = headerChecksum || body.signature?.checksum;
     if (!checksum) {
       throw new BadRequestException('Falta checksum del evento');
@@ -77,7 +149,11 @@ export class WebhooksController {
       'transaction.status',
       'transaction.amount_in_cents',
     ];
-    const timestamp = body.signature?.timestamp ?? Math.floor(new Date(body.sent_at).getTime() / 1000);
+    const rawTs =
+      body.timestamp ??
+      body.signature?.timestamp ??
+      Math.floor(new Date(body.sent_at).getTime() / 1000);
+    const timestamp = rawTs > 1e12 ? Math.floor(rawTs / 1000) : rawTs;
 
     const values: string[] = [];
     for (const path of props) {
@@ -93,22 +169,6 @@ export class WebhooksController {
     if (calculated !== checksum.toUpperCase()) {
       throw new BadRequestException('Checksum inválido');
     }
-
-    try {
-      await this.pagos.registrarPagoDesdeProveedor({
-        transactionId: tx.id,
-        amountInCents: tx.amount_in_cents,
-        paymentLinkId: tx.payment_link_id ?? undefined,
-        reference: tx.reference ?? undefined,
-      });
-    } catch (err) {
-      if (err instanceof PagoDuplicadoError) {
-        return { received: true };
-      }
-      throw err;
-    }
-
-    return { received: true };
   }
 
   private getNestedValue(obj: unknown, path: string): unknown {

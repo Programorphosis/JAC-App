@@ -23,15 +23,16 @@ import { PlatformReportesService } from './reportes/platform-reportes.service';
 import { JuntaModule } from '../application/junta/junta.module';
 import { AuditModule } from '../infrastructure/audit/audit.module';
 import { LimitesModule } from '../infrastructure/limits/limites.module';
+import { WompiModule } from '../infrastructure/wompi/wompi.module';
 import { AuthModule } from '../auth/auth.module';
 
 /**
  * Módulo Platform Admin – autocontenido para futura migración.
  * Rutas: /api/platform/juntas, /api/platform/auditoria, /api/platform/dashboard, /api/platform/facturas
- * Dependencias: JuntaModule, AuditModule (sin users, pagos, cartas, etc.)
+ * Dependencias: JuntaModule, AuditModule, WompiModule (pago online facturas)
  */
 @Module({
-  imports: [JuntaModule, AuditModule, LimitesModule, AuthModule],
+  imports: [JuntaModule, AuditModule, LimitesModule, WompiModule, AuthModule],
   controllers: [
     PlatformJuntasController,
     PlatformAuditoriaController,
@@ -57,5 +58,6 @@ import { AuthModule } from '../auth/auth.module';
     PlatformAvisosService,
     PlatformReportesService,
   ],
+  exports: [PlatformFacturasService],
 })
 export class PlatformModule {}

@@ -21,6 +21,7 @@ export const PERMISSIONS = {
   AUDITORIAS_VER: 'auditorias:ver',
   DOCUMENTOS_SUBIR_OTROS: 'documentos:subir:otros',
   HISTORIAL_CREAR: 'historial:crear',
+  JUNTA_CONFIG_WOMPI: 'junta:configWompi',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

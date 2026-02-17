@@ -60,7 +60,20 @@ El AFILIADO es un miembro de la junta que **solo puede pagar online** (Wompi). N
 
 ---
 
-### 3.3 Tab Requisitos
+### 3.3 Tab Pagos (historial de pagos)
+
+**Qué ve:**
+- Lista de sus pagos (fecha, tipo, método, monto, consecutivo).
+- Solo lectura. No puede registrar pagos en efectivo (eso lo hace TESORERA).
+
+**Qué puede hacer:**
+- Nada. Solo consultar su historial.
+
+**Estado actual:** ✓ Implementado (tab visible solo para AFILIADO en Mi cuenta).
+
+---
+
+### 3.4 Tab Requisitos
 
 **Qué ve:**
 - Estado de cada requisito (nombre, estado AL_DIA/MORA, obligación activa).
@@ -73,7 +86,7 @@ El AFILIADO es un miembro de la junta que **solo puede pagar online** (Wompi). N
 
 ---
 
-### 3.4 Tab Cartas (Estado para carta)
+### 3.5 Tab Cartas (Estado para carta)
 
 **Qué ve:**
 - **Deuda junta:** monto o "Sin deuda".
@@ -109,7 +122,7 @@ El AFILIADO es un miembro de la junta que **solo puede pagar online** (Wompi). N
 
 ---
 
-### 3.5 Tab Documentos
+### 3.6 Tab Documentos
 
 **Qué ve:**
 - Lista de documentos subidos (tipo, fecha).
@@ -228,6 +241,7 @@ El AFILIADO es un miembro de la junta que **solo puede pagar online** (Wompi). N
 | POST | `/pagos/online/intencion` | Crear intención pago JUNTA |
 | POST | `/pagos/carta/online/intencion` | Crear intención pago CARTA |
 | GET | `/pagos/online/verificar` | Verificar pago tras retorno Wompi |
+| GET | `/pagos/mi-historial` | Ver historial de pagos propio (solo lectura) |
 | POST | `/cartas/solicitar` | Solicitar carta |
 | GET | `/cartas/:id/descargar` | Obtener URL firmada para descargar PDF de carta aprobada |
 

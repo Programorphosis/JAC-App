@@ -214,6 +214,22 @@ export class DashboardComponent implements OnInit {
     return this.cartas().filter((c) => c.estado === 'APROBADA');
   }
 
+  /** Última carta del afiliado (más reciente). Para vista rápida de estado al iniciar sesión. */
+  ultimaCarta(): CartaItem | null {
+    const list = this.cartas();
+    return list.length > 0 ? list[0] : null;
+  }
+
+  /** Etiqueta amigable del estado de carta. */
+  etiquetaEstadoCarta(estado: string): string {
+    const map: Record<string, string> = {
+      PENDIENTE: 'En revisión',
+      APROBADA: 'Aprobada',
+      RECHAZADA: 'Rechazada',
+    };
+    return map[estado] ?? estado;
+  }
+
   linkMiCuentaCartas(): string[] {
     const id = this.auth.currentUser()?.id;
     return id ? ['/usuarios', id] : ['/'];
