@@ -23,23 +23,23 @@
                     <div>
                       <h3 class="text-lg font-medium mb-2">Por método de pago</h3>
                       <div class="flex flex-col gap-2">
-                        <div class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded">
+                        <div class="flex justify-between items-center px-3 py-2 bg-jac-surface-alt rounded">
                           <span>Efectivo</span>
                           <span class="font-medium">{{ formatearMoneda(estadisticas()?.porMetodo?.efectivo ?? 0) }}</span>
                         </div>
-                        <div class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded">
+                        <div class="flex justify-between items-center px-3 py-2 bg-jac-surface-alt rounded">
                           <span>Transferencia</span>
                           <span class="font-medium">{{ formatearMoneda(estadisticas()?.porMetodo?.transferencia ?? 0) }}</span>
                         </div>
-                        <div class="flex justify-between items-center px-3 py-2 bg-blue-50 rounded">
+                        <div class="flex justify-between items-center px-3 py-2 bg-jac-info-bg rounded">
                           <span>Online (total)</span>
                           <span class="font-medium">{{ formatearMoneda(estadisticas()?.porMetodo?.online ?? 0) }}</span>
                         </div>
-                        <div class="flex justify-between items-center px-3 py-2 pl-6 text-sm text-gray-600">
+                        <div class="flex justify-between items-center px-3 py-2 pl-6 text-sm text-jac-text-secondary">
                           <span>— por tesorera</span>
                           <span>{{ formatearMoneda(estadisticas()?.porMetodo?.onlineTesorera ?? 0) }}</span>
                         </div>
-                        <div class="flex justify-between items-center px-3 py-2 pl-6 text-sm text-gray-600">
+                        <div class="flex justify-between items-center px-3 py-2 pl-6 text-sm text-jac-text-secondary">
                           <span>— por usuarios</span>
                           <span>{{ formatearMoneda(estadisticas()?.porMetodo?.onlineUsuarios ?? 0) }}</span>
                         </div>
@@ -48,11 +48,11 @@
                     <div>
                       <h3 class="text-lg font-medium mb-2">Por tipo de ingreso</h3>
                       <div class="flex flex-col gap-2">
-                        <div class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded">
+                        <div class="flex justify-between items-center px-3 py-2 bg-jac-surface-alt rounded">
                           <span>Tarifa junta</span>
                           <span class="font-medium">{{ formatearMoneda(estadisticas()?.porTipo?.tarifa ?? 0) }}</span>
                         </div>
-                        <div class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded">
+                        <div class="flex justify-between items-center px-3 py-2 bg-jac-surface-alt rounded">
                           <span>Cartas</span>
                           <span class="font-medium">{{ formatearMoneda(estadisticas()?.porTipo?.carta ?? 0) }}</span>
                         </div>
@@ -64,7 +64,7 @@
                     <h3 class="text-lg font-medium mb-2">Por año</h3>
                     <div class="flex flex-wrap gap-4">
                       @for (a of estadisticas()!.porAnio; track a.anio) {
-                        <div class="px-4 py-2 bg-gray-100 rounded">
+                        <div class="px-4 py-2 bg-jac-surface-raised rounded">
                           <span class="font-medium">{{ a.anio }}</span>: {{ formatearMoneda(a.total) }}
                         </div>
                       }
@@ -74,7 +74,7 @@
                     <h3 class="text-lg font-medium mb-2">Por mes (últimos 24)</h3>
                     <div class="flex flex-wrap gap-2">
                       @for (m of estadisticas()!.porMes; track m.anio + '-' + m.mes) {
-                        <div class="px-3 py-1 bg-gray-50 rounded text-sm">
+                        <div class="px-3 py-1 bg-jac-surface-alt rounded text-sm">
                           {{ nombreMes(m.mes) }} {{ m.anio }}: {{ formatearMoneda(m.total) }}
                         </div>
                       }
@@ -89,8 +89,22 @@
         </div>
       </mat-tab>
     }
+    @if (auth.can(auth.permissions.PAGOS_GESTIONAR)) {
     <mat-tab label="Registrar">
       <div class="flex flex-col gap-6 pt-4">
+        @if (tieneTarifas() === false) {
+          <div class="p-4 rounded-xl bg-jac-warning-bg border border-jac-warning-border">
+            <p class="font-semibold text-jac-warning">Configure las tarifas antes de registrar pagos</p>
+            <p class="text-sm text-jac-warning mt-1">
+              La junta no tiene tarifas configuradas. Configure las tarifas en Configuración → Tarifas para poder registrar pagos de cuota.
+            </p>
+            @if (auth.can(auth.permissions.TARIFAS_VER) || auth.can(auth.permissions.TARIFAS_MODIFICAR)) {
+              <a mat-stroked-button color="primary" routerLink="/tarifas" class="mt-3">
+                Ir a Tarifas
+              </a>
+            }
+          </div>
+        }
         <mat-card>
           <mat-card-header>
             <mat-card-title>Registrar pago efectivo (cuota junta)</mat-card-title>
@@ -164,6 +178,7 @@
         </mat-card>
       </div>
     </mat-tab>
+    }
 
     @if (puedeVerListado()) {
       <mat-tab label="Listado">
@@ -206,6 +221,10 @@
                     Limpiar
                   </button>
                 }
+                <button mat-stroked-button (click)="exportarPagos()" [disabled]="exportandoPagos">
+                  <mat-icon>download</mat-icon>
+                  {{ exportandoPagos ? 'Exportando...' : 'Exportar CSV' }}
+                </button>
               </div>
               @if (pagosLoading) {
                 <p>Cargando...</p>

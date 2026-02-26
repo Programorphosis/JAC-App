@@ -27,11 +27,24 @@ Todo dato con impacto legal debe ser **inmutable o trazable**. Si se puede cambi
 ## 3. Reglas técnicas
 
 - **Pago:** Nunca UPDATE ni DELETE. Si se registró mal, se hace un nuevo pago de ajuste con metadata explícita.
-- **HistorialLaboral:** Nunca UPDATE ni DELETE. Carga inicial y altas posteriores; sin edición de registros históricos.
+- **HistorialLaboral:** Nunca UPDATE ni DELETE. Carga inicial y altas posteriores; sin edición de registros históricos. **Fecha de inicio:** Si se crea con `fechaInicio` en el pasado, la validación de superposición (HistorialLaboralSuperpuestoError) evita solapamientos. Si `fechaInicio` es futura, está permitido (programar cambio de estado). El cálculo de deuda usa solo registros cuyo intervalo cubra el mes; los futuros no afectan hasta que llegue la fecha.
 - **HistorialRequisito:** Nunca UPDATE ni DELETE. Cada cambio de estado/obligación genera nuevo registro.
 - **Auditoria:** Nunca UPDATE ni DELETE. Es el registro de hechos; inmutable por diseño.
-- **Tarifa:** Versionado por `fechaVigencia`. No se editan tarifas pasadas; se crean nuevas.
+- **Tarifa:** Versionado por `fechaVigencia`. No se editan tarifas pasadas; se crean nuevas. **No se eliminan tarifas:** el cálculo de deuda las necesita para meses históricos. Ver §3.1.
 - **Carta:** Una vez APROBADA o RECHAZADA, no se modifica. Solo PENDIENTE puede cambiar de estado.
+
+---
+
+## 3.1 Política de tarifas (detalle)
+
+| Operación | Permitida | Cómo |
+|-----------|-----------|------|
+| Crear tarifa | ✅ | POST /tarifas con estadoLaboral, valorMensual, fechaVigencia |
+| "Editar" tarifa | ✅ | Crear **nueva** tarifa con fechaVigencia = hoy; la anterior deja de ser vigente para meses futuros |
+| Eliminar tarifa | ❌ | No. El cálculo de deuda usa tarifas históricas por mes |
+| Modificar tarifa existente | ❌ | No. Solo INSERT de nuevas versiones |
+
+**Referencia:** CHECKLIST_OPERACION_JUNTAS.md §3.2, calculadoraDeDeuda.md §8
 
 ---
 

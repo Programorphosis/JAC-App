@@ -41,9 +41,14 @@ import {
   MensajeDialogComponent,
   MensajeDialogData,
 } from '../../../shared/dialogs/mensaje-dialog/mensaje-dialog.component';
-import { PlanSelectorDialogComponent } from '../plan-selector-dialog/plan-selector-dialog.component';
+import {
+  PlanSelectorDialogComponent,
+  type PlanSeleccionado,
+} from '../plan-selector-dialog/plan-selector-dialog.component';
+import { ConfirmarCambioPlanDialogComponent } from '../../../shared/dialogs/confirmar-cambio-plan-dialog/confirmar-cambio-plan-dialog.component';
 import { AdminSelectorDialogComponent } from '../admin-selector-dialog/admin-selector-dialog.component';
 import { handleApiError } from '../../../shared/operators/handle-api-error.operator';
+import { nombreCompletoJunta } from '../../../shared/utils/nombre-completo-junta.util';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
@@ -173,6 +178,8 @@ export class JuntaDetailComponent implements OnInit {
       direccion?: string | null;
       ciudad?: string | null;
       departamento?: string | null;
+      personeriaJuridica?: string | null;
+      membreteUrl?: string | null;
       enMantenimiento?: boolean;
     }
   ): void {
@@ -186,6 +193,8 @@ export class JuntaDetailComponent implements OnInit {
       direccion: body.direccion ?? undefined,
       ciudad: body.ciudad ?? undefined,
       departamento: body.departamento ?? undefined,
+      personeriaJuridica: body.personeriaJuridica ?? undefined,
+      membreteUrl: body.membreteUrl ?? undefined,
       enMantenimiento: body.enMantenimiento,
     })
       .pipe(handleApiError(this.snackBar))
@@ -205,7 +214,7 @@ export class JuntaDetailComponent implements OnInit {
     const accion = nuevoActivo ? 'activar' : 'desactivar';
     this.abrirConfirmacion({
       titulo: nuevoActivo ? 'Activar junta' : 'Desactivar junta',
-      mensaje: `¿Desea ${accion} la junta "${this.junta.nombre}"? Las juntas inactivas no pueden iniciar sesión.`,
+      mensaje: `¿Desea ${accion} la junta "${nombreCompletoJunta(this.junta.nombre)}"? Las juntas inactivas no pueden iniciar sesión.`,
       textoConfirmar: nuevoActivo ? 'Activar' : 'Desactivar',
       peligroso: !nuevoActivo,
     }).subscribe((confirmed) => {
@@ -231,7 +240,7 @@ export class JuntaDetailComponent implements OnInit {
     if (!this.junta) return;
     this.abrirConfirmacion({
       titulo: 'Dar de baja junta',
-      mensaje: `¿Dar de baja la junta "${this.junta.nombre}"? Los usuarios no podrán iniciar sesión.`,
+      mensaje: `¿Dar de baja la junta "${nombreCompletoJunta(this.junta.nombre)}"? Los usuarios no podrán iniciar sesión.`,
       textoConfirmar: 'Dar de baja',
       peligroso: true,
     }).subscribe((confirmed) => {
@@ -274,6 +283,16 @@ export class JuntaDetailComponent implements OnInit {
         width: '400px',
       })
       .afterClosed();
+  }
+
+  private tieneOverrides(j: JuntaDetalle): boolean {
+    const s = j.suscripcion;
+    if (!s) return false;
+    return (
+      s.overrideLimiteUsuarios != null ||
+      s.overrideLimiteStorageMb != null ||
+      s.overrideLimiteCartasMes != null
+    );
   }
 
   private cargarResumen(id: string): void {
@@ -351,7 +370,7 @@ export class JuntaDetailComponent implements OnInit {
     if (!junta) return;
     this.dialog
       .open(FacturaCrearDialogComponent, {
-        data: { juntaNombre: junta.nombre },
+        data: { juntaNombre: nombreCompletoJunta(junta.nombre) },
         width: '400px',
       })
       .afterClosed()
@@ -648,14 +667,15 @@ export class JuntaDetailComponent implements OnInit {
           this.dialog
             .open(PlanSelectorDialogComponent, {
               data: { titulo: 'Crear suscripción', planes },
-              width: '450px',
+              width: '720px',
+              maxWidth: '95vw',
             })
             .afterClosed()
-            .subscribe((plan) => {
-              if (!plan) return;
-              const diasPrueba = plan.diasPrueba || 0;
+            .subscribe((sel: PlanSeleccionado | null) => {
+              if (!sel) return;
+              const { plan, periodo, diasPrueba } = sel;
               this.platform
-                .crearSuscripcion(junta.id, plan.id, diasPrueba)
+                .crearSuscripcion(junta.id, plan.id, diasPrueba, periodo)
                 .pipe(handleApiError(this.snackBar))
                 .subscribe({
                   next: () => {
@@ -689,29 +709,72 @@ export class JuntaDetailComponent implements OnInit {
                 titulo: 'Cambiar plan',
                 planes,
                 planActualId: junta.suscripcion!.plan.id,
+                planActualPrecioMensual: junta.suscripcion!.plan.precioMensual,
+                planActualPeriodo: (junta.suscripcion!.periodo === 'mensual' || junta.suscripcion!.periodo === 'anual')
+                  ? junta.suscripcion!.periodo
+                  : 'anual',
               },
-              width: '450px',
+              width: '720px',
+              maxWidth: '95vw',
             })
             .afterClosed()
-            .subscribe((nuevoPlan) => {
-              if (!nuevoPlan) return;
-              this.abrirConfirmacion({
-                titulo: 'Confirmar cambio de plan',
-                mensaje: `¿Cambiar a plan ${nuevoPlan.nombre}?`,
-                textoConfirmar: 'Cambiar',
-              }).subscribe((confirmed) => {
-                if (!confirmed) return;
-                this.platform
-                  .actualizarSuscripcion(junta.id, { planId: nuevoPlan.id })
-                  .pipe(handleApiError(this.snackBar))
-                  .subscribe({
-                    next: () => {
-                      this.cargar(junta.id);
-                      this.snackBar.open('Plan actualizado', 'Cerrar', { duration: 2000 });
-                    },
-                    error: () => {},
-                  });
-              });
+            .subscribe((sel: PlanSeleccionado | null) => {
+              if (!sel) return;
+              const { plan: nuevoPlan, periodo } = sel;
+              const periodoActual = (junta.suscripcion!.periodo === 'mensual' || junta.suscripcion!.periodo === 'anual')
+                ? junta.suscripcion!.periodo
+                : 'anual';
+              const esMismoPlanPeriodo = nuevoPlan.id === junta.suscripcion!.plan.id &&
+                periodoActual === 'mensual' && periodo === 'anual';
+              const esUpgrade = esMismoPlanPeriodo || nuevoPlan.precioMensual > junta.suscripcion!.plan.precioMensual;
+              this.dialog
+                .open(ConfirmarCambioPlanDialogComponent, {
+                  data: {
+                    planOrigen: junta.suscripcion!.plan.nombre,
+                    planDestino: nuevoPlan.nombre,
+                    esUpgrade,
+                    esCambioPeriodo: esMismoPlanPeriodo,
+                    tieneOverrides: this.tieneOverrides(junta),
+                    esPlatformAdmin: true,
+                  },
+                  width: '440px',
+                })
+                .afterClosed()
+                .subscribe((result: boolean | { confirmado: true; forzarDowngrade?: boolean }) => {
+                  const confirmado = typeof result === 'boolean' ? result : result?.confirmado;
+                  const forzarDowngrade = typeof result === 'object' && result?.forzarDowngrade;
+                  if (!confirmado) return;
+                  if (esUpgrade) {
+                    this.platform
+                      .crearIntencionUpgrade(junta.id, {
+                        suscripcionId: junta.suscripcion!.id,
+                        planId: nuevoPlan.id,
+                        periodo,
+                      })
+                      .pipe(handleApiError(this.snackBar))
+                      .subscribe({
+                        next: (r) => {
+                          window.location.href = r.checkoutUrl;
+                        },
+                        error: () => {},
+                      });
+                  } else {
+                    this.platform
+                      .actualizarSuscripcion(junta.id, {
+                        planId: nuevoPlan.id,
+                        periodo,
+                        forzarDowngrade: forzarDowngrade || undefined,
+                      })
+                      .pipe(handleApiError(this.snackBar))
+                      .subscribe({
+                        next: () => {
+                          this.cargar(junta.id);
+                          this.snackBar.open('Plan actualizado', 'Cerrar', { duration: 2000 });
+                        },
+                        error: () => {},
+                      });
+                  }
+                });
             });
         },
         error: () => {},

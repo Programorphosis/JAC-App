@@ -8,6 +8,10 @@ export interface DashboardData {
   juntasActivas: number;
   juntasInactivas: number;
   juntasNuevasEsteMes: number;
+  /** PA5-5: Juntas con suscripción vencida. */
+  juntasVencidas?: number;
+  /** PA5-5: Juntas con uso ≥80% en algún límite. */
+  juntasCercanasALimite?: number;
 }
 
 /**

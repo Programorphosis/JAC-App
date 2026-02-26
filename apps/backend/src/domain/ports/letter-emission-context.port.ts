@@ -16,6 +16,16 @@ export interface CartaParaEmitir {
   usuarioNombres?: string;
   usuarioApellidos?: string;
   usuarioDocumento?: string;
+  /** Fecha de afiliación (libro físico). Para PDF. */
+  fechaAfiliacion?: Date | null;
+  /** Folio del libro. Para PDF. */
+  folio?: number | null;
+  /** Numeral consecutivo del libro. Para PDF. */
+  numeral?: number | null;
+  /** Teléfono del usuario. Para PDF. */
+  usuarioTelefono?: string | null;
+  /** Lugar de expedición del documento. Para PDF. */
+  usuarioLugarExpedicion?: string | null;
 }
 
 export interface ILetterEmissionContext {
@@ -47,5 +57,15 @@ export interface ILetterEmissionContext {
     usuarioNombres: string;
     usuarioApellidos: string;
     usuarioDocumento: string;
+    usuarioTelefono?: string | null;
+    usuarioLugarExpedicion?: string | null;
+    fechaAfiliacion?: Date | null;
+    folio?: number | null;
+    numeral?: number | null;
+    juntaNombre?: string;
+    juntaNit?: string | null;
+    juntaDepartamento?: string | null;
+    juntaCiudad?: string | null;
+    juntaPersoneriaJuridica?: string | null;
   }): Promise<{ rutaPdf: string; hashDocumento?: string } | null>;
 }

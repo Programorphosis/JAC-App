@@ -1,0 +1,130 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Stack de PRODUCCIÓN – JAC App
+#
+# USO:
+#   cp .env.production.example .env.production
+#   # Editar .env.production con valores reales (especialmente DOMAIN)
+#   docker compose --env-file .env.production up -d --build
+#
+# Para ver logs en tiempo real:
+#   docker compose logs -f
+#
+# ── Arquitectura ──────────────────────────────────────────────────────────
+#
+#   Internet (HTTPS/HTTP)
+#        ↓
+#   Caddy :80/:443 (auto-HTTPS Let's Encrypt)
+#        ↓
+#   frontend:80  (nginx Angular + proxy /api)
+#        ↓
+#   backend:3000  (NestJS)
+#        ↓
+#   postgres:5432  (PostgreSQL, solo red interna)
+# ──────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Base de datos ──────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: jac-postgres
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-jac_db}
+      POSTGRES_USER:     ${DB_USER:-jac_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-jac_user} -d ${DB_NAME:-jac_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    # Puerto NO expuesto al exterior. Solo accesible desde la red interna.
+    # Acceso temporal de emergencia: descomenta la línea de abajo.
+    # ports: ["5432:5432"]
+
+  # ── Backend NestJS ─────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: jac-backend
+    env_file:
+      - .env.production
+    environment:
+      # Sobreescribir DATABASE_URL para apuntar al contenedor postgres.
+      # connection_limit=5 → Prisma no abre más de 5 conexiones simultáneas.
+      # pool_timeout=10   → si no hay conexión libre en 10s, falla rápido.
+      DATABASE_URL: "postgresql://${DB_USER:-jac_user}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-jac_db}?schema=public&connection_limit=5&pool_timeout=10"
+      NODE_ENV: production
+      PORT: 3000
+    networks:
+      - internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health/live || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ── Frontend Angular + nginx ───────────────────────────────────────────
+  # NO expone puertos al exterior — Caddy es el único punto público.
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: jac-frontend
+    networks:
+      - internal
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Caddy — HTTPS automático (Let's Encrypt) ───────────────────────────
+  # Único servicio expuesto a internet. Gestiona SSL sin configuración manual.
+  # Requisito: el dominio (DOMAIN en .env.production) debe apuntar a este
+  # servidor ANTES de levantar por primera vez (DNS A → IP del servidor).
+  caddy:
+    image: caddy:2-alpine
+    container_name: jac-caddy
+    ports:
+      - "80:80"      # HTTP (Caddy redirige automáticamente a HTTPS)
+      - "443:443"    # HTTPS
+      - "443:443/udp" # HTTP/3 (QUIC)
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data           # Certificados SSL (persistentes)
+      - caddy-config:/config       # Configuración interna de Caddy
+    environment:
+      DOMAIN: ${DOMAIN}
+    networks:
+      - internal
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
+  caddy-data:
+    driver: local
+  caddy-config:
+    driver: local

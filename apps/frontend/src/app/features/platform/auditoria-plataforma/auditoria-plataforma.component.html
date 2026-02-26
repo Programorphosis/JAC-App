@@ -1,7 +1,13 @@
 <mat-card class="listado-card">
   <mat-card-header>
     <mat-card-title>Auditoría de plataforma</mat-card-title>
-    <mat-card-subtitle>Acciones sobre juntas (crear, actualizar, dar de baja)</mat-card-subtitle>
+    <mat-card-subtitle>
+      <mat-button-toggle-group [value]="tipo" (change)="onTipoChange($event)">
+        <mat-button-toggle value="all">Todas</mat-button-toggle>
+        <mat-button-toggle value="juntas">Juntas</mat-button-toggle>
+        <mat-button-toggle value="accesos">Accesos (login, impersonación, roles)</mat-button-toggle>
+      </mat-button-toggle-group>
+    </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
@@ -17,12 +23,12 @@
           </ng-container>
           <ng-container matColumnDef="junta">
             <th mat-header-cell *matHeaderCellDef>Junta</th>
-            <td mat-cell *matCellDef="let a">{{ a.junta?.nombre ?? '-' }}</td>
+            <td mat-cell *matCellDef="let a">{{ a.junta ? (a.junta.nombre | nombreCompletoJunta) : '-' }}</td>
           </ng-container>
           <ng-container matColumnDef="ejecutadoPor">
             <th mat-header-cell *matHeaderCellDef>Ejecutado por</th>
             <td mat-cell *matCellDef="let a">
-              {{ a.ejecutadoPor.nombres | formatearNombre }} {{ a.ejecutadoPor.apellidos | formatearNombre }}
+              {{ a.ejecutadoPor ? (a.ejecutadoPor.nombres | formatearNombre) + ' ' + (a.ejecutadoPor.apellidos | formatearNombre) : 'Sistema' }}
             </td>
           </ng-container>
           <ng-container matColumnDef="metadata">

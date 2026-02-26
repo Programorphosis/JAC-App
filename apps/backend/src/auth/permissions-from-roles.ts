@@ -20,6 +20,7 @@ export function computePermissions(
   // ADMIN
   if (roles.includes(RolNombre.ADMIN)) {
     set.add(PERMISSIONS.JUNTA_CONFIG_WOMPI);
+    set.add(PERMISSIONS.JUNTA_DATOS_EDITAR);
     set.add(PERMISSIONS.USUARIOS_VER);
     set.add(PERMISSIONS.USUARIOS_CREAR);
     set.add(PERMISSIONS.USUARIOS_EDITAR);
@@ -28,7 +29,6 @@ export function computePermissions(
     set.add(PERMISSIONS.REQUISITOS_MODIFICAR);
     set.add(PERMISSIONS.PAGOS_VER);
     set.add(PERMISSIONS.TARIFAS_VER);
-    set.add(PERMISSIONS.TARIFAS_MODIFICAR);
     set.add(PERMISSIONS.AUDITORIAS_VER);
     set.add(PERMISSIONS.DOCUMENTOS_SUBIR_OTROS);
     set.add(PERMISSIONS.HISTORIAL_CREAR);
@@ -51,10 +51,22 @@ export function computePermissions(
     set.add(PERMISSIONS.PAGOS_GESTIONAR);
     set.add(PERMISSIONS.PAGOS_VER);
     set.add(PERMISSIONS.PAGOS_PAGAR_ONLINE);
+    set.add(PERMISSIONS.JUNTA_SUSCRIPCION_GESTIONAR);
     set.add(PERMISSIONS.TARIFAS_VER);
+    set.add(PERMISSIONS.TARIFAS_MODIFICAR);
     set.add(PERMISSIONS.AUDITORIAS_VER);
     set.add(PERMISSIONS.DOCUMENTOS_SUBIR_OTROS);
     set.add(PERMISSIONS.HISTORIAL_CREAR);
+  }
+
+  // FISCAL: solo lectura (control y vigilancia)
+  if (roles.includes(RolNombre.FISCAL)) {
+    set.add(PERMISSIONS.USUARIOS_VER);
+    set.add(PERMISSIONS.PAGOS_VER);
+    set.add(PERMISSIONS.TARIFAS_VER);
+    set.add(PERMISSIONS.REQUISITOS_VER);
+    set.add(PERMISSIONS.CARTAS_VER);
+    set.add(PERMISSIONS.AUDITORIAS_VER);
   }
 
   // RECEPTOR_AGUA

@@ -11,10 +11,23 @@ import {
   auditoriasGuard,
   facturasPlataformaGuard,
   configuracionGuard,
+  planSuscripcionGuard,
 } from './core/auth/permission.guard';
 
 export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/auth/login/login.component').then((m) => m.LoginComponent) },
+  {
+    path: 'legal',
+    loadComponent: () => import('./features/legal/legal-layout/legal-layout.component').then((m) => m.LegalLayoutComponent),
+    children: [
+      { path: '', redirectTo: 'terminos', pathMatch: 'full' },
+      { path: 'terminos', loadComponent: () => import('./features/legal/terminos/terminos.component').then((m) => m.TerminosComponent) },
+      { path: 'privacidad', loadComponent: () => import('./features/legal/privacidad/privacidad.component').then((m) => m.PrivacidadComponent) },
+      { path: 'cancelacion', loadComponent: () => import('./features/legal/cancelacion/cancelacion.component').then((m) => m.CancelacionComponent) },
+    ],
+  },
+  { path: 'terminos', redirectTo: 'legal/terminos', pathMatch: 'full' },
+  { path: 'privacidad', redirectTo: 'legal/privacidad', pathMatch: 'full' },
   {
     path: '',
     canActivate: [authGuard],
@@ -99,6 +112,17 @@ export const routes: Routes = [
         path: 'mi-junta',
         loadComponent: () =>
           import('./features/mi-junta/mi-junta/mi-junta.component').then((m) => m.MiJuntaComponent),
+      },
+      {
+        path: 'plan-suscripcion',
+        canActivate: [planSuscripcionGuard],
+        loadComponent: () =>
+          import('./features/mi-junta/plan-suscripcion/plan-suscripcion.component').then((m) => m.PlanSuscripcionComponent),
+      },
+      {
+        path: 'avisos',
+        loadComponent: () =>
+          import('./features/avisos/avisos-list/avisos-list.component').then((m) => m.AvisosListComponent),
       },
       {
         path: 'ayuda',

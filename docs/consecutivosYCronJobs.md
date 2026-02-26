@@ -140,6 +140,8 @@ Si se prefiere separar los jobs del proceso API:
 - En producción con múltiples réplicas: considerar un lock distribuido (Redis) o ejecutar jobs solo en una instancia designada.
 - Para MVP con un solo contenedor backend: no hay problema de duplicación.
 
+**Análisis detallado:** Ver `CRON_MULTI_INSTANCIA_ANALISIS.md` para estado actual, impacto al escalar y opciones de implementación (PostgreSQL advisory lock, Redis, variable de entorno).
+
 ---
 
 **Referencias:** `flujoRequisitosAdicionales.md`, `flujoDePagosCasoFallaWebhook.md`, `definicionDomainServices.md`, `SCHEMA BASE v1.md`.

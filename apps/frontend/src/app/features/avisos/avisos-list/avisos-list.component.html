@@ -1,0 +1,35 @@
+<div class="max-w-4xl mx-auto">
+  <header class="mb-8">
+    <h1 class="text-2xl sm:text-3xl font-bold text-jac-text mb-1">Avisos</h1>
+    <p class="text-jac-text-secondary">Comunicados de la plataforma y de su junta</p>
+  </header>
+
+  @if (loading) {
+    <div class="flex justify-center py-16">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (avisos.length === 0) {
+    <mat-card class="border border-jac-border-subtle">
+      <mat-card-content class="py-12 text-center">
+        <mat-icon class="!text-5xl !w-16 !h-16 mx-auto mb-3 text-jac-text-muted">campaign</mat-icon>
+        <p class="text-jac-text-muted">No hay avisos activos en este momento.</p>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <div class="space-y-4">
+      @for (a of avisos; track a.id) {
+        <mat-card class="border border-jac-border-subtle">
+          <mat-card-header class="pb-2">
+            <mat-card-title class="!text-base !font-medium">{{ a.titulo }}</mat-card-title>
+            <mat-card-subtitle class="!text-xs">
+              {{ a.fechaPublicacion | date:'medium' }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content class="pt-0">
+            <p class="text-sm text-jac-text-secondary whitespace-pre-wrap">{{ a.contenido }}</p>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

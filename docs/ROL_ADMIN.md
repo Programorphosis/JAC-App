@@ -17,7 +17,7 @@ ADMIN es un rol de **configuración y mantenimiento** de la junta. No realiza ta
 |------|----------|
 | **Usuarios** | Crear, editar, eliminar usuarios de la junta |
 | **Requisitos** | Crear, editar, eliminar tipos de requisito (RequisitoTipo) |
-| **Tarifas** | Crear, listar tarifas |
+| **Tarifas** | Listar tarifas (solo visualización) |
 | **Auditoría** | Ver auditorías (cuando exista el módulo) |
 | **Historiales** | Ver historial laboral, documentos (solo lectura) |
 | **Credenciales** | Configurar credenciales pasarela de pago (cuando exista) |
@@ -51,7 +51,7 @@ Todo lo que ADMIN puede hacer está limitado a **su junta** (juntaId del usuario
 Las tareas que ADMIN no realiza las ejecutan:
 
 - **SECRETARIA:** validar cartas, editar datos básicos de usuarios (solo visualización del resto)
-- **TESORERA:** registrar pagos, crear historial laboral
+- **TESORERA:** registrar pagos, crear historial laboral, crear/modificar tarifas
 - **ADMIN:** cambiar obligación requisitos
 - **Modificador:** cambiar estado requisitos (AL_DÍA/MORA) de sus requisitos asignados
 - **AFILIADO:** solicitar carta, pagar deuda/carta online

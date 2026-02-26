@@ -123,8 +123,12 @@
 |---------------|-------------|--------|-----------|
 | Impersonación | Ver app "como" una junta (solo lectura o limitado) | - | `POST /platform/impersonar/:juntaId` (token temporal) |
 | Notas internas | Comentarios sobre junta (soporte) | `NotaJunta` (juntaId, contenido, creadoPor, fecha) | `GET/POST /platform/juntas/:id/notas` |
-| Exportar datos junta | Backup para cumplimiento/migración | - | `GET /platform/juntas/:id/exportar` |
+| Exportar datos junta | Backup para cumplimiento/migración | - | `GET /platform/juntas/:id/exportar?format=json\|csv` |
 | Modo mantenimiento | Deshabilitar acceso temporalmente | `Junta.enMantenimiento Boolean` | `PATCH /platform/juntas/:id` |
+
+**Contenido del export (JSON/CSV):** Junta (datos básicos, suscripción), usuarios (resumen, sin passwordHash), tarifas, pagos (últimos 1000), cartas (últimas 500), requisitosTipo, facturas, notas. Los archivos S3 (documentos, PDFs) no se incluyen; solo metadatos de documentos si aplica. No incluye datos de otras juntas. **Uso:** Cumplimiento legal, migración, backup. Solo Platform Admin puede exportar.
+
+**Referencia:** `apps/backend/src/platform/operaciones/platform-operaciones.service.ts`
 
 ---
 

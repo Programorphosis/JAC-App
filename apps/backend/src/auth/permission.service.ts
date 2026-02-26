@@ -19,7 +19,8 @@ export class PermissionService {
     if (
       user.roles.includes(RolNombre.ADMIN) ||
       user.roles.includes(RolNombre.SECRETARIA) ||
-      user.roles.includes(RolNombre.TESORERA)
+      user.roles.includes(RolNombre.TESORERA) ||
+      user.roles.includes(RolNombre.FISCAL)
     ) {
       return true;
     }
@@ -34,16 +35,20 @@ export class PermissionService {
     return (
       user.roles.includes(RolNombre.ADMIN) ||
       user.roles.includes(RolNombre.SECRETARIA) ||
-      user.roles.includes(RolNombre.TESORERA)
+      user.roles.includes(RolNombre.TESORERA) ||
+      user.roles.includes(RolNombre.FISCAL)
     );
   }
 
   /**
    * true si puede ver/listar cartas de otro usuario.
-   * Solo SECRETARIA.
+   * SECRETARIA y FISCAL.
    */
   puedeVerCartasDeOtro(user: JwtUser): boolean {
-    return user.roles.includes(RolNombre.SECRETARIA);
+    return (
+      user.roles.includes(RolNombre.SECRETARIA) ||
+      user.roles.includes(RolNombre.FISCAL)
+    );
   }
 
   /**
@@ -62,7 +67,8 @@ export class PermissionService {
     return (
       user.roles.includes(RolNombre.ADMIN) ||
       user.roles.includes(RolNombre.SECRETARIA) ||
-      user.roles.includes(RolNombre.TESORERA)
+      user.roles.includes(RolNombre.TESORERA) ||
+      user.roles.includes(RolNombre.FISCAL)
     );
   }
 
@@ -84,9 +90,12 @@ export class PermissionService {
 
   /**
    * true si puede listar cartas pendientes (módulo Cartas).
-   * Solo SECRETARIA.
+   * SECRETARIA (validar/rechazar) y FISCAL (solo ver).
    */
   puedeListarCartasPendientes(user: JwtUser): boolean {
-    return user.roles.includes(RolNombre.SECRETARIA);
+    return (
+      user.roles.includes(RolNombre.SECRETARIA) ||
+      user.roles.includes(RolNombre.FISCAL)
+    );
   }
 }

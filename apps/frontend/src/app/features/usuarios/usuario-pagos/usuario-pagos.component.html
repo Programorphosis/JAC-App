@@ -1,11 +1,11 @@
 <div class="flex flex-col gap-4">
-  <p class="text-sm text-gray-600">Historial de tus pagos (cuota junta, carta). Solo lectura.</p>
+  <p class="text-sm text-jac-text-muted">Historial de tus pagos (cuota junta, carta). Solo lectura.</p>
   @if (loading) {
     <div class="flex justify-center py-8">
       <mat-spinner diameter="40"></mat-spinner>
     </div>
   } @else if (pagos.length === 0) {
-    <p class="text-gray-500 py-4">No tienes pagos registrados.</p>
+    <p class="text-jac-text-muted py-4">No tienes pagos registrados.</p>
   } @else {
     <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
       <table mat-table [dataSource]="pagos" class="w-full" style="min-width: 400px">

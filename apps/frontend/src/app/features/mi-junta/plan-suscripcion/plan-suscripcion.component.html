@@ -1,0 +1,277 @@
+<div class="max-w-4xl mx-auto">
+  <header class="mb-6">
+    <h1 class="text-2xl font-bold text-jac-text">Plan y suscripción</h1>
+    <p class="text-jac-text-muted mt-1">
+      Detalle del plan actual, consumo, fechas de corte y opciones de gestión.
+    </p>
+  </header>
+
+  @if (loading) {
+    <div class="flex justify-center py-16">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (junta) {
+    @if (!junta.suscripcion) {
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Sin suscripción</mat-card-title>
+          <mat-card-subtitle>Asigne un plan para activar la junta en la plataforma.</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="text-jac-text-muted text-sm mb-4">
+            La plataforma ofrece distintos planes según las necesidades de la junta.
+            Seleccione el plan que mejor se ajuste.
+          </p>
+          <button mat-raised-button color="primary" (click)="abrirCrearSuscripcion()">
+            <mat-icon>add</mat-icon>
+            Crear suscripción
+          </button>
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      @let s = junta.suscripcion;
+      @let p = s.plan;
+      @let periodoLabel = (s.periodo === 'mensual' || s.periodo === 'anual') ? s.periodo : 'anual';
+
+      <!-- Alertas de límites -->
+      @if (consumo && consumo.alertas.length) {
+        <mat-card class="mb-4 border-l-4 border-jac-warning">
+          <mat-card-header>
+            <mat-card-title class="!text-base flex items-center gap-2">
+              <mat-icon>warning</mat-icon>
+              Alertas de consumo
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <ul class="space-y-1">
+              @for (a of consumo.alertas; track a.tipo) {
+                <li class="text-sm flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full"
+                    [class.bg-jac-warning]="a.nivel === 'ADVERTENCIA'"
+                    [class.bg-orange-500]="a.nivel === 'CRITICO'"
+                    [class.bg-jac-error]="a.nivel === 'BLOQUEO'"></span>
+                  {{ a.mensaje }}
+                  <span class="text-jac-text-muted">({{ a.porcentaje }}%)</span>
+                </li>
+              }
+            </ul>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Plan actual -->
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Plan {{ p.nombre }}</mat-card-title>
+            <mat-card-subtitle class="flex flex-wrap items-center gap-2">
+              <span>Estado: {{ s.estado }}</span>
+              @if (s.esPlanPersonalizado) {
+                <span class="px-2 py-0.5 rounded text-xs bg-jac-primary-light text-jac-primary">Personalizado</span>
+              }
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content class="space-y-3">
+            @if (p.descripcion) {
+              <p class="text-sm text-jac-text-muted">{{ p.descripcion }}</p>
+            }
+            <div class="text-sm">
+              <p class="font-medium text-jac-text-secondary">Precios</p>
+              <p class="text-jac-text-muted">
+                {{ p.precioMensual | number }} COP/mes ·
+                {{ p.precioAnual | number }} COP/año
+              </p>
+            </div>
+            <div class="text-sm">
+              <p class="font-medium text-jac-text-secondary">Límites del plan</p>
+              <ul class="text-jac-text-muted space-y-1">
+                <li>Usuarios: {{ p.permiteUsuariosIlimitados ? 'Ilimitados' : (p.limiteUsuarios ?? '-') }}</li>
+                <li>Storage: {{ p.permiteStorageIlimitado ? 'Ilimitado' : (p.limiteStorageMb != null ? p.limiteStorageMb + ' MB' : '-') }}</li>
+                <li>Cartas/mes: {{ p.permiteCartasIlimitadas ? 'Ilimitadas' : (p.limiteCartasMes ?? '-') }}</li>
+              </ul>
+            </div>
+            @if (tieneOverrides()) {
+              <div class="text-sm pt-2 border-t border-jac-border">
+                <p class="font-medium text-jac-text-secondary">Límites personalizados (overrides)</p>
+                <ul class="text-jac-text-muted list-disc list-inside">
+                  @if (s.overrideLimiteUsuarios != null) {
+                    <li>Usuarios: {{ s.overrideLimiteUsuarios }}</li>
+                  }
+                  @if (s.overrideLimiteStorageMb != null) {
+                    <li>Storage: {{ s.overrideLimiteStorageMb }} MB</li>
+                  }
+                  @if (s.overrideLimiteCartasMes != null) {
+                    <li>Cartas/mes: {{ s.overrideLimiteCartasMes }}</li>
+                  }
+                </ul>
+              </div>
+            }
+            @if (p.esPersonalizable && (p.precioPorUsuarioAdicional ?? p.precioPorMbAdicional ?? p.precioPorCartaAdicional)) {
+              <div class="text-sm pt-2 border-t border-jac-border">
+                <p class="font-medium text-jac-text-secondary">Precios por exceso</p>
+                <ul class="text-jac-text-muted space-y-1">
+                  @if (p.precioPorUsuarioAdicional != null) {
+                    <li>{{ p.precioPorUsuarioAdicional | number }} COP por usuario adicional</li>
+                  }
+                  @if (p.precioPorMbAdicional != null) {
+                    <li>{{ p.precioPorMbAdicional | number }} COP por MB adicional</li>
+                  }
+                  @if (p.precioPorCartaAdicional != null) {
+                    <li>{{ p.precioPorCartaAdicional | number }} COP por carta adicional</li>
+                  }
+                </ul>
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Fechas y ciclo -->
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Fechas de la suscripción</mat-card-title>
+            <mat-card-subtitle>Vigencia y próximo corte</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content class="space-y-4">
+            <div>
+              <p class="text-xs font-medium text-jac-text-muted uppercase">Fecha de inicio</p>
+              <p class="text-jac-text">{{ s.fechaInicio | formatearFechaLarga }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-jac-text-muted uppercase">Próximo corte / vencimiento</p>
+              <p class="text-jac-text font-medium">{{ s.fechaVencimiento | formatearFechaLarga }}</p>
+              <p class="text-sm text-jac-text-muted">
+                Facturación {{ periodoLabel === 'mensual' ? 'mensual' : 'anual' }}
+              </p>
+            </div>
+            @if (s.planIdPendiente) {
+              <div class="p-3 rounded bg-jac-warning-bg border border-jac-warning-border">
+                <p class="text-sm font-medium text-jac-warning">Downgrade programado</p>
+                <p class="text-sm text-jac-warning">
+                  Al vencer el ciclo actual se aplicará el cambio de plan.
+                </p>
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Consumo actual -->
+      @if (consumo) {
+        <mat-card class="mt-4">
+          <mat-card-header>
+            <mat-card-title>Consumo actual</mat-card-title>
+            <mat-card-subtitle>{{ consumo.mesActual }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <!-- Usuarios -->
+              <div>
+                <p class="text-sm font-medium text-jac-text-secondary mb-1">Usuarios</p>
+                <p class="text-2xl font-semibold text-jac-text">{{ consumo.uso.usuarios }}</p>
+                @if (consumo.limites && consumo.limites.limiteUsuarios != null) {
+                  <div class="mt-2 h-2 bg-jac-surface-raised rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all"
+                      [style.width.%]="progresoPct(consumo.uso.usuarios, consumo.limites!.limiteUsuarios)"
+                      [ngClass]="colorProgreso(consumo.uso.usuarios, consumo.limites!.limiteUsuarios)"></div>
+                  </div>
+                  <p class="text-xs text-jac-text-muted mt-1">{{ consumo.uso.usuarios }} / {{ consumo.limites!.limiteUsuarios }}</p>
+                } @else {
+                  <p class="text-xs text-jac-text-muted">Sin límite</p>
+                }
+              </div>
+              <!-- Storage -->
+              <div>
+                <p class="text-sm font-medium text-jac-text-secondary mb-1">Storage</p>
+                <p class="text-2xl font-semibold text-jac-text">{{ consumo.uso.storageMb | number:'1.1-1' }} MB</p>
+                @if (consumo.limites && consumo.limites.limiteStorageMb != null) {
+                  <div class="mt-2 h-2 bg-jac-surface-raised rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all"
+                      [style.width.%]="progresoPct(consumo.uso.storageMb, consumo.limites!.limiteStorageMb)"
+                      [ngClass]="colorProgreso(consumo.uso.storageMb, consumo.limites!.limiteStorageMb)"></div>
+                  </div>
+                  <p class="text-xs text-jac-text-muted mt-1">{{ consumo.uso.storageMb | number:'1.1-1' }} / {{ consumo.limites!.limiteStorageMb }} MB</p>
+                } @else {
+                  <p class="text-xs text-jac-text-muted">Sin límite</p>
+                }
+              </div>
+              <!-- Cartas este mes -->
+              <div>
+                <p class="text-sm font-medium text-jac-text-secondary mb-1">Cartas este mes</p>
+                <p class="text-2xl font-semibold text-jac-text">{{ consumo.uso.cartasEsteMes }}</p>
+                @if (consumo.limites && consumo.limites.limiteCartasMes != null) {
+                  <div class="mt-2 h-2 bg-jac-surface-raised rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all"
+                      [style.width.%]="progresoPct(consumo.uso.cartasEsteMes, consumo.limites!.limiteCartasMes)"
+                      [ngClass]="colorProgreso(consumo.uso.cartasEsteMes, consumo.limites!.limiteCartasMes)"></div>
+                  </div>
+                  <p class="text-xs text-jac-text-muted mt-1">{{ consumo.uso.cartasEsteMes }} / {{ consumo.limites!.limiteCartasMes }}</p>
+                } @else {
+                  <p class="text-xs text-jac-text-muted">Sin límite</p>
+                }
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- Acciones -->
+      <mat-card class="mt-4">
+        <mat-card-header>
+          <mat-card-title>Acciones</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="flex flex-wrap gap-2 items-center">
+            <button mat-stroked-button (click)="abrirCambiarPlan()">
+              <mat-icon>swap_horiz</mat-icon>
+              Cambiar plan
+            </button>
+            @if (p.esPersonalizable) {
+              <div class="text-xs text-jac-info bg-jac-info-bg border border-jac-info-border rounded px-3 py-2 flex items-center gap-1.5">
+                <mat-icon class="!text-base !w-4 !h-4">info</mat-icon>
+                Los excesos de capacidad se facturan automáticamente al inicio de cada mes.
+              </div>
+            }
+            <a mat-stroked-button routerLink="/facturas-plataforma">
+              <mat-icon>receipt</mat-icon>
+              Ver facturas
+            </a>
+            @if (auth.can(auth.permissions.JUNTA_DATOS_EDITAR)) {
+              @if (junta.suscripcion.cancelacionSolicitada) {
+                <div class="text-xs text-jac-warning bg-jac-warning-bg border border-jac-warning-border rounded px-3 py-2 flex items-center gap-1.5">
+                  <mat-icon class="!text-base !w-4 !h-4">schedule</mat-icon>
+                  Cancelación solicitada — acceso hasta {{ junta.suscripcion.fechaVencimiento | formatearFecha }}
+                </div>
+              } @else {
+                <button mat-stroked-button color="warn" (click)="abrirCancelarSuscripcion()" [disabled]="cancelando">
+                  <mat-icon>cancel</mat-icon>
+                  Cancelar suscripción
+                </button>
+              }
+            }
+          </div>
+          @if (cancelando) {
+            <div class="mt-4 form-panel border-jac-error-border bg-jac-error-bg">
+              <p class="text-sm font-medium text-jac-error mb-2">¿Confirmar cancelación?</p>
+              <p class="text-xs text-jac-error mb-2">No hay reembolso por el periodo actual. Tendrás acceso hasta {{ junta.suscripcion.fechaVencimiento | formatearFecha }}. No se generarán renovaciones.</p>
+              <p class="text-xs text-jac-text-muted mb-3">
+                <a routerLink="/legal/cancelacion" target="_blank" class="text-jac-primary underline">Política de cancelación</a>
+              </p>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Motivo (opcional)</mat-label>
+                <textarea matInput [(ngModel)]="motivoCancelacion" rows="2" placeholder="¿Por qué desea cancelar?"></textarea>
+              </mat-form-field>
+              <div class="flex gap-2 mt-2">
+                <button mat-raised-button color="warn" (click)="confirmarCancelacion()" [disabled]="guardandoCancelacion">
+                  {{ guardandoCancelacion ? 'Cancelando...' : 'Confirmar cancelación' }}
+                </button>
+                <button mat-stroked-button (click)="cerrarCancelarSuscripcion()" [disabled]="guardandoCancelacion">
+                  Volver
+                </button>
+              </div>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</div>

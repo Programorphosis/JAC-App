@@ -1,0 +1,50 @@
+// =============================================================================
+// Formularios JAC – Estilos globales de formularios y paneles
+// Depende de: _tokens.scss
+// =============================================================================
+
+// Panel contenedor para formularios inline (crear/editar dentro de una página).
+// Uso: añadir class="form-panel" al div/section que envuelve el formulario.
+.form-panel {
+  background-color: var(--jac-surface-alt);
+  border: 1px solid var(--jac-border);
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+
+  @media (min-width: 640px) {
+    padding: 1.5rem;
+  }
+}
+
+// Título de sección dentro de un formulario largo.
+// Uso: class="form-section-title" en un <h3> o <p>.
+.form-section-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--jac-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-bottom: 0.625rem;
+  border-bottom: 1px solid var(--jac-border-subtle);
+  margin: 0 0 1rem;
+}
+
+// Banner de error global – reemplaza hardcoded .form-error y divs de alerta.
+// Uso: class="form-error-banner" en el div de error del formulario.
+.form-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--jac-error-bg);
+  border: 1px solid var(--jac-error-border);
+  border-radius: 8px;
+  color: var(--jac-error);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+// Dentro de .form-panel los campos son siempre full-width.
+.form-panel mat-form-field {
+  width: 100%;
+}

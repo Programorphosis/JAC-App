@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsArray, IsIn, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsIn, MinLength, IsDateString, IsInt, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateUserDto {
   @IsString()
@@ -21,6 +22,10 @@ export class CreateUserDto {
   @IsString()
   direccion?: string;
 
+  @IsOptional()
+  @IsString()
+  lugarExpedicion?: string;
+
   @IsString()
   @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
   password: string;
@@ -41,4 +46,23 @@ export class CreateUserDto {
     message: 'estadoLaboralInicial debe ser TRABAJANDO o NO_TRABAJANDO',
   })
   estadoLaboralInicial?: 'TRABAJANDO' | 'NO_TRABAJANDO';
+
+  /** Fecha de afiliación (libro físico). Para cartas. */
+  @IsOptional()
+  @IsDateString()
+  fechaAfiliacion?: string;
+
+  /** Folio del libro de afiliados. Para cartas. */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  folio?: number;
+
+  /** Numeral consecutivo del libro. Para cartas. */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  numeral?: number;
 }

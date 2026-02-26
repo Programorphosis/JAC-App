@@ -16,6 +16,8 @@ export interface JuntaListItem {
   direccion?: string | null;
   ciudad?: string | null;
   departamento?: string | null;
+  personeriaJuridica?: string | null;
+  membreteUrl?: string | null;
   enMantenimiento?: boolean;
   _count: { usuarios: number; pagos: number };
 }
@@ -33,6 +35,13 @@ export interface JuntaSuscripcionInfo {
   estado: string;
   fechaInicio: string;
   fechaVencimiento: string;
+  periodo?: 'mensual' | 'anual';
+  planIdPendiente?: string | null;
+  esPlanPersonalizado?: boolean;
+  overrideLimiteUsuarios?: number | null;
+  overrideLimiteStorageMb?: number | null;
+  overrideLimiteCartasMes?: number | null;
+  motivoPersonalizacion?: string | null;
   plan: {
     id: string;
     nombre: string;
@@ -41,6 +50,10 @@ export interface JuntaSuscripcionInfo {
     limiteUsuarios: number | null;
     limiteStorageMb: number | null;
     limiteCartasMes: number | null;
+    esPersonalizable?: boolean;
+    permiteUsuariosIlimitados?: boolean;
+    permiteStorageIlimitado?: boolean;
+    permiteCartasIlimitadas?: boolean;
   };
 }
 
@@ -76,6 +89,7 @@ export interface CreateJuntaBody {
   adminUser: CreateJuntaAdminUser;
   planId?: string;
   diasPrueba?: number;
+  aceptoTerminos: boolean;
 }
 
 export interface CreateJuntaResult {
@@ -137,6 +151,8 @@ export class PlatformJuntasService {
       direccion?: string | null;
       ciudad?: string | null;
       departamento?: string | null;
+      personeriaJuridica?: string | null;
+      membreteUrl?: string | null;
       enMantenimiento?: boolean;
     }
   ): Observable<JuntaDetalle> {
@@ -225,12 +241,14 @@ export class PlatformJuntasService {
   crearSuscripcion(
     juntaId: string,
     planId: string,
-    diasPrueba?: number
+    diasPrueba?: number,
+    periodo?: 'mensual' | 'anual',
   ): Observable<SuscripcionDetalle> {
     return this.http
       .post<{ data: SuscripcionDetalle }>(`${this.base}/${juntaId}/suscripcion`, {
         planId,
         diasPrueba,
+        periodo,
       })
       .pipe(map((r) => r.data));
   }
@@ -272,13 +290,50 @@ export class PlatformJuntasService {
     juntaId: string,
     body: {
       planId?: string;
+      periodo?: 'mensual' | 'anual';
       fechaVencimiento?: string;
       estado?: string;
+      overrideLimiteUsuarios?: number | null;
+      overrideLimiteStorageMb?: number | null;
+      overrideLimiteCartasMes?: number | null;
+      motivoPersonalizacion?: string | null;
+      /** Solo platform admin. Omite validación día de corte para downgrade. */
+      forzarDowngrade?: boolean;
     }
   ): Observable<SuscripcionDetalle> {
     return this.http
       .patch<{ data: SuscripcionDetalle }>(`${this.base}/${juntaId}/suscripcion`, body)
       .pipe(map((r) => r.data));
+  }
+
+  crearIntencionUpgrade(
+    juntaId: string,
+    params: {
+      suscripcionId: string;
+      planId: string;
+      periodo?: 'mensual' | 'anual';
+    }
+  ): Observable<{ checkoutUrl: string; referencia: string; facturaId: string }> {
+    return this.http.post<{ checkoutUrl: string; referencia: string; facturaId: string }>(
+      `${this.base}/${juntaId}/intencion-upgrade`,
+      params,
+    );
+  }
+
+  crearIntencionOverrides(
+    juntaId: string,
+    params: {
+      suscripcionId: string;
+      overrideLimiteUsuarios?: number | null;
+      overrideLimiteStorageMb?: number | null;
+      overrideLimiteCartasMes?: number | null;
+      motivoPersonalizacion?: string | null;
+    }
+  ): Observable<{ checkoutUrl: string; referencia: string; facturaId: string }> {
+    return this.http.post<{ checkoutUrl: string; referencia: string; facturaId: string }>(
+      `${this.base}/${juntaId}/intencion-overrides`,
+      params,
+    );
   }
 }
 
@@ -318,13 +373,25 @@ export interface JuntaResumen {
   }>;
 }
 
+/** Límites efectivos (override ?? plan). null = ilimitado. */
+export interface LimitesEfectivos {
+  limiteUsuarios: number | null;
+  limiteStorageMb: number | null;
+  limiteCartasMes: number | null;
+}
+
 export interface JuntaUso {
+  storageMb?: number; // PA5-1: storage real en MB (para barra vs limiteStorageMb)
   usuariosActivos: number;
   pagosEsteMes: number;
   cartasEsteMes: number;
   documentosCount: number;
   mes: string;
+  /** PA5-5: límites efectivos (null = sin suscripción, valor null = ilimitado). */
+  limitesEfectivos?: LimitesEfectivos | null;
 }
+
+export type NivelAlerta = 'OK' | 'ADVERTENCIA' | 'CRITICO' | 'BLOQUEO';
 
 export interface AlertaLimite {
   tipo: 'usuarios' | 'storage' | 'cartas';
@@ -332,6 +399,7 @@ export interface AlertaLimite {
   actual: number;
   limite: number;
   porcentaje: number;
+  nivel?: NivelAlerta;
 }
 
 export interface NotaJuntaItem {

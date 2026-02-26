@@ -200,6 +200,23 @@ Base: `/api/platform`. Todos exigen JWT con rol `PLATFORM_ADMIN`.
 
 ---
 
+## 7.1 Pasos de configuración inicial para junta nueva
+
+Cuando se crea una junta (bootstrap o panel Platform Admin), el ADMIN de la junta debe configurar lo siguiente antes de que la operación sea plena:
+
+| Paso | Configuración | Obligatorio | Dónde |
+|------|---------------|------------|-------|
+| 1 | **Tarifas** | Sí | TESORERA: módulo Tarifas. Crear al menos una tarifa por estado laboral (TRABAJANDO, NO_TRABAJANDO) con fechaVigencia vigente. Sin tarifa, el cálculo de deuda falla con `SinTarifaVigenteError`. |
+| 2 | **montoCarta** | Sí (si se emiten cartas) | Junta: monto por emisión de carta. Configurable al crear junta o en edición. |
+| 3 | **Requisitos adicionales** | No | ADMIN: módulo Requisitos. Crear RequisitoTipo (agua, basura, etc.) según necesidad. Si no hay requisitos, la validación de carta no los exige. |
+| 4 | **vigenciaCartaMeses** | No | Junta: meses de vigencia de la carta emitida. Por defecto 3. |
+
+**Mensajes al usuario:** Si la junta no tiene tarifas vigentes, el dashboard, pagos y deuda muestran mensaje "Configure las tarifas" con enlace al módulo Tarifas. Ver `tieneTarifas` en GET /mi-junta.
+
+**Referencia:** `CHECKLIST_OPERACION_JUNTAS.md` §2.2, `calculadoraDeDeuda.md`, `flujoRequisitosAdicionales.md`.
+
+---
+
 ## 8. Seguridad
 
 ### 8.1 Bootstrap

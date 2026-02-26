@@ -4,17 +4,19 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { CartasService, EstadoGeneralResult, CartaItem } from '../../cartas/services/cartas.service';
 import { PagosService } from '../../pagos/services/pagos.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AppCanDirective } from '../../../core/auth/app-can.directive';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 import { FormatearFechaPipe } from '../../../shared/pipes/formatear-fecha.pipe';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-usuario-cartas',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatIconModule, NgClass, AppCanDirective, FormatearFechaPipe],
+  imports: [MatCardModule, MatButtonModule, MatIconModule, MatTooltipModule, NgClass, AppCanDirective, FormatearFechaPipe],
   templateUrl: './usuario-cartas.component.html',
   styleUrl: './usuario-cartas.component.scss',
 })
@@ -27,6 +29,7 @@ export class UsuarioCartasComponent implements OnInit {
   pagandoDeuda = false;
   pagandoCarta = false;
   descargandoCartaId: string | null = null;
+  descargandoPdfPrueba = false;
 
   constructor(
     private readonly cartasSvc: CartasService,
@@ -171,7 +174,7 @@ export class UsuarioCartasComponent implements OnInit {
     this.cartasSvc.solicitar(this.usuarioId).subscribe({
       next: () => {
         this.solicitando = false;
-        this.snackBar.open('Carta solicitada', 'Cerrar', { duration: 2000 });
+        this.snackBar.open('Carta emitida correctamente', 'Cerrar', { duration: 3000 });
         this.cargar();
       },
       error: (err) => {
@@ -185,4 +188,38 @@ export class UsuarioCartasComponent implements OnInit {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(v);
   }
 
+  /** Construye la URL pública de validación de carta a partir del qrToken */
+  urlValidacion(carta: CartaItem): string | null {
+    if (!carta.qrToken) return null;
+    return `${environment.apiUrl}/public/validar-carta/${carta.qrToken}`;
+  }
+
+  copiarEnlaceValidacion(carta: CartaItem): void {
+    const url = this.urlValidacion(carta);
+    if (!url) return;
+    navigator.clipboard.writeText(url).then(() => {
+      this.snackBar.open('Enlace de validación copiado', 'Cerrar', { duration: 2500 });
+    });
+  }
+
+  descargarPdfPrueba(): void {
+    if (!this.usuarioId || this.descargandoPdfPrueba) return;
+    this.descargandoPdfPrueba = true;
+    this.cartasSvc.descargarPdfPrueba(this.usuarioId).subscribe({
+      next: (blob) => {
+        this.descargandoPdfPrueba = false;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'carta-prueba.pdf';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.snackBar.open('PDF de prueba descargado', 'Cerrar', { duration: 2500 });
+      },
+      error: (err) => {
+        this.descargandoPdfPrueba = false;
+        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
+      },
+    });
+  }
 }

@@ -23,7 +23,7 @@ export class TarifasController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL)
   async listar(
     @Query('estadoLaboral') estadoLaboral?: 'TRABAJANDO' | 'NO_TRABAJANDO',
     @Request() req?: { user: JwtUser },
@@ -34,7 +34,7 @@ export class TarifasController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN)
+  @Roles(RolNombre.TESORERA)
   async crear(
     @Body() dto: CreateTarifaDto,
     @Request() req: { user: JwtUser },

@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { MiJuntaService, MiJuntaResponse } from '../../mi-junta/services/mi-junta.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AppCanDirective } from '../../../core/auth/app-can.directive';
+import { handleApiError } from '../../../shared/operators/handle-api-error.operator';
 
 @Component({
   selector: 'app-configuracion',
@@ -35,6 +36,8 @@ export class ConfiguracionComponent implements OnInit {
   junta: MiJuntaResponse | null = null;
   loading = true;
   guardando = false;
+  subiendoEscudo = false;
+  mostrarFormularioWompi = false;
 
   form = {
     wompiPrivateKey: '',
@@ -51,11 +54,58 @@ export class ConfiguracionComponent implements OnInit {
     private readonly clipboard: Clipboard,
   ) {}
 
+  abrirFormularioWompi(): void {
+    this.form = {
+      wompiPrivateKey: '',
+      wompiPublicKey: '',
+      wompiIntegritySecret: '',
+      wompiEventsSecret: '',
+      wompiEnvironment: 'sandbox',
+    };
+    this.mostrarFormularioWompi = true;
+  }
+
+  cancelarFormularioWompi(): void {
+    this.mostrarFormularioWompi = false;
+  }
+
   copiarWebhook(): void {
     if (this.junta?.webhookUrl) {
       this.clipboard.copy(this.junta.webhookUrl);
       this.snackBar.open('URL copiada al portapapeles', undefined, { duration: 2000 });
     }
+  }
+
+  onEscudoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (file.type !== 'image/png') {
+      this.snackBar.open('Solo se permiten archivos PNG', undefined, { duration: 3000 });
+      input.value = '';
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      this.snackBar.open('El archivo no debe superar 2 MB', undefined, { duration: 3000 });
+      input.value = '';
+      return;
+    }
+    this.subiendoEscudo = true;
+    this.miJunta
+      .subirEscudo(file)
+      .pipe(handleApiError(this.snackBar))
+      .subscribe({
+        next: () => {
+        this.subiendoEscudo = false;
+        this.junta = { ...this.junta!, escudoConfigurado: true };
+        this.snackBar.open('Escudo subido correctamente', undefined, { duration: 3000 });
+        input.value = '';
+      },
+      error: () => {
+        this.subiendoEscudo = false;
+        input.value = '';
+      },
+    });
   }
 
   ngOnInit(): void {
@@ -86,6 +136,7 @@ export class ConfiguracionComponent implements OnInit {
           this.guardando = false;
           this.junta = { ...this.junta!, wompiConfigurado: !!v(this.form.wompiPrivateKey) };
           this.snackBar.open('Configuración Wompi guardada', undefined, { duration: 3000 });
+          this.mostrarFormularioWompi = false;
           this.form = {
             wompiPrivateKey: '',
             wompiPublicKey: '',

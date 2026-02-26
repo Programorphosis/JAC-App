@@ -8,7 +8,7 @@
     </div>
   </mat-card-header>
   <mat-card-content>
-    <h3 class="text-sm font-medium text-gray-700 mb-2">Notas</h3>
+    <h3 class="form-section-title">Notas</h3>
     <div class="flex gap-2 mb-4">
       <mat-form-field appearance="outline" class="flex-1">
         <mat-label>Nueva nota</mat-label>
@@ -30,15 +30,15 @@
       </button>
     </div>
     @if (loadingNotas) {
-      <p class="text-gray-600 text-sm">Cargando notas...</p>
+      <p class="text-jac-text-muted text-sm">Cargando notas...</p>
     } @else if (notas.length === 0) {
-      <p class="text-gray-600 text-sm">No hay notas</p>
+      <p class="text-jac-text-muted text-sm">No hay notas</p>
     } @else {
       <ul class="space-y-3">
         @for (n of notas; track n.id) {
-          <li class="border-l-4 border-gray-200 pl-3 py-2 text-sm">
-            <p class="text-gray-800">{{ n.contenido }}</p>
-            <p class="text-gray-500 text-xs mt-1">
+          <li class="border-l-4 border-jac-border pl-3 py-2 text-sm">
+            <p class="text-jac-text">{{ n.contenido }}</p>
+            <p class="text-jac-text-muted text-xs mt-1">
               {{ n.creadoPor.nombres }} {{ n.creadoPor.apellidos }} ·
               {{ n.fechaCreacion | formatearFechaHora }}
             </p>
@@ -47,7 +47,7 @@
       </ul>
       @if (notasMeta && notasMeta.totalPages > 1) {
         <div class="flex justify-between items-center mt-2">
-          <span class="text-sm text-gray-600">{{ notasMeta.total }} notas</span>
+          <span class="text-sm text-jac-text-muted">{{ notasMeta.total }} notas</span>
           <div class="flex gap-2">
             @if (notasMeta.page > 1) {
               <button mat-stroked-button (click)="cargarNotas.emit(notasMeta.page - 1)">Anterior</button>

@@ -16,6 +16,9 @@
     
       <span class="layout-navbar-user-name hidden sm:inline">{{ auth.currentUser()?.nombres | formatearNombre }} {{ auth.currentUser()?.apellidos | formatearNombre }}</span>
     </div>
+    <button mat-icon-button (click)="theme.toggle()" [attr.aria-label]="theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro'" class="layout-navbar-logout-btn">
+      <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
     <button mat-icon-button (click)="logout()" aria-label="Cerrar sesión" class="layout-navbar-logout-btn">
       <mat-icon>logout</mat-icon>
     </button>
@@ -66,6 +69,10 @@
                     <mat-icon matListItemIcon>info</mat-icon>
                     <span matListItemTitle>Información</span>
                   </a>
+                  <a mat-list-item *appCan="auth.permissions.JUNTA_SUSCRIPCION_GESTIONAR" routerLink="/plan-suscripcion" routerLinkActive="active" class="layout-nav-nested">
+                    <mat-icon matListItemIcon>subscriptions</mat-icon>
+                    <span matListItemTitle>Plan y suscripción</span>
+                  </a>
                   <a mat-list-item *appCan="auth.permissions.PAGOS_VER" routerLink="/facturas-plataforma" routerLinkActive="active" class="layout-nav-nested">
                     <mat-icon matListItemIcon>receipt_long</mat-icon>
                     <span matListItemTitle>Facturas</span>
@@ -92,17 +99,23 @@
                 <mat-icon matListItemIcon>people</mat-icon>
                 <span matListItemTitle>Usuarios</span>
               </a>
-              <a mat-list-item *appCan="auth.permissions.PAGOS_GESTIONAR" routerLink="/pagos" routerLinkActive="active">
+              <a mat-list-item *appCan="auth.permissions.PAGOS_VER" routerLink="/pagos" routerLinkActive="active">
                 <mat-icon matListItemIcon>payment</mat-icon>
                 <span matListItemTitle>Pagos</span>
               </a>
-              <a mat-list-item *appCan="auth.permissions.CARTAS_VALIDAR" routerLink="/cartas" routerLinkActive="active">
-                <mat-icon matListItemIcon>mail</mat-icon>
-                <span matListItemTitle>Cartas</span>
-              </a>
+              @if (auth.canVerCartas()) {
+                <a mat-list-item routerLink="/cartas" routerLinkActive="active">
+                  <mat-icon matListItemIcon>mail</mat-icon>
+                  <span matListItemTitle>Cartas</span>
+                </a>
+              }
               <a mat-list-item *appCan="auth.permissions.AUDITORIAS_VER" routerLink="/auditorias" routerLinkActive="active">
                 <mat-icon matListItemIcon>history</mat-icon>
                 <span matListItemTitle>Auditorías</span>
+              </a>
+              <a mat-list-item routerLink="/avisos" routerLinkActive="active">
+                <mat-icon matListItemIcon>campaign</mat-icon>
+                <span matListItemTitle>Avisos</span>
               </a>
               <a mat-list-item [routerLink]="['/usuarios', auth.currentUser()?.id]" routerLinkActive="active">
                 <mat-icon matListItemIcon>person</mat-icon>
@@ -117,8 +130,8 @@
         </mat-sidenav>
         <mat-sidenav-content class="min-h-0 min-w-0">
           @if (auth.isImpersonando()) {
-            <div class="bg-amber-100 border-b border-amber-300 px-4 py-2 flex items-center justify-between gap-2">
-              <span class="text-amber-900 text-sm font-medium flex items-center gap-1">
+            <div class="bg-jac-warning-bg border-b border-jac-warning-border px-4 py-2 flex items-center justify-between gap-2">
+              <span class="text-jac-warning text-sm font-medium flex items-center gap-1">
                 <mat-icon class="!text-lg !w-5 !h-5">visibility</mat-icon>
                 Viendo como junta (solo lectura)
               </span>
@@ -130,6 +143,13 @@
           <div class="p-2 sm:p-4 overflow-auto min-h-0 min-w-0">
             <router-outlet />
           </div>
+          <footer class="layout-footer">
+            <a routerLink="/legal/terminos" target="_blank">Términos</a>
+            <span>·</span>
+            <a routerLink="/legal/privacidad" target="_blank">Privacidad</a>
+            <span>·</span>
+            <a routerLink="/legal/cancelacion" target="_blank">Cancelación</a>
+          </footer>
         </mat-sidenav-content>
       </mat-sidenav-container>
   </div>

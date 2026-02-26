@@ -89,8 +89,11 @@ Los objetos se organizan por prefijo según el tipo de contenido:
 | Rol | Subir documento | Ver documentos |
 |-----|-----------------|----------------|
 | AFILIADO | Propios (usuarioId = self) | Propios |
-| SECRETARIA, TESORERA, modificador de requisito | En nombre de usuarios de su junta | Usuarios de su junta |
-| ADMIN | En nombre de cualquier usuario de su junta | Usuarios de su junta |
+| SECRETARIA | **Solo propios** (no sube para otros) | Usuarios de su junta |
+| TESORERA | Propios y en nombre de usuarios de su junta | Usuarios de su junta |
+| ADMIN | Propios y en nombre de cualquier usuario de su junta | Usuarios de su junta |
+
+**Nota SECRETARIA:** La SECRETARIA **no puede subir documentos para otros usuarios**. Debe pedir al afiliado que suba su propio documento, o solicitar a la TESORERA o ADMIN que lo suba en su nombre. Fuente: `MATRIZ_PERMISOS_ROLES.md` §3.6.
 
 Toda operación debe validar `juntaId` del token.
 

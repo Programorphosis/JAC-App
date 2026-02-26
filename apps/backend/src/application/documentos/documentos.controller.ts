@@ -89,7 +89,7 @@ export class DocumentosController {
    */
   @Get(':id/descargar')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.AFILIADO)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL, RolNombre.AFILIADO)
   async descargar(
     @Param('id') id: string,
     @Request() req: { user: JwtUser },

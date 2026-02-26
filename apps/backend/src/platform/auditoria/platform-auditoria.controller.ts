@@ -12,9 +12,11 @@ export class PlatformAuditoriaController {
   async listar(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('tipo') tipo?: 'juntas' | 'accesos' | 'all',
   ) {
     const p = page ? parseInt(page, 10) : 1;
     const l = limit ? parseInt(limit, 10) : 50;
-    return this.auditoria.listar(p, l);
+    const t = tipo && ['juntas', 'accesos', 'all'].includes(tipo) ? tipo : 'all';
+    return this.auditoria.listar(p, l, t);
   }
 }

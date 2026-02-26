@@ -29,6 +29,7 @@ import { MiJuntaModule } from './application/mi-junta/mi-junta.module';
 import { WompiReconciliationModule } from './application/wompi-reconciliation/wompi-reconciliation.module';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 import { EncryptionModule } from './infrastructure/encryption/encryption.module';
+import { EmailModule } from './infrastructure/email/email.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { EncryptionModule } from './infrastructure/encryption/encryption.module'
     ]),
     PrismaModule,
     EncryptionModule,
+    EmailModule,
     HealthModule,
     AuthModule,
     BootstrapModule,

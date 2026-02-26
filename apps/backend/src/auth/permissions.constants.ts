@@ -25,6 +25,7 @@ export const PERMISSIONS = {
   TARIFAS_MODIFICAR: 'tarifas:modificar',
 
   // Cartas
+  CARTAS_VER: 'cartas:ver', // FISCAL: solo lectura
   CARTAS_VALIDAR: 'cartas:validar',
   CARTAS_SOLICITAR: 'cartas:solicitar', // AFILIADO: solo propio
 
@@ -39,6 +40,8 @@ export const PERMISSIONS = {
 
   // Configuración junta (solo ADMIN)
   JUNTA_CONFIG_WOMPI: 'junta:configWompi',
+  JUNTA_DATOS_EDITAR: 'junta:datos:editar', // ADMIN: actualizar datos de contacto
+  JUNTA_SUSCRIPCION_GESTIONAR: 'junta:suscripcion:gestionar', // TESORERA: elegir plan, cambiar plan
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

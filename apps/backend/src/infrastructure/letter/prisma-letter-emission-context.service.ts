@@ -1,4 +1,4 @@
-import { TipoPago } from '@prisma/client';
+import { TipoPago, RolNombre } from '@prisma/client';
 
 function addMonths(date: Date, months: number): Date {
   const result = new Date(date);
@@ -12,6 +12,7 @@ import type {
 import type { RequisitoParaCarta } from '../../domain/types/requisito.types';
 import type { DebtResult } from '../../domain/types/debt.types';
 import type { RegisterAuditEventParams } from '../../domain/types/audit.types';
+import { EscudoNoConfiguradoError } from '../../domain/errors';
 import { DebtService } from '../../domain/services/debt.service';
 import { PrismaDebtDataProvider } from '../debt/prisma-debt-data-provider.service';
 import type { CartaPdfService } from './carta-pdf.service';
@@ -48,7 +49,16 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
       where: { id: cartaId, juntaId },
       include: {
         usuario: {
-          select: { nombres: true, apellidos: true, numeroDocumento: true },
+          select: {
+            nombres: true,
+            apellidos: true,
+            numeroDocumento: true,
+            telefono: true,
+            lugarExpedicion: true,
+            fechaAfiliacion: true,
+            folio: true,
+            numeral: true,
+          },
         },
       },
     });
@@ -61,6 +71,11 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
       usuarioNombres: carta.usuario.nombres,
       usuarioApellidos: carta.usuario.apellidos,
       usuarioDocumento: carta.usuario.numeroDocumento,
+      fechaAfiliacion: carta.usuario.fechaAfiliacion,
+      folio: carta.usuario.folio,
+      numeral: carta.usuario.numeral,
+      usuarioTelefono: carta.usuario.telefono,
+      usuarioLugarExpedicion: carta.usuario.lugarExpedicion,
     };
   }
 
@@ -189,9 +204,48 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
       usuarioNombres: string;
       usuarioApellidos: string;
       usuarioDocumento: string;
+      fechaAfiliacion?: Date | null;
+      folio?: number | null;
+      numeral?: number | null;
+      juntaNombre?: string;
+      juntaNit?: string | null;
+      juntaDepartamento?: string | null;
+      juntaCiudad?: string | null;
+      juntaPersoneriaJuridica?: string | null;
+      usuarioTelefono?: string | null;
+      usuarioLugarExpedicion?: string | null;
     },
   ): Promise<{ rutaPdf: string; hashDocumento?: string } | null> {
     if (!this.pdfService?.isConfigured()) return null;
+
+    const junta = await this.client.junta.findUnique({
+      where: { id: data.juntaId },
+      select: {
+        nombre: true,
+        nit: true,
+        departamento: true,
+        ciudad: true,
+        personeriaJuridica: true,
+        membreteUrl: true,
+        escudoS3Key: true,
+        email: true,
+      },
+    });
+
+    if (!junta?.escudoS3Key) {
+      throw new EscudoNoConfiguradoError();
+    }
+
+    const [presidente, secretaria] = await Promise.all([
+      this.obtenerUsuarioPorRol(data.juntaId, RolNombre.ADMIN),
+      this.obtenerUsuarioPorRol(data.juntaId, RolNombre.SECRETARIA),
+    ]);
+
+    const juntaNombre = junta?.nombre ?? '';
+    const personeria = junta?.personeriaJuridica ?? null;
+    const useMembrete = !!junta?.membreteUrl;
+    const fechaEmision = new Date();
+
     return this.pdfService.generateAndUpload(
       {
         qrToken: data.qrToken,
@@ -200,9 +254,80 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
         usuarioNombres: data.usuarioNombres,
         usuarioApellidos: data.usuarioApellidos,
         usuarioDocumento: data.usuarioDocumento,
+        usuarioTelefono: data.usuarioTelefono ?? null,
+        usuarioLugarExpedicion: data.usuarioLugarExpedicion ?? null,
+        fechaAfiliacion: data.fechaAfiliacion ?? null,
+        folio: data.folio ?? null,
+        numeral: data.numeral ?? null,
+        juntaNombre,
+        juntaNit: junta?.nit ?? null,
+        juntaDepartamento: junta?.departamento ?? null,
+        juntaCiudad: junta?.ciudad ?? null,
+        juntaPersoneriaJuridica: personeria,
+        juntaEmail: junta?.email ?? null,
+        membreteUrl: junta?.membreteUrl ?? null,
+        escudoS3Key: junta?.escudoS3Key ?? null,
+        presidente: presidente
+          ? {
+              nombres: presidente.nombres,
+              apellidos: presidente.apellidos,
+              tipoDocumento: presidente.tipoDocumento,
+              numeroDocumento: presidente.numeroDocumento,
+              lugarExpedicion: presidente.lugarExpedicion ?? null,
+              telefono: presidente.telefono ?? null,
+              cargo: `PRESIDENTE DE LA J.A.C ${juntaNombre}`,
+            }
+          : null,
+        secretaria: secretaria
+          ? {
+              nombres: secretaria.nombres,
+              apellidos: secretaria.apellidos,
+              tipoDocumento: secretaria.tipoDocumento,
+              numeroDocumento: secretaria.numeroDocumento,
+              lugarExpedicion: secretaria.lugarExpedicion ?? null,
+              telefono: secretaria.telefono ?? null,
+              cargo: `SECRETARIA DE LA J.A.C ${juntaNombre}`,
+            }
+          : null,
+        fechaEmision,
       },
       data.juntaId,
       data.usuarioId,
+      { useMembrete },
     );
+  }
+
+  private async obtenerUsuarioPorRol(
+    juntaId: string,
+    rolNombre: RolNombre,
+  ): Promise<{
+    nombres: string;
+    apellidos: string;
+    tipoDocumento: string;
+    numeroDocumento: string;
+    lugarExpedicion: string | null;
+    telefono: string | null;
+  } | null> {
+    const rol = await this.client.rol.findUnique({
+      where: { nombre: rolNombre as RolNombre },
+      select: { id: true },
+    });
+    if (!rol) return null;
+
+    const usuario = await this.client.usuario.findFirst({
+      where: {
+        juntaId,
+        roles: { some: { rolId: rol.id } },
+      },
+      select: {
+        nombres: true,
+        apellidos: true,
+        tipoDocumento: true,
+        numeroDocumento: true,
+        lugarExpedicion: true,
+        telefono: true,
+      },
+    });
+    return usuario;
   }
 }

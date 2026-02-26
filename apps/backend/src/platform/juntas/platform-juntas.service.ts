@@ -9,8 +9,12 @@ import { AuditService } from '../../domain/services/audit.service';
 import { EncryptionService } from '../../infrastructure/encryption/encryption.service';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
-import { RolNombre, EstadoSuscripcion } from '@prisma/client';
+import { RolNombre, EstadoSuscripcion, EstadoFactura, TipoFactura } from '@prisma/client';
 import { LimitesService } from '../../infrastructure/limits/limites.service';
+import {
+  calcularFechaVencimiento,
+  getEstadoSuscripcion,
+} from '../../common/utils/suscripcion-fechas.util';
 
 function generarPasswordTemporal(): string {
   const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
@@ -27,6 +31,8 @@ export interface CreateJuntaPlatformDto {
   adminUser: CreateJuntaAdminUser;
   planId?: string;
   diasPrueba?: number;
+  /** Requerido: aceptación de términos de servicio (Ley 527). */
+  aceptoTerminos: boolean;
 }
 
 /**
@@ -100,6 +106,8 @@ export class PlatformJuntasService {
         direccion: true,
         ciudad: true,
         departamento: true,
+        personeriaJuridica: true,
+        membreteUrl: true,
         enMantenimiento: true,
         wompiPrivateKey: true,
         _count: { select: { usuarios: true, pagos: true, cartas: true } },
@@ -109,6 +117,13 @@ export class PlatformJuntasService {
             estado: true,
             fechaInicio: true,
             fechaVencimiento: true,
+            periodo: true,
+            planIdPendiente: true,
+            esPlanPersonalizado: true,
+            overrideLimiteUsuarios: true,
+            overrideLimiteStorageMb: true,
+            overrideLimiteCartasMes: true,
+            motivoPersonalizacion: true,
             plan: {
               select: {
                 id: true,
@@ -118,6 +133,10 @@ export class PlatformJuntasService {
                 limiteUsuarios: true,
                 limiteStorageMb: true,
                 limiteCartasMes: true,
+                esPersonalizable: true,
+                permiteUsuariosIlimitados: true,
+                permiteStorageIlimitado: true,
+                permiteCartasIlimitadas: true,
               },
             },
           },
@@ -313,6 +332,7 @@ export class PlatformJuntasService {
     juntaId: string,
     planId: string,
     diasPrueba: number | undefined,
+    periodo: 'mensual' | 'anual' | undefined,
     ejecutadoPorId: string,
   ) {
     const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
@@ -330,25 +350,42 @@ export class PlatformJuntasService {
 
     const fechaInicio = new Date();
     const dias = diasPrueba ?? plan.diasPrueba ?? 0;
-    const fechaVencimiento = new Date();
-    if (dias > 0) {
-      fechaVencimiento.setDate(fechaVencimiento.getDate() + dias);
-    } else {
-      fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 1);
-    }
+    const fechaVencimiento = calcularFechaVencimiento({
+      fechaInicio,
+      diasPrueba: dias,
+      periodo: dias > 0 ? undefined : periodo,
+    });
+    const estado = getEstadoSuscripcion(dias) as EstadoSuscripcion;
 
-    const estado = dias > 0 ? EstadoSuscripcion.PRUEBA : EstadoSuscripcion.ACTIVA;
-
+    const periodoFactura = periodo ?? 'anual';
     const suscripcion = await this.prisma.suscripcion.create({
       data: {
         juntaId,
         planId,
         fechaInicio,
         fechaVencimiento,
+        periodo: periodoFactura,
         estado,
       },
       include: { plan: true },
     });
+
+    if (dias > 0) {
+      const periodoFactura = periodo ?? 'anual';
+      const monto = periodoFactura === 'mensual' ? plan.precioMensual : plan.precioAnual;
+      await this.prisma.factura.create({
+        data: {
+          juntaId,
+          suscripcionId: suscripcion.id,
+          monto,
+          fechaVencimiento: new Date(fechaVencimiento),
+          estado: EstadoFactura.PENDIENTE,
+          tipo: TipoFactura.SUSCRIPCION,
+          metadata: { periodo: periodoFactura },
+          creadoPorId: ejecutadoPorId,
+        },
+      });
+    }
 
     await this.audit.registerEvent({
       juntaId,
@@ -362,13 +399,19 @@ export class PlatformJuntasService {
     return { data: suscripcion };
   }
 
-  /** Actualiza suscripción: cambiar plan, renovar, cancelar. */
+  /** Actualiza suscripción: cambiar plan, renovar, overrides (si plan personalizable). */
   async actualizarSuscripcion(
     juntaId: string,
     data: {
       planId?: string;
+      periodo?: 'mensual' | 'anual';
       fechaVencimiento?: string;
       estado?: EstadoSuscripcion;
+      overrideLimiteUsuarios?: number | null;
+      overrideLimiteStorageMb?: number | null;
+      overrideLimiteCartasMes?: number | null;
+      motivoPersonalizacion?: string | null;
+      forzarDowngrade?: boolean;
     },
     ejecutadoPorId: string,
   ) {
@@ -382,13 +425,79 @@ export class PlatformJuntasService {
     if (data.planId) {
       const plan = await this.prisma.plan.findUnique({ where: { id: data.planId } });
       if (!plan) throw new NotFoundException('Plan no encontrado');
-      updateData.planId = data.planId;
+
+      const resultado = await this.limites.validarCambioPlan(
+        juntaId,
+        { precioMensual: suscripcion.plan.precioMensual, id: suscripcion.plan.id },
+        plan,
+        data.forzarDowngrade ?? false,
+        data.periodo ?? 'anual',
+      );
+      const esDowngrade = plan.precioMensual < suscripcion.plan.precioMensual;
+      const p = data.periodo ?? 'anual';
+
+      if (esDowngrade && !(data.forzarDowngrade ?? false)) {
+        // Downgrade programado: efectivo al fin del ciclo (planIdPendiente)
+        updateData.planIdPendiente = data.planId;
+        updateData.periodoPendiente = p;
+        updateData.overrideLimiteUsuarios = null;
+        updateData.overrideLimiteStorageMb = null;
+        updateData.overrideLimiteCartasMes = null;
+        updateData.esPlanPersonalizado = false;
+      } else if (esDowngrade && (data.forzarDowngrade ?? false)) {
+        // Downgrade forzado: aplicar inmediato
+        updateData.planId = data.planId;
+        updateData.periodo = p;
+        updateData.planIdPendiente = null;
+        updateData.periodoPendiente = null;
+        updateData.overrideLimiteUsuarios = null;
+        updateData.overrideLimiteStorageMb = null;
+        updateData.overrideLimiteCartasMes = null;
+        updateData.esPlanPersonalizado = false;
+      } else {
+        // Upgrade o mismo tier
+        updateData.planId = data.planId;
+        const debeActualizarFecha = resultado.esUpgrade || (!esDowngrade && data.periodo != null);
+        if (debeActualizarFecha) {
+          updateData.fechaVencimiento = calcularFechaVencimiento({
+            fechaInicio: new Date(),
+            diasPrueba: 0,
+            periodo: p,
+          });
+          updateData.periodo = p;
+        }
+        updateData.planIdPendiente = null;
+        updateData.periodoPendiente = null;
+        updateData.overrideLimiteUsuarios = null;
+        updateData.overrideLimiteStorageMb = null;
+        updateData.overrideLimiteCartasMes = null;
+        updateData.esPlanPersonalizado = false;
+      }
     }
-    if (data.fechaVencimiento) {
+    if (data.fechaVencimiento && !updateData.fechaVencimiento) {
       updateData.fechaVencimiento = new Date(data.fechaVencimiento);
     }
     if (data.estado !== undefined) {
       updateData.estado = data.estado;
+    }
+
+    const tieneOverrides =
+      data.overrideLimiteUsuarios !== undefined ||
+      data.overrideLimiteStorageMb !== undefined ||
+      data.overrideLimiteCartasMes !== undefined;
+    if (tieneOverrides) {
+      const planId = data.planId ?? suscripcion.planId;
+      const plan = await this.prisma.plan.findUnique({ where: { id: planId } });
+      if (!plan?.esPersonalizable) {
+        throw new BadRequestException(
+          'El plan actual no permite overrides. Elija un plan personalizable para aumentar capacidades.',
+        );
+      }
+      if (data.overrideLimiteUsuarios !== undefined) updateData.overrideLimiteUsuarios = data.overrideLimiteUsuarios;
+      if (data.overrideLimiteStorageMb !== undefined) updateData.overrideLimiteStorageMb = data.overrideLimiteStorageMb;
+      if (data.overrideLimiteCartasMes !== undefined) updateData.overrideLimiteCartasMes = data.overrideLimiteCartasMes;
+      if (data.motivoPersonalizacion !== undefined) updateData.motivoPersonalizacion = data.motivoPersonalizacion;
+      updateData.esPlanPersonalizado = true;
     }
 
     const actualizada = await this.prisma.suscripcion.update({
@@ -415,6 +524,104 @@ export class PlatformJuntasService {
     return { data };
   }
 
+  /**
+   * PA5-4: Suscripciones con fechaVencimiento < hoy:
+   * - Si planIdPendiente: aplicar downgrade (planId = planIdPendiente, nueva vigencia).
+   * - Si no: marcar como VENCIDA.
+   */
+  async marcarSuscripcionesVencidas(): Promise<number> {
+    const ahora = new Date();
+    const vencidas = await this.prisma.suscripcion.findMany({
+      where: {
+        estado: { in: [EstadoSuscripcion.ACTIVA, EstadoSuscripcion.PRUEBA] },
+        fechaVencimiento: { lt: ahora },
+      },
+      include: { plan: true },
+    });
+
+    let count = 0;
+    for (const susc of vencidas) {
+      if (susc.planIdPendiente && susc.periodoPendiente) {
+        const nuevaFecha = new Date(ahora);
+        if (susc.periodoPendiente === 'mensual') {
+          nuevaFecha.setMonth(nuevaFecha.getMonth() + 1);
+        } else {
+          nuevaFecha.setFullYear(nuevaFecha.getFullYear() + 1);
+        }
+        await this.prisma.suscripcion.update({
+          where: { id: susc.id },
+          data: {
+            planId: susc.planIdPendiente,
+            planIdPendiente: null,
+            periodo: susc.periodoPendiente,
+            periodoPendiente: null,
+            fechaVencimiento: nuevaFecha,
+            estado: EstadoSuscripcion.ACTIVA,
+          },
+        });
+        count++;
+      } else {
+        await this.prisma.suscripcion.update({
+          where: { id: susc.id },
+          data: { estado: EstadoSuscripcion.VENCIDA },
+        });
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Igual que marcarSuscripcionesVencidas pero devuelve los datos de las juntas
+   * que efectivamente quedaron en estado VENCIDA (excluye las que hicieron downgrade).
+   * Usado por el cron para enviar notificaciones de email.
+   */
+  async marcarSuscripcionesVencidasConJuntas(): Promise<{ nombre: string; email: string | null }[]> {
+    const ahora = new Date();
+    const vencidas = await this.prisma.suscripcion.findMany({
+      where: {
+        estado: { in: [EstadoSuscripcion.ACTIVA, EstadoSuscripcion.PRUEBA] },
+        fechaVencimiento: { lt: ahora },
+      },
+      include: {
+        plan: true,
+        junta: { select: { nombre: true, email: true } },
+      },
+    });
+
+    const juntasVencidas: { nombre: string; email: string | null }[] = [];
+
+    for (const susc of vencidas) {
+      if (susc.planIdPendiente && susc.periodoPendiente) {
+        const nuevaFecha = new Date(ahora);
+        if (susc.periodoPendiente === 'mensual') {
+          nuevaFecha.setMonth(nuevaFecha.getMonth() + 1);
+        } else {
+          nuevaFecha.setFullYear(nuevaFecha.getFullYear() + 1);
+        }
+        await this.prisma.suscripcion.update({
+          where: { id: susc.id },
+          data: {
+            planId: susc.planIdPendiente,
+            planIdPendiente: null,
+            periodo: susc.periodoPendiente,
+            periodoPendiente: null,
+            fechaVencimiento: nuevaFecha,
+            estado: EstadoSuscripcion.ACTIVA,
+          },
+        });
+      } else {
+        await this.prisma.suscripcion.update({
+          where: { id: susc.id },
+          data: { estado: EstadoSuscripcion.VENCIDA },
+        });
+        juntasVencidas.push({ nombre: susc.junta.nombre, email: susc.junta.email });
+      }
+    }
+
+    return juntasVencidas;
+  }
+
   /** Uso de la junta: usuarios activos, pagos/mes, cartas/mes, documentos. */
   async uso(juntaId: string) {
     const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
@@ -423,7 +630,7 @@ export class PlatformJuntasService {
     const now = new Date();
     const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [usuariosActivos, pagosEsteMes, cartasEsteMes, documentosCount] =
+    const [usuariosActivos, pagosEsteMes, cartasEsteMes, docsAgg, documentosCount] =
       await Promise.all([
         this.prisma.usuario.count({
           where: { juntaId, activo: true },
@@ -441,12 +648,26 @@ export class PlatformJuntasService {
             fechaEmision: { gte: inicioMes },
           },
         }),
+        this.prisma.documento.aggregate({
+          where: { usuario: { juntaId } },
+          _sum: { sizeBytes: true },
+        }),
         this.prisma.documento.count({
-          where: {
-            usuario: { juntaId },
-          },
+          where: { usuario: { juntaId } },
         }),
       ]);
+
+    const totalBytes = docsAgg._sum.sizeBytes ?? 0n;
+    const storageMb = Math.round((Number(totalBytes) / 1024 / 1024) * 100) / 100;
+
+    const limitesEfectivos = await this.limites.getLimitesEfectivos(juntaId);
+    const limitesParaApi = limitesEfectivos
+      ? {
+          limiteUsuarios: limitesEfectivos.limiteUsuarios === Infinity ? null : limitesEfectivos.limiteUsuarios,
+          limiteStorageMb: limitesEfectivos.limiteStorageMb === Infinity ? null : limitesEfectivos.limiteStorageMb,
+          limiteCartasMes: limitesEfectivos.limiteCartasMes === Infinity ? null : limitesEfectivos.limiteCartasMes,
+        }
+      : null;
 
     return {
       data: {
@@ -454,7 +675,9 @@ export class PlatformJuntasService {
         pagosEsteMes,
         cartasEsteMes,
         documentosCount,
+        storageMb,
         mes: now.toLocaleString('es-CO', { month: 'long', year: 'numeric' }),
+        limitesEfectivos: limitesParaApi,
       },
     };
   }
@@ -473,6 +696,7 @@ export class PlatformJuntasService {
       ejecutadoPorId,
       planId: dto.planId,
       diasPrueba: dto.diasPrueba,
+      aceptoTerminos: dto.aceptoTerminos === true,
     });
 
     return { data: result };
@@ -490,6 +714,8 @@ export class PlatformJuntasService {
       direccion?: string | null;
       ciudad?: string | null;
       departamento?: string | null;
+      personeriaJuridica?: string | null;
+      membreteUrl?: string | null;
       enMantenimiento?: boolean;
     },
     ejecutadoPorId: string,
@@ -511,6 +737,8 @@ export class PlatformJuntasService {
       ...(data.direccion !== undefined && { direccion: data.direccion }),
       ...(data.ciudad !== undefined && { ciudad: data.ciudad }),
       ...(data.departamento !== undefined && { departamento: data.departamento }),
+      ...(data.personeriaJuridica !== undefined && { personeriaJuridica: data.personeriaJuridica }),
+      ...(data.membreteUrl !== undefined && { membreteUrl: data.membreteUrl }),
       ...(data.enMantenimiento !== undefined && { enMantenimiento: data.enMantenimiento }),
     };
 

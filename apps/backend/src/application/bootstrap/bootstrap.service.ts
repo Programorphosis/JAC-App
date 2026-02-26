@@ -114,6 +114,7 @@ export class BootstrapService {
       adminUser: body.primeraJunta.adminUser,
       passwordTemporal: passwordTemporalJunta,
       ejecutadoPorId: platformAdmin.id,
+      aceptoTerminos: true,
     });
 
     return {

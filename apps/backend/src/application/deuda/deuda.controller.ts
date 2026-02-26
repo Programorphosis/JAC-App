@@ -33,7 +33,7 @@ export class DeudaController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.AFILIADO)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL, RolNombre.AFILIADO)
   async obtener(
     @Param('usuarioId') usuarioId: string,
     @Query('detalle') detalle?: string,

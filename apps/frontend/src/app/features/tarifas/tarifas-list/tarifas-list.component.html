@@ -10,12 +10,15 @@
   </mat-card-header>
   <mat-card-content>
   @if (mostrandoForm) {
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>Nueva tarifa</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+    <div class="form-panel mb-2">
+      <h3 class="form-section-title">{{ editarTarifa() ? 'Editar tarifa vigente' : 'Nueva tarifa' }}</h3>
+      @if (editarTarifa()) {
+        <p class="text-sm text-jac-text-muted mb-4">
+          Se creará una nueva tarifa vigente desde hoy. La anterior seguirá aplicando a meses pasados.
+        </p>
+      }
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Estado laboral</mat-label>
             <mat-select formControlName="estadoLaboral">
@@ -33,13 +36,15 @@
             <mat-datepicker-toggle matSuffix [for]="pickerVigencia"></mat-datepicker-toggle>
             <mat-datepicker #pickerVigencia></mat-datepicker>
           </mat-form-field>
-          <div class="flex gap-2">
-            <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Crear</button>
-            <button mat-button type="button" (click)="cancelar()">Cancelar</button>
-          </div>
-        </form>
-      </mat-card-content>
-    </mat-card>
+        </div>
+        <div class="flex gap-2">
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+            {{ editarTarifa() ? 'Guardar (crear nueva)' : 'Crear' }}
+          </button>
+          <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+        </div>
+      </form>
+    </div>
   }
 
   <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
@@ -56,6 +61,14 @@
       <ng-container matColumnDef="fechaVigencia">
         <th mat-header-cell *matHeaderCellDef>Vigencia desde</th>
         <td mat-cell *matCellDef="let t">{{ t.fechaVigencia | formatearFecha }}</td>
+      </ng-container>
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+        <td mat-cell *matCellDef="let t">
+          @if (esVigente(t) && auth.can(auth.permissions.TARIFAS_MODIFICAR)) {
+            <button mat-button color="primary" (click)="editar(t)">Editar</button>
+          }
+        </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

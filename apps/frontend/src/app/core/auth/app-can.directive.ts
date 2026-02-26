@@ -2,9 +2,15 @@ import { Directive, Input, TemplateRef, ViewContainerRef, inject } from '@angula
 import { AuthService } from './auth.service';
 import { PERMISSIONS } from './permissions.constants';
 
+/** Objeto para permisos con contexto usuarioId. */
+export interface AppCanContext {
+  permission: string;
+  usuarioId?: string;
+}
+
 /**
  * Directiva estructural para mostrar contenido según permiso.
- * Uso: *appCan="'pagos:ver'"  o  *appCan="'pagos:pagarOnline'; usuarioId: usuarioId" (usuarioId mapea a appCanUsuarioId)
+ * Uso: *appCan="'pagos:ver'"  o  *appCan="{ permission: auth.permissions.CARTAS_SOLICITAR, usuarioId: usuarioId }"
  */
 @Directive({
   selector: '[appCan]',
@@ -15,8 +21,14 @@ export class AppCanDirective {
   private readonly templateRef = inject(TemplateRef<unknown>);
   private readonly viewContainer = inject(ViewContainerRef);
 
-  @Input() set appCan(permission: string) {
-    this.permission = permission;
+  @Input() set appCan(value: string | AppCanContext) {
+    if (typeof value === 'object' && value !== null) {
+      this.permission = value.permission ?? '';
+      this.usuarioId = value.usuarioId;
+    } else {
+      this.permission = (value as string) ?? '';
+      this.usuarioId = undefined;
+    }
     this.updateView();
   }
 

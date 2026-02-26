@@ -87,7 +87,7 @@ Usar `*appCan="auth.permissions.X; usuarioId: usuarioId"` para estos casos.
 | `pagos:pagarOnline` | TESORERA (para cualquiera) |
 | `pagos:pagarOnline:propio` | AFILIADO, SECRETARIA |
 | `tarifas:ver` | ADMIN, SECRETARIA, TESORERA |
-| `tarifas:modificar` | ADMIN |
+| `tarifas:modificar` | TESORERA |
 | `cartas:validar` | SECRETARIA |
 | `cartas:solicitar` | AFILIADO (solo propio) |
 | `auditorias:ver` | ADMIN, SECRETARIA, TESORERA |

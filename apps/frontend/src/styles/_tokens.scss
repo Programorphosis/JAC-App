@@ -1,0 +1,137 @@
+// =============================================================================
+// Design Tokens – fuente única de verdad para todos los colores de JAC App
+// Uso: var(--jac-primary), var(--jac-surface), etc.
+// Tailwind: bg-jac-primary, text-jac-text, border-jac-border, etc.
+// =============================================================================
+
+// --- Modo claro (por defecto) ---
+:root {
+  // Brand – azul institucional vibrante
+  // #1d4ed8 (blue-700): más vivo y moderno que el navy oscuro anterior.
+  // Contrasta bien como texto, borde y fondo sobre blanco (ratio > 4.5:1).
+  --jac-primary:            #1d4ed8;
+  --jac-primary-mid:        #3b82f6;  // blue-500 – hover / foco
+  --jac-primary-light:      #dbeafe;  // blue-100 – fondos suaves
+  --jac-primary-dark:       #1e3a8a;  // blue-900 – acentos profundos
+
+  // Surfaces – neutro cálido (gris suave, no frío pizarroso)
+  --jac-surface:            #ffffff;
+  --jac-surface-alt:        #f4f4f4;  // ligeramente más cálido que slate-50
+  --jac-surface-raised:     #f1f3f7;  // headers de tabla, paneles elevados
+
+  // Cards – blancas sobre el fondo gris de la página → efecto de elevación natural
+  --jac-card:               #fbfbfb;
+  --jac-card-raised:        #f9f9f9;  // para cards con mayor jerarquía visual
+
+  // Borders – neutro cálido
+  --jac-border:             #e5e7eb;  // gray-200
+  --jac-border-subtle:      #f1f3f7;  // mismo que surface-raised
+  --jac-border-strong:      #d1d5db;  // gray-300
+
+  // Text – escala gris cálida (mejor jerarquía y legibilidad)
+  --jac-text-primary:       #111827;  // gray-900 – más cálido que slate-800
+  --jac-text-secondary:     #374151;  // gray-700
+  --jac-text-muted:         #6b7280;  // gray-500
+  --jac-text-inverse:       #ffffff;
+
+  // Status semántico
+  --jac-success:            #16a34a;  // green-600
+  --jac-success-bg:         #f0fdf4;  // green-50
+  --jac-success-border:     #bbf7d0;  // green-200
+  --jac-warning:            #d97706;  // amber-600
+  --jac-warning-bg:         #fffbeb;  // amber-50
+  --jac-warning-border:     #fde68a;  // amber-200
+  --jac-error:              #dc2626;  // red-600
+  --jac-error-bg:           #fef2f2;  // red-50
+  --jac-error-border:       #fecaca;  // red-200
+  --jac-info:               #0369a1;  // sky-700 – más distinguible del azul primario
+  --jac-info-bg:            #f0f9ff;  // sky-50
+  --jac-info-border:        #bae6fd;  // sky-200
+
+  // Navbar – gradiente de profundo a vibrante (más dinámico que monochrome)
+  --jac-navbar-from:        #1e3a8a;  // blue-900
+  --jac-navbar-mid:         #1e40af;  // blue-800
+  --jac-navbar-to:          #1d4ed8;  // blue-700
+  --jac-navbar-text:        rgba(255, 255, 255, 0.95);
+  --jac-navbar-icon:        rgba(255, 255, 255, 0.90);
+  --jac-navbar-hover:       rgba(255, 255, 255, 0.12);
+  --jac-navbar-user-bg:     rgba(255, 255, 255, 0.10);
+
+  // Sidenav
+  --jac-sidenav-bg:         #fcfcfc;
+  --jac-sidenav-header-txt: #1d4ed8;
+  --jac-sidenav-border:     rgba(0, 0, 0, 0.07);
+  --jac-nav-active-bg:      rgba(29, 78, 216, 0.08);
+  --jac-nav-active-txt:     #1d4ed8;
+  --jac-nav-active-icon:    #1d4ed8;
+
+  // Shadows – más presencia, mejor sentido de elevación
+  --jac-shadow-sm:          0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --jac-shadow-md:          0 4px 12px rgba(0, 0, 0, 0.09), 0 2px 4px rgba(0, 0, 0, 0.05);
+  --jac-shadow-lg:          0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+// --- Modo oscuro ---
+[data-theme="dark"] {
+  // Brand – acento claro sobre fondos oscuros
+  --jac-primary:            #93c5fd;  // blue-300
+  --jac-primary-mid:        #60a5fa;  // blue-400
+  --jac-primary-light:      rgba(147, 197, 253, 0.14);
+  --jac-primary-dark:       #bfdbfe;  // blue-200 – énfasis/links
+
+  // Surfaces – slate profundo
+  --jac-surface:            #0f172a;  // slate-950
+  --jac-surface-alt:        #1e293b;  // slate-800
+  --jac-surface-raised:     #293548;  // entre slate-800 y slate-700 (elevación sutil)
+
+  // Cards – un escalón por encima del fondo oscuro
+  --jac-card:               #161e32;  // slate-800
+  --jac-card-raised:        #161e32;  // slate-700 aprox – cards destacadas
+
+  // Borders
+  --jac-border:             #334155;  // slate-700
+  --jac-border-subtle:      #1e293b;  // slate-800
+  --jac-border-strong:      #475569;  // slate-600
+
+  // Text
+  --jac-text-primary:       #f1f5f9;  // slate-100
+  --jac-text-secondary:     #cbd5e1;  // slate-300
+  --jac-text-muted:         #94a3b8;  // slate-400
+  --jac-text-inverse:       #0f172a;
+
+  // Status dark – más saturados para visibilidad sobre fondos oscuros
+  --jac-success:            #4ade80;  // green-400
+  --jac-success-bg:         rgba(74, 222, 128, 0.12);
+  --jac-success-border:     rgba(74, 222, 128, 0.28);
+  --jac-warning:            #fbbf24;  // amber-400
+  --jac-warning-bg:         rgba(251, 191, 36, 0.12);
+  --jac-warning-border:     rgba(251, 191, 36, 0.28);
+  --jac-error:              #f87171;  // red-400
+  --jac-error-bg:           rgba(248, 113, 113, 0.12);
+  --jac-error-border:       rgba(248, 113, 113, 0.28);
+  --jac-info:               #38bdf8;  // sky-400
+  --jac-info-bg:            rgba(56, 189, 248, 0.12);
+  --jac-info-border:        rgba(56, 189, 248, 0.28);
+
+  // Navbar – igual en dark (siempre azul de marca)
+  --jac-navbar-from:        #1e3a8a;
+  --jac-navbar-mid:         #1e40af;
+  --jac-navbar-to:          #1d4ed8;
+  --jac-navbar-text:        rgba(255, 255, 255, 0.95);
+  --jac-navbar-icon:        rgba(255, 255, 255, 0.90);
+  --jac-navbar-hover:       rgba(255, 255, 255, 0.12);
+  --jac-navbar-user-bg:     rgba(255, 255, 255, 0.10);
+
+  // Sidenav dark
+  --jac-sidenav-bg:         #141c30;
+  --jac-sidenav-header-txt: #93c5fd;
+  --jac-sidenav-border:     rgba(255, 255, 255, 0.08);
+  --jac-nav-active-bg:      rgba(147, 197, 253, 0.14);
+  --jac-nav-active-txt:     #93c5fd;
+  --jac-nav-active-icon:    #93c5fd;
+
+  // Shadows dark – más pronunciadas por falta de contraste natural
+  --jac-shadow-sm:          0 1px 3px rgba(0, 0, 0, 0.35);
+  --jac-shadow-md:          0 4px 12px rgba(0, 0, 0, 0.50);
+  --jac-shadow-lg:          0 8px 24px rgba(0, 0, 0, 0.60);
+}

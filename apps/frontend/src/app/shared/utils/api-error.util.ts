@@ -1,4 +1,20 @@
 /**
+ * Extrae el código de error de dominio de la respuesta API.
+ * DomainExceptionFilter devuelve { code } cuando es DomainError.
+ */
+export function getApiErrorCode(err: unknown): string | undefined {
+  if (!err || typeof err !== 'object') return undefined;
+  const e = err as Record<string, unknown>;
+  const body = e['error'];
+  if (body && typeof body === 'object') {
+    const b = body as Record<string, unknown>;
+    const code = b['code'];
+    return typeof code === 'string' ? code : undefined;
+  }
+  return undefined;
+}
+
+/**
  * Extrae mensaje de error de respuestas HTTP de la API.
  * NestJS: { statusCode, message, error }
  * Convenciones API: { error: { code, message } }

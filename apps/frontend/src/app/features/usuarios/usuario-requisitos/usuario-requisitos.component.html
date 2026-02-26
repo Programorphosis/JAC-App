@@ -8,7 +8,7 @@
   <mat-card-content>
     @if (loading) {
       <div class="flex items-center justify-center py-8">
-        <p class="text-gray-500">Cargando...</p>
+        <p class="text-jac-text-muted">Cargando...</p>
       </div>
     } @else if (estado && requisitosVisibles().length > 0) {
       <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
@@ -29,7 +29,7 @@
                 <td>
                   <span
                     class="inline-flex px-2 py-0.5 rounded text-xs font-medium"
-                    [ngClass]="r.estado === 'AL_DIA' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'"
+                    [ngClass]="r.estado === 'AL_DIA' ? 'bg-jac-success-bg text-jac-success' : 'bg-jac-warning-bg text-jac-warning'"
                   >
                     {{ r.estado }}
                   </span>
@@ -37,7 +37,7 @@
                 <td>
                   <span
                     class="inline-flex px-2 py-0.5 rounded text-xs font-medium"
-                    [ngClass]="r.obligacionActiva ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'"
+                    [ngClass]="r.obligacionActiva ? 'bg-jac-info-bg text-jac-info' : 'bg-jac-surface-raised text-jac-text-muted'"
                   >
                     {{ r.obligacionActiva ? 'Sí' : 'No' }}
                   </span>
@@ -60,7 +60,7 @@
                       }
                     </div>
                   } @else {
-                    <span class="text-gray-400 text-sm">—</span>
+                    <span class="text-jac-text-muted text-sm">—</span>
                   }
                 </td>
               </tr>
@@ -70,13 +70,13 @@
         </div>
       </div>
     } @else if (estado && requisitosVisibles().length === 0 && soloRequisitosModificables) {
-      <div class="py-8 text-center text-gray-500 rounded-lg border border-dashed border-gray-300">
-        <mat-icon class="!text-4xl !w-12 !h-12 mx-auto mb-2 text-gray-300">assignment</mat-icon>
+      <div class="py-8 text-center text-jac-text-muted rounded-lg border border-dashed border-jac-border">
+        <mat-icon class="!text-4xl !w-12 !h-12 mx-auto mb-2 opacity-30">assignment</mat-icon>
         <p>No tiene requisitos asignados para modificar.</p>
       </div>
     } @else {
-      <div class="py-8 text-center text-gray-500 rounded-lg border border-dashed border-gray-300">
-        <mat-icon class="!text-4xl !w-12 !h-12 mx-auto mb-2 text-gray-300">assignment</mat-icon>
+      <div class="py-8 text-center text-jac-text-muted rounded-lg border border-dashed border-jac-border">
+        <mat-icon class="!text-4xl !w-12 !h-12 mx-auto mb-2 opacity-30">assignment</mat-icon>
         <p>No hay requisitos configurados para la junta.</p>
       </div>
     }

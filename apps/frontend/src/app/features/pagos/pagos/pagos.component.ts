@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,8 +20,9 @@ import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { PagosService, PagoListItem, EstadisticasPagos } from '../services/pagos.service';
 import { UsuariosService, UsuarioListItem } from '../../usuarios/services/usuarios.service';
+import { MiJuntaService } from '../../mi-junta/services/mi-junta.service';
 import { AuthService } from '../../../core/auth/auth.service';
-import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
+import { getApiErrorMessage, getApiErrorCode } from '../../../shared/utils/api-error.util';
 import { formatearNombre } from '../../../shared/utils/formatear-nombre.util';
 import { FormatearNombrePipe } from '../../../shared/pipes/formatear-nombre.pipe';
 import { FormatearFechaHoraPipe } from '../../../shared/pipes/formatear-fecha-hora.pipe';
@@ -50,6 +51,7 @@ function usuarioRequerido(c: AbstractControl): ValidationErrors | null {
     MatNativeDateModule,
     ReactiveFormsModule,
     FormsModule,
+    RouterLink,
     FormatearNombrePipe,
     FormatearFechaHoraPipe,
   ],
@@ -67,6 +69,7 @@ export class PagosComponent implements OnInit {
   pagos = signal<PagoListItem[]>([]);
   pagosMeta = signal<{ total: number; page: number; limit: number }>({ total: 0, page: 1, limit: 20 });
   pagosLoading = false;
+  exportandoPagos = false;
   pagosPage = 1;
   pagosFiltros: { usuarioId?: string; tipo?: 'JUNTA' | 'CARTA' | ''; fechaDesde?: string; fechaHasta?: string } = {};
   pagosSearchControl = new FormControl('', { nonNullable: true });
@@ -77,6 +80,7 @@ export class PagosComponent implements OnInit {
 
   estadisticas = signal<EstadisticasPagos | null>(null);
   estadisticasLoading = false;
+  tieneTarifas = signal<boolean | null>(null);
 
   readonly puedeVerListado = computed(() => this.auth.can(this.auth.permissions.PAGOS_VER));
   readonly displayedColumns = ['fechaPago', 'tipo', 'metodo', 'monto', 'usuarioNombre', 'consecutivo', 'registradoPorNombre'];
@@ -88,7 +92,8 @@ export class PagosComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly pagosSvc: PagosService,
     private readonly usuariosSvc: UsuariosService,
-    private readonly auth: AuthService,
+    private readonly miJunta: MiJuntaService,
+    readonly auth: AuthService,
     private readonly fb: FormBuilder,
     private readonly snackBar: MatSnackBar
   ) {
@@ -105,7 +110,7 @@ export class PagosComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.searchEfectivo$
+      this.searchEfectivo$
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
@@ -141,11 +146,17 @@ export class PagosComponent implements OnInit {
           this.cargarPagos();
         });
     }
+    if (this.auth.can(this.auth.permissions.PAGOS_GESTIONAR) && this.auth.currentUser()?.juntaId) {
+      this.miJunta.obtener().subscribe({
+        next: (j) => this.tieneTarifas.set(j.tieneTarifas),
+      });
+    }
     this.route.queryParams.subscribe((params) => {
-      if (params['tab'] === 'registrar') {
+      const puedeRegistrar = this.auth.can(this.auth.permissions.PAGOS_GESTIONAR);
+      if (params['tab'] === 'registrar' && puedeRegistrar) {
         this.selectedTabIndex = this.puedeVerListado() ? 1 : 0;
       } else if (params['tab'] === 'listado' && this.puedeVerListado()) {
-        this.selectedTabIndex = 2;
+        this.selectedTabIndex = puedeRegistrar ? 2 : 1;
       } else if (params['tab'] === 'dashboard' && this.puedeVerListado()) {
         this.selectedTabIndex = 0;
       }
@@ -195,7 +206,7 @@ export class PagosComponent implements OnInit {
         },
         error: (err) => {
           this.loading = false;
-          this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
+          this.snackBar.open(this.getMensajeErrorPago(err), 'Cerrar', { duration: 6000 });
         },
       });
   }
@@ -226,7 +237,7 @@ export class PagosComponent implements OnInit {
         },
         error: (err) => {
           this.loading = false;
-          this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
+          this.snackBar.open(this.getMensajeErrorPago(err), 'Cerrar', { duration: 6000 });
         },
       });
   }
@@ -335,6 +346,50 @@ export class PagosComponent implements OnInit {
   nombreMes(m: number): string {
     const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     return meses[m - 1] || '';
+  }
+
+  exportarPagos(): void {
+    this.exportandoPagos = true;
+    const params: Parameters<PagosService['exportarCsv']>[0] = {
+      tipo: this.pagosFiltros.tipo || undefined,
+      fechaDesde: this.pagosFiltros.fechaDesde,
+      fechaHasta: this.pagosFiltros.fechaHasta,
+      search: this.pagosSearchControl.value.trim().length >= 2 ? this.pagosSearchControl.value.trim() : undefined,
+    };
+    if (this.pagosFiltros.usuarioId) params.usuarioId = this.pagosFiltros.usuarioId;
+    this.pagosSvc.exportarCsv(params).subscribe({
+      next: (res) => {
+        this.exportandoPagos = false;
+        const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = res.filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.exportandoPagos = false;
+        this.snackBar.open('Error al exportar pagos', 'Cerrar', { duration: 3000 });
+      },
+    });
+  }
+
+  /** Devuelve un mensaje claro para errores de pago según el código de dominio. */
+  getMensajeErrorPago(err: unknown): string {
+    const code = getApiErrorCode(err);
+    const mensajes: Record<string, string> = {
+      DEUDA_CERO: 'Este usuario no tiene deuda pendiente. No hay nada que pagar.',
+      MONTO_INCORRECTO: 'El monto enviado no coincide con la deuda calculada. Recargue e intente de nuevo.',
+      PAGO_DUPLICADO: 'Este pago ya fue registrado anteriormente (referencia duplicada).',
+      PAGO_CARTA_PENDIENTE: 'Ya existe un pago de carta pendiente de usar. No se puede registrar otro hasta que se expida o rechace la carta.',
+      USUARIO_INACTIVO: 'El usuario está inactivo y no puede realizar pagos.',
+      SIN_HISTORIAL_LABORAL: 'El usuario no tiene historial laboral configurado. Contacte al administrador.',
+      SIN_TARIFA_VIGENTE: 'La junta no tiene tarifas configuradas para este período.',
+      WOMPI_NO_CONFIGURADO: 'Los pagos online no están configurados para esta junta.',
+      SUSCRIPCION_VENCIDA: 'La suscripción de la junta ha vencido. Contacte al administrador de la plataforma.',
+    };
+    return (code && mensajes[code]) ? mensajes[code] : getApiErrorMessage(err);
   }
 
   ngOnDestroy(): void {

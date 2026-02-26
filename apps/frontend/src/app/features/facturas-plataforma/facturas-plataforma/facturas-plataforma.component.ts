@@ -3,12 +3,14 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { FacturasPlataformaService, FacturaPlataformaItem, EstadoFacturaJunta } from '../../../core/services/facturas-plataforma.service';
 import { FormatearFechaPipe } from '../../../shared/pipes/formatear-fecha.pipe';
 import { handleApiError } from '../../../shared/operators/handle-api-error.operator';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../../core/auth/auth.service';
+import { MiJuntaService } from '../../mi-junta/services/mi-junta.service';
 
 @Component({
   selector: 'app-facturas-plataforma',
@@ -18,6 +20,7 @@ import { AuthService } from '../../../core/auth/auth.service';
     MatButtonModule,
     MatTableModule,
     MatIconModule,
+    MatTooltipModule,
     DecimalPipe,
     NgClass,
     FormatearFechaPipe,
@@ -32,14 +35,18 @@ export class FacturasPlataformaComponent implements OnInit {
   page = 1;
   pagandoId: string | null = null;
 
+  private nombreJunta = '';
+
   constructor(
     private readonly facturasSvc: FacturasPlataformaService,
     private readonly snackBar: MatSnackBar,
+    private readonly miJuntaSvc: MiJuntaService,
     readonly auth: AuthService,
   ) {}
 
   ngOnInit(): void {
     this.cargar();
+    this.miJuntaSvc.obtener().subscribe({ next: (j) => { this.nombreJunta = j.nombre; } });
   }
 
   cargar(page = 1): void {
@@ -61,15 +68,15 @@ export class FacturasPlataformaComponent implements OnInit {
   claseEstado(estado: EstadoFacturaJunta): string {
     switch (estado) {
       case 'PAGADA':
-        return 'text-green-700';
+        return 'bg-jac-success-bg text-jac-success';
       case 'PENDIENTE':
-        return 'text-amber-700';
+        return 'bg-jac-warning-bg text-jac-warning';
       case 'VENCIDA':
-        return 'text-red-700';
+        return 'bg-jac-error-bg text-jac-error';
       case 'PARCIAL':
-        return 'text-blue-700';
+        return 'bg-jac-info-bg text-jac-info';
       case 'CANCELADA':
-        return 'text-gray-600';
+        return 'bg-jac-surface-raised text-jac-text-muted';
       default:
         return '';
     }
@@ -98,5 +105,9 @@ export class FacturasPlataformaComponent implements OnInit {
           this.pagandoId = null;
         },
       });
+  }
+
+  verComprobante(f: FacturaPlataformaItem): void {
+    this.facturasSvc.abrirComprobante(f, this.nombreJunta);
   }
 }

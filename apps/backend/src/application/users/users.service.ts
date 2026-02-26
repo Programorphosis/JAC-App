@@ -106,8 +106,12 @@ export class UsersService {
           apellidos: true,
           telefono: true,
           direccion: true,
+          lugarExpedicion: true,
           activo: true,
           fechaCreacion: true,
+          fechaAfiliacion: true,
+          folio: true,
+          numeral: true,
           roles: { include: { rol: { select: { nombre: true } } } },
         },
         orderBy,
@@ -135,8 +139,12 @@ export class UsersService {
         apellidos: true,
         telefono: true,
         direccion: true,
+        lugarExpedicion: true,
         activo: true,
         fechaCreacion: true,
+        fechaAfiliacion: true,
+        folio: true,
+        numeral: true,
         roles: { include: { rol: { select: { nombre: true } } } },
       },
     });
@@ -184,7 +192,11 @@ export class UsersService {
           apellidos: dto.apellidos,
           telefono: dto.telefono ?? null,
           direccion: dto.direccion ?? null,
+          lugarExpedicion: dto.lugarExpedicion ?? null,
           passwordHash,
+          fechaAfiliacion: dto.fechaAfiliacion ? new Date(dto.fechaAfiliacion) : null,
+          folio: dto.folio ?? null,
+          numeral: dto.numeral ?? null,
         },
       });
 
@@ -208,6 +220,22 @@ export class UsersService {
           creadoPorId,
         },
       });
+
+      // EstadoRequisito inicial: MORA para todos los RequisitoTipo activos de la junta
+      const requisitosTipo = await tx.requisitoTipo.findMany({
+        where: { juntaId, activo: true },
+        select: { id: true },
+      });
+      for (const rt of requisitosTipo) {
+        await tx.estadoRequisito.create({
+          data: {
+            usuarioId: u.id,
+            requisitoTipoId: rt.id,
+            estado: 'MORA',
+            obligacionActiva: true,
+          },
+        });
+      }
 
       return u;
     });
@@ -244,9 +272,17 @@ export class UsersService {
     }
 
     let rolesFinales: string[] | undefined;
+    let rolesAnteriores: string[] | undefined;
+
     if (dto.roles !== undefined && dto.roles.length > 0) {
       rolesFinales = dto.roles.includes(ROL_BASE) ? dto.roles : [ROL_BASE, ...dto.roles];
       await this.validarRolesUnicosPorJunta(juntaId, rolesFinales, id);
+      // Capturar roles actuales antes del cambio para auditoría
+      const rolesActualesDb = await this.prisma.usuarioRol.findMany({
+        where: { usuarioId: id },
+        include: { rol: { select: { nombre: true } } },
+      });
+      rolesAnteriores = rolesActualesDb.map((ur) => ur.rol.nombre);
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -257,7 +293,13 @@ export class UsersService {
           ...(dto.apellidos !== undefined && { apellidos: dto.apellidos }),
           ...(dto.telefono !== undefined && { telefono: dto.telefono }),
           ...(dto.direccion !== undefined && { direccion: dto.direccion }),
+          ...(dto.lugarExpedicion !== undefined && { lugarExpedicion: dto.lugarExpedicion }),
           ...(dto.activo !== undefined && { activo: dto.activo }),
+          ...(dto.fechaAfiliacion !== undefined && {
+            fechaAfiliacion: dto.fechaAfiliacion ? new Date(dto.fechaAfiliacion) : null,
+          }),
+          ...(dto.folio !== undefined && { folio: dto.folio }),
+          ...(dto.numeral !== undefined && { numeral: dto.numeral }),
         },
       });
 
@@ -274,14 +316,35 @@ export class UsersService {
       }
     });
 
+    const metadataAudit: Record<string, unknown> = { campos: Object.keys(dto) };
+    if (rolesAnteriores !== undefined && rolesFinales !== undefined) {
+      metadataAudit.rolesAnteriores = rolesAnteriores;
+      metadataAudit.rolesNuevos = rolesFinales;
+    }
+
     await this.audit.registerEvent({
       juntaId,
       entidad: 'Usuario',
       entidadId: id,
       accion: 'ACTUALIZACION_USUARIO',
-      metadata: { campos: Object.keys(dto) },
+      metadata: metadataAudit,
       ejecutadoPorId: actualizadoPorId,
     });
+
+    // Evento específico de cambio de rol para trazabilidad de seguridad.
+    if (rolesAnteriores !== undefined && rolesFinales !== undefined) {
+      const rolesSet = (r: string[]) => [...r].sort().join(',');
+      if (rolesSet(rolesAnteriores) !== rolesSet(rolesFinales)) {
+        await this.audit.registerEvent({
+          juntaId,
+          entidad: 'Usuario',
+          entidadId: id,
+          accion: 'CAMBIO_ROL',
+          metadata: { rolesAnteriores, rolesNuevos: rolesFinales },
+          ejecutadoPorId: actualizadoPorId,
+        });
+      }
+    }
 
     return this.obtener(id, juntaId);
   }

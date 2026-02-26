@@ -26,7 +26,7 @@ export interface ConfirmDialogData {
   template: `
     <h2 mat-dialog-title>{{ data.titulo }}</h2>
     <mat-dialog-content>
-      <p class="text-gray-700">{{ data.mensaje }}</p>
+      <p class="text-jac-text-secondary">{{ data.mensaje }}</p>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button [mat-dialog-close]="false">

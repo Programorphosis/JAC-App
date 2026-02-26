@@ -16,12 +16,34 @@ export function requirePermission(permission: string): CanActivateFn {
   };
 }
 
-export const pagosGuard = requirePermission(PERMISSIONS.PAGOS_GESTIONAR);
+/** Redirige a / si el usuario no tiene ninguno de los permisos indicados. */
+export function requireAnyPermission(...permissions: string[]): CanActivateFn {
+  return () => {
+    const auth = inject(AuthService);
+    const router = inject(Router);
+    if (permissions.some((p) => auth.can(p))) {
+      return true;
+    }
+    router.navigate(['/']);
+    return false;
+  };
+}
+
+export const pagosGuard = requireAnyPermission(
+  PERMISSIONS.PAGOS_VER,
+  PERMISSIONS.PAGOS_GESTIONAR,
+);
 export const facturasPlataformaGuard = requirePermission(PERMISSIONS.PAGOS_VER);
 export const tarifasGuard = requirePermission(PERMISSIONS.TARIFAS_VER);
-export const cartasGuard = requirePermission(PERMISSIONS.CARTAS_VALIDAR);
+export const cartasGuard = requireAnyPermission(
+  PERMISSIONS.CARTAS_VER,
+  PERMISSIONS.CARTAS_VALIDAR,
+);
 export const requisitosGuard = requirePermission(PERMISSIONS.REQUISITOS_VER);
 export const usuariosGuard = requirePermission(PERMISSIONS.USUARIOS_VER);
 export const crearUsuarioGuard = requirePermission(PERMISSIONS.USUARIOS_CREAR);
 export const auditoriasGuard = requirePermission(PERMISSIONS.AUDITORIAS_VER);
 export const configuracionGuard = requirePermission(PERMISSIONS.JUNTA_CONFIG_WOMPI);
+export const planSuscripcionGuard = requirePermission(
+  PERMISSIONS.JUNTA_SUSCRIPCION_GESTIONAR,
+);

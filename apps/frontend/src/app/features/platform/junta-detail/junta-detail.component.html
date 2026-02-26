@@ -33,6 +33,8 @@
           direccion: junta.direccion || '',
           ciudad: junta.ciudad || '',
           departamento: junta.departamento || '',
+          personeriaJuridica: junta.personeriaJuridica || '',
+          membreteUrl: junta.membreteUrl || '',
           enMantenimiento: junta.enMantenimiento ?? false
         }"
         (guardar)="onGuardar($event)"
@@ -78,6 +80,8 @@
         (reactivarFactura)="reactivarFactura($event)"
         (cargarFacturas)="cargarFacturas(junta.id, $event)"
         (cargarPagos)="cargarPagosPlataforma(junta.id, $event)"
+        (crearSuscripcion)="abrirCrearSuscripcion()"
+        (cambiarPlan)="abrirCambiarPlan()"
       />
       <app-junta-notas-card
         [junta]="junta"

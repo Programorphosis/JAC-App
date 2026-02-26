@@ -29,7 +29,7 @@ La TESORERA es la **única que registra pagos en efectivo y transferencia**. Uni
 | **Pagos** | ✓ | `/pagos` |
 | Requisitos (config) | ✗ | — |
 | Cartas (pendientes) | ✗ | — |
-| Tarifas | ✓ | `/tarifas` |
+| Tarifas (crear, listar) | ✓ | `/tarifas` |
 | **Auditorías** | ✓ | `/auditorias` |
 
 **Sidebar:** Inicio, Usuarios, Mi cuenta, Pagos, Tarifas, Auditorías.

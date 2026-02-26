@@ -11,9 +11,11 @@ export interface AuditoriaPlataformaItem {
   accion: string;
   metadata: Record<string, unknown>;
   fecha: string;
-  ejecutadoPor: { id: string; nombres: string; apellidos: string };
-  junta: { id: string; nombre: string };
+  ejecutadoPor: { id: string; nombres: string; apellidos: string } | null;
+  junta: { id: string; nombre: string } | null;
 }
+
+export type TipoAuditoriaPlataforma = 'juntas' | 'accesos' | 'all';
 
 /**
  * Servicio de auditoría de plataforma para Platform Admin.
@@ -27,9 +29,13 @@ export class PlatformAuditoriaService {
 
   listar(
     page = 1,
-    limit = 50
+    limit = 50,
+    tipo: TipoAuditoriaPlataforma = 'all'
   ): Observable<PaginatedResponse<AuditoriaPlataformaItem>> {
-    const params = new HttpParams().set('page', page).set('limit', limit);
+    let params = new HttpParams().set('page', page).set('limit', limit);
+    if (tipo !== 'all') {
+      params = params.set('tipo', tipo);
+    }
     return this.http.get<PaginatedResponse<AuditoriaPlataformaItem>>(
       this.base,
       { params }

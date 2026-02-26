@@ -1,79 +1,113 @@
 <div class="max-w-5xl mx-auto">
   <header class="mb-8">
-    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">Panel de administración</h1>
-    <p class="text-gray-600">Gestión de Juntas de Acción Comunal</p>
+    <h1 class="text-2xl sm:text-3xl font-bold text-jac-text mb-1">Panel de administración</h1>
+    <p class="text-jac-text-secondary">Gestión de Juntas de Acción Comunal</p>
   </header>
 
   @if (loading) {
-    <p class="text-gray-600">Cargando métricas...</p>
+    <p class="text-jac-text-secondary">Cargando métricas...</p>
   } @else if (data) {
     <section class="mb-8">
-      <h2 class="text-lg font-semibold text-gray-800 mb-4">Métricas globales</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <mat-card class="border border-gray-100">
+      <h2 class="text-lg font-semibold text-jac-text mb-4">Métricas globales</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+        <mat-card class="border border-jac-border-subtle">
           <mat-card-content class="p-4">
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-blue-100 text-blue-700">
+              <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-jac-primary-light text-jac-primary">
                 <mat-icon fontIcon="business" class="!text-2xl !w-8 !h-8"></mat-icon>
               </div>
               <div>
-                <p class="text-2xl font-bold text-gray-800">{{ data.totalJuntas | number }}</p>
-                <p class="text-sm text-gray-600">Total juntas</p>
+                <p class="text-2xl font-bold text-jac-text">{{ data.totalJuntas | number }}</p>
+                <p class="text-sm text-jac-text-secondary">Total juntas</p>
               </div>
             </div>
           </mat-card-content>
         </mat-card>
-        <mat-card class="border border-gray-100">
+        <mat-card class="border border-jac-border-subtle">
           <mat-card-content class="p-4">
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-green-100 text-green-700">
+              <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-jac-success-bg text-jac-success">
                 <mat-icon fontIcon="check_circle" class="!text-2xl !w-8 !h-8"></mat-icon>
               </div>
               <div>
-                <p class="text-2xl font-bold text-gray-800">{{ data.juntasActivas | number }}</p>
-                <p class="text-sm text-gray-600">Juntas activas</p>
+                <p class="text-2xl font-bold text-jac-text">{{ data.juntasActivas | number }}</p>
+                <p class="text-sm text-jac-text-secondary">Juntas activas</p>
               </div>
             </div>
           </mat-card-content>
         </mat-card>
-        <mat-card class="border border-gray-100">
+        <mat-card class="border border-jac-border-subtle">
           <mat-card-content class="p-4">
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 text-gray-600">
+              <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-jac-surface-raised text-jac-text-secondary">
                 <mat-icon fontIcon="cancel" class="!text-2xl !w-8 !h-8"></mat-icon>
               </div>
               <div>
-                <p class="text-2xl font-bold text-gray-800">{{ data.juntasInactivas | number }}</p>
-                <p class="text-sm text-gray-600">Juntas inactivas</p>
+                <p class="text-2xl font-bold text-jac-text">{{ data.juntasInactivas | number }}</p>
+                <p class="text-sm text-jac-text-secondary">Juntas inactivas</p>
               </div>
             </div>
           </mat-card-content>
         </mat-card>
-        <mat-card class="border border-gray-100">
+        <mat-card class="border border-jac-border-subtle">
           <mat-card-content class="p-4">
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-amber-100 text-amber-700">
+              <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-jac-warning-bg text-jac-warning">
                 <mat-icon fontIcon="trending_up" class="!text-2xl !w-8 !h-8"></mat-icon>
               </div>
               <div>
-                <p class="text-2xl font-bold text-gray-800">{{ data.juntasNuevasEsteMes | number }}</p>
-                <p class="text-sm text-gray-600">Nuevas este mes</p>
+                <p class="text-2xl font-bold text-jac-text">{{ data.juntasNuevasEsteMes | number }}</p>
+                <p class="text-sm text-jac-text-secondary">Nuevas este mes</p>
               </div>
             </div>
           </mat-card-content>
         </mat-card>
+        @if (data.juntasVencidas != null && data.juntasVencidas > 0) {
+          <a routerLink="/platform/juntas" [queryParams]="{ vencidas: 'true' }" class="block">
+            <mat-card class="border border-jac-error-border h-full hover:shadow-md transition-shadow">
+              <mat-card-content class="p-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-jac-error-bg text-jac-error">
+                    <mat-icon fontIcon="warning" class="!text-2xl !w-8 !h-8"></mat-icon>
+                  </div>
+                  <div>
+                    <p class="text-2xl font-bold text-jac-error">{{ data.juntasVencidas | number }}</p>
+                    <p class="text-sm text-jac-text-secondary">Suscripciones vencidas</p>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </a>
+        }
+        @if (data.juntasCercanasALimite != null && data.juntasCercanasALimite > 0) {
+          <a routerLink="/platform/juntas" [queryParams]="{ alertas: 'true' }" class="block">
+            <mat-card class="border border-jac-warning-border h-full hover:shadow-md transition-shadow">
+              <mat-card-content class="p-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-jac-warning-bg text-jac-warning">
+                    <mat-icon fontIcon="speed" class="!text-2xl !w-8 !h-8"></mat-icon>
+                  </div>
+                  <div>
+                    <p class="text-2xl font-bold text-jac-warning">{{ data.juntasCercanasALimite | number }}</p>
+                    <p class="text-sm text-jac-text-secondary">Cercanas a límite (≥80%)</p>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </a>
+        }
       </div>
     </section>
   }
 
   <section class="mb-8">
-    <h2 class="text-lg font-semibold text-gray-800 mb-4">Avisos</h2>
+    <h2 class="text-lg font-semibold text-jac-text mb-4">Avisos</h2>
     @if (loadingAvisos) {
-      <p class="text-gray-600 text-sm">Cargando avisos...</p>
+      <p class="text-jac-text-secondary text-sm">Cargando avisos...</p>
     } @else if (avisos.length === 0) {
-      <mat-card class="border border-gray-100">
+      <mat-card class="border border-jac-border-subtle">
         <mat-card-content class="p-4">
-          <p class="text-gray-600 text-sm">No hay avisos publicados.</p>
+          <p class="text-jac-text-secondary text-sm">No hay avisos publicados.</p>
           <button mat-stroked-button color="primary" class="mt-2" (click)="abrirCrearAviso()">
             Publicar aviso
           </button>
@@ -82,7 +116,7 @@
     } @else {
       <div class="space-y-3">
         @for (a of avisos; track a.id) {
-          <mat-card class="border border-gray-100" [ngClass]="{ 'opacity-70': !a.activo }">
+          <mat-card class="border border-jac-border-subtle" [ngClass]="{ 'opacity-70': !a.activo }">
             <mat-card-header class="pb-2 flex flex-row items-start justify-between gap-2">
               <div class="flex-1 min-w-0">
                 <mat-card-title class="!text-base !font-medium flex items-center gap-2 flex-wrap">
@@ -90,15 +124,15 @@
                   <span
                     class="text-xs font-normal px-2 py-0.5 rounded-full"
                     [ngClass]="{
-                      'bg-amber-100 text-amber-800': a.alcance === 'PLATAFORMA',
-                      'bg-blue-100 text-blue-800': a.alcance === 'TODAS_JUNTAS',
-                      'bg-purple-100 text-purple-800': a.alcance === 'JUNTA_ESPECIFICA'
+                      'bg-jac-warning-bg text-jac-warning': a.alcance === 'PLATAFORMA',
+                      'bg-jac-primary-light text-jac-primary': a.alcance === 'TODAS_JUNTAS',
+                      'bg-jac-info-bg text-jac-info': a.alcance === 'JUNTA_ESPECIFICA'
                     }"
                   >
-                    {{ a.alcance === 'PLATAFORMA' ? 'Solo admin' : a.alcance === 'TODAS_JUNTAS' ? 'Todas las juntas' : (a.junta?.nombre ?? 'Junta') }}
+                    {{ a.alcance === 'PLATAFORMA' ? 'Solo admin' : a.alcance === 'TODAS_JUNTAS' ? 'Todas las juntas' : (a.junta?.nombre | nombreCompletoJunta) }}
                   </span>
                   @if (!a.activo) {
-                    <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">Inactivo</span>
+                    <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-jac-surface-raised text-jac-text-muted">Inactivo</span>
                   }
                 </mat-card-title>
                 <mat-card-subtitle class="!text-xs">
@@ -122,7 +156,7 @@
               </div>
             </mat-card-header>
             <mat-card-content class="pt-0">
-              <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ a.contenido }}</p>
+              <p class="text-sm text-jac-text-secondary whitespace-pre-wrap">{{ a.contenido }}</p>
             </mat-card-content>
           </mat-card>
         }
@@ -134,10 +168,10 @@
   </section>
 
   <section class="mb-8">
-    <h2 class="text-lg font-semibold text-gray-800 mb-4">Facturación</h2>
-    <mat-card class="border border-gray-100 max-w-md">
+    <h2 class="text-lg font-semibold text-jac-text mb-4">Facturación</h2>
+    <mat-card class="border border-jac-border-subtle max-w-md">
       <mat-card-content class="p-4">
-        <p class="text-sm text-gray-600 mb-3">
+        <p class="text-sm text-jac-text-secondary mb-3">
           Genera facturas mensuales para todas las suscripciones activas. El cron las genera automáticamente el día 1 de cada mes.
         </p>
         <button
@@ -150,8 +184,8 @@
         </button>
         @if (resultadoFacturas) {
           <p class="mt-2 text-sm" [ngClass]="{
-            'text-green-700': resultadoFacturas.generadas > 0 && resultadoFacturas.errores.length === 0,
-            'text-amber-700': resultadoFacturas.errores.length > 0
+            'text-jac-success': resultadoFacturas.generadas > 0 && resultadoFacturas.errores.length === 0,
+            'text-jac-warning': resultadoFacturas.errores.length > 0
           }">
             Generadas: {{ resultadoFacturas.generadas }} · Omitidas: {{ resultadoFacturas.omitidas }}
             @if (resultadoFacturas.errores.length > 0) {
@@ -164,10 +198,10 @@
   </section>
 
   <section class="mb-8">
-    <h2 class="text-lg font-semibold text-gray-800 mb-4">Reportes exportables</h2>
-    <mat-card class="border border-gray-100">
+    <h2 class="text-lg font-semibold text-jac-text mb-4">Reportes exportables</h2>
+    <mat-card class="border border-jac-border-subtle">
       <mat-card-content class="p-4">
-        <p class="text-sm text-gray-600 mb-3">
+        <p class="text-sm text-jac-text-secondary mb-3">
           Descarga reportes en formato CSV para análisis externo.
         </p>
         <div class="flex flex-wrap gap-2">
@@ -198,52 +232,52 @@
   </section>
 
   <section>
-    <h2 class="text-lg font-semibold text-gray-800 mb-4">Accesos directos</h2>
+    <h2 class="text-lg font-semibold text-jac-text mb-4">Accesos directos</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <a routerLink="/platform/juntas" class="block group">
-        <mat-card class="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border border-gray-100 overflow-hidden">
+        <mat-card class="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border border-jac-border-subtle overflow-hidden">
           <mat-card-content class="p-4">
             <div class="flex items-start gap-3">
-              <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-blue-100 text-blue-700">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-jac-primary-light text-jac-primary">
                 <mat-icon fontIcon="business" class="!text-2xl !w-8 !h-8"></mat-icon>
               </div>
               <div class="min-w-0 flex-1">
-                <h3 class="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">Juntas</h3>
-                <p class="text-sm text-gray-600 mt-1">Listado de juntas. Ver, crear y gestionar.</p>
+                <h3 class="font-semibold text-jac-text group-hover:text-jac-primary transition-colors">Juntas</h3>
+                <p class="text-sm text-jac-text-secondary mt-1">Listado de juntas. Ver, crear y gestionar.</p>
               </div>
-              <mat-icon class="flex-shrink-0 text-gray-400 group-hover:text-blue-500 transition-colors">arrow_forward</mat-icon>
+              <mat-icon class="flex-shrink-0 text-jac-text-muted group-hover:text-jac-primary transition-colors">arrow_forward</mat-icon>
             </div>
           </mat-card-content>
         </mat-card>
       </a>
       <a routerLink="/platform/planes" class="block group">
-        <mat-card class="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border border-gray-100 overflow-hidden">
+        <mat-card class="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border border-jac-border-subtle overflow-hidden">
           <mat-card-content class="p-4">
             <div class="flex items-start gap-3">
               <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-purple-100 text-purple-700">
                 <mat-icon fontIcon="subscriptions" class="!text-2xl !w-8 !h-8"></mat-icon>
               </div>
               <div class="min-w-0 flex-1">
-                <h3 class="font-semibold text-gray-800 group-hover:text-purple-600 transition-colors">Planes</h3>
-                <p class="text-sm text-gray-600 mt-1">Ver planes y precios.</p>
+                <h3 class="font-semibold text-jac-text group-hover:text-purple-600 transition-colors">Planes</h3>
+                <p class="text-sm text-jac-text-secondary mt-1">Ver planes y precios.</p>
               </div>
-              <mat-icon class="flex-shrink-0 text-gray-400 group-hover:text-purple-500 transition-colors">arrow_forward</mat-icon>
+              <mat-icon class="flex-shrink-0 text-jac-text-muted group-hover:text-purple-500 transition-colors">arrow_forward</mat-icon>
             </div>
           </mat-card-content>
         </mat-card>
       </a>
       <a routerLink="/platform/juntas/nueva" class="block group">
-        <mat-card class="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border border-gray-100 overflow-hidden">
+        <mat-card class="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border border-jac-border-subtle overflow-hidden">
           <mat-card-content class="p-4">
             <div class="flex items-start gap-3">
               <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-teal-100 text-teal-700">
                 <mat-icon fontIcon="add_business" class="!text-2xl !w-8 !h-8"></mat-icon>
               </div>
               <div class="min-w-0 flex-1">
-                <h3 class="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">Nueva junta</h3>
-                <p class="text-sm text-gray-600 mt-1">Registrar una nueva Junta de Acción Comunal.</p>
+                <h3 class="font-semibold text-jac-text group-hover:text-jac-primary transition-colors">Nueva junta</h3>
+                <p class="text-sm text-jac-text-secondary mt-1">Registrar una nueva Junta de Acción Comunal.</p>
               </div>
-              <mat-icon class="flex-shrink-0 text-gray-400 group-hover:text-blue-500 transition-colors">arrow_forward</mat-icon>
+              <mat-icon class="flex-shrink-0 text-jac-text-muted group-hover:text-jac-primary transition-colors">arrow_forward</mat-icon>
             </div>
           </mat-card-content>
         </mat-card>

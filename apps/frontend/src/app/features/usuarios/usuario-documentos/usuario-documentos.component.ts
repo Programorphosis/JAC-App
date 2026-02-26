@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DocumentosService, DocumentoItem } from '../../cartas/services/documentos.service';
-import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
+import { getApiErrorMessage, getApiErrorCode } from '../../../shared/utils/api-error.util';
 import { FormatearFechaPipe } from '../../../shared/pipes/formatear-fecha.pipe';
 import { AuthService } from '../../../core/auth/auth.service';
 
@@ -79,9 +79,22 @@ export class UsuarioDocumentosComponent implements OnInit {
       },
       error: (err) => {
         this.subiendo = false;
-        this.snackBar.open(getApiErrorMessage(err), 'Cerrar', { duration: 5000 });
+        this.snackBar.open(this.getMensajeErrorDocumento(err), 'Cerrar', { duration: 6000 });
       },
     });
+  }
+
+  getMensajeErrorDocumento(err: unknown): string {
+    const code = getApiErrorCode(err);
+    const mensajes: Record<string, string> = {
+      LIMITE_STORAGE_EXCEDIDO: 'Se ha superado el límite de almacenamiento del plan. Contacte al administrador para ampliarlo.',
+      ARCHIVO_SOBREPASA_TAMANIO: 'El archivo excede el tamaño máximo permitido (5 MB).',
+      FORMATO_ARCHIVO_NO_PERMITIDO: 'Formato de archivo no permitido. Use PDF, JPG o PNG.',
+      TIPO_DOCUMENTO_NO_PERMITIDO: 'Tipo de documento no permitido para este usuario.',
+      ALMACENAMIENTO_NO_CONFIGURADO: 'El almacenamiento no está configurado. Contacte al administrador.',
+      SUSCRIPCION_VENCIDA: 'La suscripción de la junta ha vencido. No se pueden subir documentos.',
+    };
+    return (code && mensajes[code]) ? mensajes[code] : getApiErrorMessage(err);
   }
 
   descargar(d: DocumentoItem): void {

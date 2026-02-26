@@ -15,6 +15,12 @@ import {
 } from '@prisma/client';
 import type { CrearFacturaDto } from '../dto/crear-factura.dto';
 import type { RegistrarPagoFacturaDto } from '../dto/registrar-pago-factura.dto';
+import {
+  calcularFechaVencimiento,
+  getEstadoSuscripcion,
+} from '../../common/utils/suscripcion-fechas.util';
+import { LimitesService } from '../../infrastructure/limits/limites.service';
+import { EmailService } from '../../infrastructure/email/email.service';
 
 /** DTO interno con facturaId añadido por el controller. */
 export type RegistrarPagoFacturaDtoConId = RegistrarPagoFacturaDto & { facturaId: string };
@@ -30,6 +36,8 @@ export class PlatformFacturasService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly wompi: WompiService,
+    private readonly limites: LimitesService,
+    private readonly email: EmailService,
   ) {}
 
   /** Lista facturas de una junta. */
@@ -146,6 +154,16 @@ export class PlatformFacturasService {
       },
       ejecutadoPorId,
     });
+
+    if (junta.email) {
+      void this.email.enviarFacturaPendiente({
+        juntaNombre: junta.nombre,
+        juntaEmail: junta.email,
+        monto: factura.monto,
+        fechaVencimiento: factura.fechaVencimiento,
+        tipo: factura.tipo,
+      });
+    }
 
     return { data: factura };
   }
@@ -264,6 +282,385 @@ export class PlatformFacturasService {
   }
 
   /**
+   * Crea factura + intención de pago para suscripción sin trial.
+   * Al confirmar pago (webhook/retorno) se crea la Suscripción.
+   * PIVOT_FACTURACION_SAAS.md
+   */
+  async crearIntencionPagoSuscripcion(
+    juntaId: string,
+    planId: string,
+    periodo: 'mensual' | 'anual',
+    diasPrueba: number,
+    iniciadoPorId: string,
+  ): Promise<{ checkoutUrl: string; referencia: string; facturaId: string }> {
+    const existente = await this.prisma.suscripcion.findUnique({
+      where: { juntaId },
+      include: { plan: true },
+    });
+    if (existente && (existente.estado === EstadoSuscripcion.ACTIVA || existente.estado === EstadoSuscripcion.PRUEBA)) {
+      throw new BadRequestException('La junta ya tiene una suscripción activa');
+    }
+
+    const plan = await this.prisma.plan.findUnique({ where: { id: planId } });
+    if (!plan) throw new NotFoundException('Plan no encontrado');
+    if (!plan.activo) throw new BadRequestException('El plan no está disponible');
+
+    const monto = periodo === 'mensual' ? plan.precioMensual : plan.precioAnual;
+    if (monto <= 0) {
+      throw new BadRequestException('El plan no tiene precio configurado para el periodo elegido');
+    }
+
+    const fechaInicio = new Date();
+    const fechaVencimiento = new Date(fechaInicio);
+    fechaVencimiento.setDate(fechaVencimiento.getDate() + 7);
+
+    const factura = await this.prisma.factura.create({
+      data: {
+        juntaId,
+        suscripcionId: null,
+        monto,
+        fechaVencimiento,
+        estado: EstadoFactura.PENDIENTE,
+        tipo: TipoFactura.SUSCRIPCION,
+        metadata: {
+          planId,
+          periodo,
+          diasPrueba,
+          juntaId,
+        } as Prisma.InputJsonValue,
+        creadoPorId: iniciadoPorId,
+      },
+    });
+
+    await this.audit.registerEvent({
+      juntaId,
+      entidad: 'Factura',
+      entidadId: factura.id,
+      accion: 'INTENCION_SUSCRIPCION_CREADA',
+      metadata: { planId, planNombre: plan.nombre, periodo, monto },
+      ejecutadoPorId: iniciadoPorId,
+    });
+
+    const montoCents = monto * 100;
+    const referencia = `SUS-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const baseRedirect =
+      process.env.WOMPI_REDIRECT_URL_FACTURAS ||
+      (process.env.WOMPI_REDIRECT_URL
+        ? process.env.WOMPI_REDIRECT_URL.replace('/pagos/retorno', '/facturas-plataforma/retorno')
+        : 'http://localhost:4200/facturas-plataforma/retorno');
+    const redirectUrl = `${baseRedirect}?factura_id=${factura.id}`;
+
+    const link = await this.wompi.crearPaymentLink(
+      {
+        name: `Suscripción ${plan.nombre} - ${referencia}`,
+        description: `Pago de suscripción a la plataforma - ${plan.nombre}`,
+        amountInCents: montoCents,
+        currency: 'COP',
+        singleUse: true,
+        redirectUrl,
+        sku: referencia,
+      },
+      undefined,
+    );
+
+    await this.prisma.intencionPagoFactura.create({
+      data: {
+        facturaId: factura.id,
+        juntaId,
+        montoCents,
+        wompiLinkId: link.id,
+        iniciadoPorId,
+      },
+    });
+
+    const publicKey = process.env.WOMPI_PUBLIC_KEY;
+    const baseCheckout = `https://checkout.wompi.co/l/${link.id}`;
+    const checkoutUrl = publicKey
+      ? `${baseCheckout}?public-key=${encodeURIComponent(publicKey)}`
+      : baseCheckout;
+
+    return { checkoutUrl, referencia, facturaId: factura.id };
+  }
+
+  /**
+   * Crea factura + intención para overrides (aumento de capacidad).
+   * Al confirmar pago se aplican los overrides en la Suscripción.
+   * PIVOT_FACTURACION_SAAS.md
+   */
+  async crearIntencionPagoOverrides(
+    juntaId: string,
+    params: {
+      suscripcionId: string;
+      overrideLimiteUsuarios?: number | null;
+      overrideLimiteStorageMb?: number | null;
+      overrideLimiteCartasMes?: number | null;
+      motivoPersonalizacion?: string | null;
+    },
+    iniciadoPorId: string,
+  ): Promise<{ checkoutUrl: string; referencia: string; facturaId: string }> {
+    const suscripcion = await this.prisma.suscripcion.findFirst({
+      where: { id: params.suscripcionId, juntaId },
+      include: { plan: true },
+    });
+    if (!suscripcion) throw new NotFoundException('Suscripción no encontrada');
+    if (!suscripcion.plan.esPersonalizable) {
+      throw new BadRequestException('El plan no permite overrides');
+    }
+
+    const tieneOverrides =
+      params.overrideLimiteUsuarios != null ||
+      params.overrideLimiteStorageMb != null ||
+      params.overrideLimiteCartasMes != null;
+    if (!tieneOverrides) {
+      throw new BadRequestException('Debe indicar al menos un límite a aumentar');
+    }
+
+    const monto = this.calcularMontoOverrides(suscripcion, params);
+    const fechaVencimiento = new Date();
+    fechaVencimiento.setDate(fechaVencimiento.getDate() + 7);
+
+    const factura = await this.prisma.factura.create({
+      data: {
+        juntaId,
+        suscripcionId: params.suscripcionId,
+        monto,
+        fechaVencimiento,
+        estado: EstadoFactura.PENDIENTE,
+        tipo: TipoFactura.OVERRIDE,
+        metadata: {
+          overrideLimiteUsuarios: params.overrideLimiteUsuarios ?? null,
+          overrideLimiteStorageMb: params.overrideLimiteStorageMb ?? null,
+          overrideLimiteCartasMes: params.overrideLimiteCartasMes ?? null,
+          motivoPersonalizacion: params.motivoPersonalizacion ?? null,
+          suscripcionId: params.suscripcionId,
+        } as Prisma.InputJsonValue,
+        creadoPorId: iniciadoPorId,
+      },
+    });
+
+    await this.audit.registerEvent({
+      juntaId,
+      entidad: 'Factura',
+      entidadId: factura.id,
+      accion: 'INTENCION_OVERRIDES_CREADA',
+      metadata: { suscripcionId: params.suscripcionId, monto },
+      ejecutadoPorId: iniciadoPorId,
+    });
+
+    const montoCents = monto * 100;
+    const referencia = `OVR-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const baseRedirect =
+      process.env.WOMPI_REDIRECT_URL_FACTURAS ||
+      (process.env.WOMPI_REDIRECT_URL
+        ? process.env.WOMPI_REDIRECT_URL.replace('/pagos/retorno', '/facturas-plataforma/retorno')
+        : 'http://localhost:4200/facturas-plataforma/retorno');
+    const redirectUrl = `${baseRedirect}?factura_id=${factura.id}`;
+
+    const link = await this.wompi.crearPaymentLink(
+      {
+        name: `Overrides ${suscripcion.plan.nombre} - ${referencia}`,
+        description: 'Pago por aumento de capacidad',
+        amountInCents: montoCents,
+        currency: 'COP',
+        singleUse: true,
+        redirectUrl,
+        sku: referencia,
+      },
+      undefined,
+    );
+
+    await this.prisma.intencionPagoFactura.create({
+      data: {
+        facturaId: factura.id,
+        juntaId,
+        montoCents,
+        wompiLinkId: link.id,
+        iniciadoPorId,
+      },
+    });
+
+    const publicKey = process.env.WOMPI_PUBLIC_KEY;
+    const baseCheckout = `https://checkout.wompi.co/l/${link.id}`;
+    const checkoutUrl = publicKey
+      ? `${baseCheckout}?public-key=${encodeURIComponent(publicKey)}`
+      : baseCheckout;
+
+    return { checkoutUrl, referencia, facturaId: factura.id };
+  }
+
+  /**
+   * Crea factura + intención para upgrade (cambio a plan superior).
+   * Al confirmar pago se actualiza la Suscripción.
+   * PIVOT_FACTURACION_SAAS.md
+   */
+  async crearIntencionPagoUpgrade(
+    juntaId: string,
+    suscripcionId: string,
+    planId: string,
+    periodo: 'mensual' | 'anual',
+    iniciadoPorId: string,
+  ): Promise<{ checkoutUrl: string; referencia: string; facturaId: string }> {
+    const suscripcion = await this.prisma.suscripcion.findFirst({
+      where: { id: suscripcionId, juntaId },
+      include: { plan: true },
+    });
+    if (!suscripcion) throw new NotFoundException('Suscripción no encontrada');
+
+    const plan = await this.prisma.plan.findUnique({ where: { id: planId } });
+    if (!plan) throw new NotFoundException('Plan no encontrado');
+    if (!plan.activo) throw new BadRequestException('El plan no está disponible');
+    if (plan.precioMensual < suscripcion.plan.precioMensual) {
+      throw new BadRequestException('Solo se permite upgrade a plan superior. Use cambiar plan para downgrade.');
+    }
+
+    const monto = periodo === 'mensual' ? plan.precioMensual : plan.precioAnual;
+    if (monto <= 0) {
+      throw new BadRequestException('El plan no tiene precio configurado para el periodo elegido');
+    }
+
+    const fechaVencimiento = new Date();
+    fechaVencimiento.setDate(fechaVencimiento.getDate() + 7);
+
+    const factura = await this.prisma.factura.create({
+      data: {
+        juntaId,
+        suscripcionId,
+        monto,
+        fechaVencimiento,
+        estado: EstadoFactura.PENDIENTE,
+        tipo: TipoFactura.UPGRADE,
+        metadata: { planId, periodo } as Prisma.InputJsonValue,
+        creadoPorId: iniciadoPorId,
+      },
+    });
+
+    await this.audit.registerEvent({
+      juntaId,
+      entidad: 'Factura',
+      entidadId: factura.id,
+      accion: 'INTENCION_UPGRADE_CREADA',
+      metadata: { planId, planNombre: plan.nombre, periodo, monto },
+      ejecutadoPorId: iniciadoPorId,
+    });
+
+    const montoCents = monto * 100;
+    const referencia = `UPG-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const baseRedirect =
+      process.env.WOMPI_REDIRECT_URL_FACTURAS ||
+      (process.env.WOMPI_REDIRECT_URL
+        ? process.env.WOMPI_REDIRECT_URL.replace('/pagos/retorno', '/facturas-plataforma/retorno')
+        : 'http://localhost:4200/facturas-plataforma/retorno');
+    const redirectUrl = `${baseRedirect}?factura_id=${factura.id}`;
+
+    const link = await this.wompi.crearPaymentLink(
+      {
+        name: `Upgrade a ${plan.nombre} - ${referencia}`,
+        description: `Cambio de plan a ${plan.nombre}`,
+        amountInCents: montoCents,
+        currency: 'COP',
+        singleUse: true,
+        redirectUrl,
+        sku: referencia,
+      },
+      undefined,
+    );
+
+    await this.prisma.intencionPagoFactura.create({
+      data: {
+        facturaId: factura.id,
+        juntaId,
+        montoCents,
+        wompiLinkId: link.id,
+        iniciadoPorId,
+      },
+    });
+
+    const publicKey = process.env.WOMPI_PUBLIC_KEY;
+    const baseCheckout = `https://checkout.wompi.co/l/${link.id}`;
+    const checkoutUrl = publicKey
+      ? `${baseCheckout}?public-key=${encodeURIComponent(publicKey)}`
+      : baseCheckout;
+
+    return { checkoutUrl, referencia, facturaId: factura.id };
+  }
+
+  /**
+   * Calcula monto por overrides: cobra solo el INCREMENTO sobre el límite actual.
+   * Ej: plan 10 usuarios, override 15, precio 5.000 → (15-10)*5.000 = 25.000 COP.
+   */
+  private calcularMontoOverrides(
+    suscripcion: {
+      overrideLimiteUsuarios: number | null;
+      overrideLimiteStorageMb: number | null;
+      overrideLimiteCartasMes: number | null;
+      plan: {
+        limiteUsuarios: number | null;
+        limiteStorageMb: number | null;
+        limiteCartasMes: number | null;
+        permiteUsuariosIlimitados: boolean;
+        permiteStorageIlimitado: boolean;
+        permiteCartasIlimitadas: boolean;
+        precioPorUsuarioAdicional: number | null;
+        precioPorMbAdicional: number | null;
+        precioPorCartaAdicional: number | null;
+      };
+    },
+    params: {
+      overrideLimiteUsuarios?: number | null;
+      overrideLimiteStorageMb?: number | null;
+      overrideLimiteCartasMes?: number | null;
+    },
+  ): number {
+    const { plan } = suscripcion;
+
+    const limiteBaseUsuarios = plan.permiteUsuariosIlimitados
+      ? Infinity
+      : (suscripcion.overrideLimiteUsuarios ?? plan.limiteUsuarios ?? 0);
+    const limiteBaseStorage = plan.permiteStorageIlimitado
+      ? Infinity
+      : (suscripcion.overrideLimiteStorageMb ?? plan.limiteStorageMb ?? 0);
+    const limiteBaseCartas = plan.permiteCartasIlimitadas
+      ? Infinity
+      : (suscripcion.overrideLimiteCartasMes ?? plan.limiteCartasMes ?? 0);
+
+    let total = 0;
+    if (
+      params.overrideLimiteUsuarios != null &&
+      plan.precioPorUsuarioAdicional != null &&
+      limiteBaseUsuarios !== Infinity
+    ) {
+      const delta = Math.max(0, params.overrideLimiteUsuarios - limiteBaseUsuarios);
+      total += delta * plan.precioPorUsuarioAdicional;
+    }
+    if (
+      params.overrideLimiteStorageMb != null &&
+      plan.precioPorMbAdicional != null &&
+      limiteBaseStorage !== Infinity
+    ) {
+      const delta = Math.max(0, params.overrideLimiteStorageMb - limiteBaseStorage);
+      total += delta * plan.precioPorMbAdicional;
+    }
+    if (
+      params.overrideLimiteCartasMes != null &&
+      plan.precioPorCartaAdicional != null &&
+      limiteBaseCartas !== Infinity
+    ) {
+      const delta = Math.max(0, params.overrideLimiteCartasMes - limiteBaseCartas);
+      total += delta * plan.precioPorCartaAdicional;
+    }
+
+    if (total <= 0) {
+      throw new BadRequestException(
+        'No hay incremento de capacidad que facturar. Verifique que los nuevos límites sean mayores a los actuales y que el plan tenga precios por demanda configurados.',
+      );
+    }
+    return total;
+  }
+
+  /**
    * Registra pago de factura desde proveedor (webhook o retorno).
    * Idempotente por referenciaExterna = transactionId.
    * FACTURACION_PLATAFORMA_PAGO_ONLINE_ANALISIS.md
@@ -301,6 +698,185 @@ export class PlatformFacturasService {
       },
       intencion.iniciadoPorId,
     );
+
+    if (
+      factura.tipo === TipoFactura.SUSCRIPCION &&
+      factura.suscripcionId === null
+    ) {
+      const meta = factura.metadata as {
+        planId?: string;
+        periodo?: 'mensual' | 'anual';
+        diasPrueba?: number;
+        juntaId?: string;
+      } | null;
+      const planId = meta?.planId;
+      const juntaId = meta?.juntaId ?? intencion.juntaId;
+      if (planId) {
+        const periodo = meta?.periodo ?? 'anual';
+        const diasPrueba = meta?.diasPrueba ?? 0;
+        const fechaInicio = new Date();
+        const fechaVencimiento = calcularFechaVencimiento({
+          fechaInicio,
+          diasPrueba,
+          periodo,
+        });
+        const estado = getEstadoSuscripcion(diasPrueba) as EstadoSuscripcion;
+
+        const suscripcion = await this.prisma.suscripcion.create({
+          data: {
+            juntaId,
+            planId,
+            fechaInicio,
+            fechaVencimiento,
+            periodo,
+            estado,
+          },
+        });
+
+        await this.prisma.factura.update({
+          where: { id: factura.id },
+          data: { suscripcionId: suscripcion.id },
+        });
+
+        await this.audit.registerEvent({
+          juntaId,
+          entidad: 'Suscripcion',
+          entidadId: suscripcion.id,
+          accion: 'CREACION_SUSCRIPCION',
+          metadata: {
+            planId,
+            periodo,
+            diasPrueba,
+            origen: 'pago-suscripcion',
+            facturaId: factura.id,
+          },
+          ejecutadoPorId: intencion.iniciadoPorId,
+        });
+      }
+    } else if (
+      factura.tipo === TipoFactura.SUSCRIPCION &&
+      factura.suscripcionId !== null
+    ) {
+      const meta = factura.metadata as { periodo?: 'mensual' | 'anual' } | null;
+      const periodo = meta?.periodo ?? 'anual';
+      const fechaInicio = new Date();
+      const fechaVencimiento = calcularFechaVencimiento({
+        fechaInicio,
+        diasPrueba: 0,
+        periodo,
+      });
+      await this.prisma.suscripcion.update({
+        where: { id: factura.suscripcionId },
+        data: {
+          estado: EstadoSuscripcion.ACTIVA,
+          fechaVencimiento,
+          periodo,
+        },
+      });
+      await this.audit.registerEvent({
+        juntaId: intencion.juntaId,
+        entidad: 'Suscripcion',
+        entidadId: factura.suscripcionId,
+        accion: 'TRIAL_CONVERTIDO_ACTIVA',
+        metadata: { periodo, facturaId: factura.id },
+        ejecutadoPorId: intencion.iniciadoPorId,
+      });
+    } else if (factura.tipo === TipoFactura.OVERRIDE && factura.suscripcionId) {
+      const meta = factura.metadata as {
+        overrideLimiteUsuarios?: number | null;
+        overrideLimiteStorageMb?: number | null;
+        overrideLimiteCartasMes?: number | null;
+        motivoPersonalizacion?: string | null;
+      } | null;
+      if (meta) {
+        const updateData: Record<string, unknown> = { esPlanPersonalizado: true };
+        if (meta.overrideLimiteUsuarios !== undefined) updateData.overrideLimiteUsuarios = meta.overrideLimiteUsuarios;
+        if (meta.overrideLimiteStorageMb !== undefined) updateData.overrideLimiteStorageMb = meta.overrideLimiteStorageMb;
+        if (meta.overrideLimiteCartasMes !== undefined) updateData.overrideLimiteCartasMes = meta.overrideLimiteCartasMes;
+        if (meta.motivoPersonalizacion !== undefined) updateData.motivoPersonalizacion = meta.motivoPersonalizacion;
+        await this.prisma.suscripcion.update({
+          where: { id: factura.suscripcionId },
+          data: updateData,
+        });
+        await this.audit.registerEvent({
+          juntaId: intencion.juntaId,
+          entidad: 'Suscripcion',
+          entidadId: factura.suscripcionId,
+          accion: 'OVERRIDES_APLICADOS',
+          metadata: { facturaId: factura.id, ...meta },
+          ejecutadoPorId: intencion.iniciadoPorId,
+        });
+      }
+    } else if (factura.tipo === TipoFactura.UPGRADE && factura.suscripcionId) {
+      const meta = factura.metadata as { planId?: string; periodo?: 'mensual' | 'anual' } | null;
+      const planId = meta?.planId;
+      if (planId) {
+        const periodo = meta?.periodo ?? 'anual';
+        const fechaInicio = new Date();
+        const fechaVencimiento = calcularFechaVencimiento({
+          fechaInicio,
+          diasPrueba: 0,
+          periodo,
+        });
+        await this.prisma.suscripcion.update({
+          where: { id: factura.suscripcionId },
+          data: {
+            planId,
+            fechaVencimiento,
+            periodo,
+            overrideLimiteUsuarios: null,
+            overrideLimiteStorageMb: null,
+            overrideLimiteCartasMes: null,
+            esPlanPersonalizado: false,
+          },
+        });
+        await this.audit.registerEvent({
+          juntaId: intencion.juntaId,
+          entidad: 'Suscripcion',
+          entidadId: factura.suscripcionId,
+          accion: 'UPGRADE_APLICADO',
+          metadata: { planId, periodo, facturaId: factura.id },
+          ejecutadoPorId: intencion.iniciadoPorId,
+        });
+      }
+    } else if (factura.tipo === TipoFactura.RENOVACION && factura.suscripcionId) {
+      const suscripcion = await this.prisma.suscripcion.findUnique({
+        where: { id: factura.suscripcionId },
+        include: { plan: true },
+      });
+      if (suscripcion) {
+        const meta = factura.metadata as { periodo?: 'mensual' | 'anual' } | null;
+        const periodo: 'mensual' | 'anual' =
+          meta?.periodo ?? (suscripcion.periodo === 'mensual' || suscripcion.periodo === 'anual'
+            ? (suscripcion.periodo as 'mensual' | 'anual')
+            : 'anual');
+        const fechaInicio = new Date(Math.max(
+          new Date(suscripcion.fechaVencimiento).getTime(),
+          Date.now(),
+        ));
+        const fechaVencimiento = calcularFechaVencimiento({
+          fechaInicio,
+          diasPrueba: 0,
+          periodo,
+        });
+        await this.prisma.suscripcion.update({
+          where: { id: factura.suscripcionId },
+          data: {
+            estado: EstadoSuscripcion.ACTIVA,
+            fechaVencimiento,
+            periodo,
+          },
+        });
+        await this.audit.registerEvent({
+          juntaId: intencion.juntaId,
+          entidad: 'Suscripcion',
+          entidadId: factura.suscripcionId,
+          accion: 'RENOVACION_APLICADA',
+          metadata: { periodo, facturaId: factura.id },
+          ejecutadoPorId: intencion.iniciadoPorId,
+        });
+      }
+    }
 
     return { yaRegistrado: false };
   }
@@ -386,7 +962,7 @@ export class PlatformFacturasService {
   ) {
     const factura = await this.prisma.factura.findFirst({
       where: { id: dto.facturaId, juntaId },
-      include: { pagos: true },
+      include: { pagos: true, junta: { select: { nombre: true, email: true } } },
     });
     if (!factura) throw new NotFoundException('Factura no encontrada');
 
@@ -450,6 +1026,15 @@ export class PlatformFacturasService {
         suscripcion: { select: { id: true, plan: { select: { nombre: true } } } },
       },
     });
+
+    if (nuevoEstado === EstadoFactura.PAGADA && factura.junta?.email) {
+      void this.email.enviarPagoConfirmado({
+        juntaNombre: factura.junta.nombre,
+        juntaEmail: factura.junta.email,
+        monto: dto.monto,
+        fecha: pago.fecha ?? new Date(),
+      });
+    }
 
     return { data: { pago, factura: facturaActualizada } };
   }
@@ -547,22 +1132,142 @@ export class PlatformFacturasService {
     return { data: actualizada };
   }
 
-  /** Genera facturas mensuales para suscripciones activas (job). */
-  async generarFacturasMensuales(ejecutadoPorId: string): Promise<{
+  /**
+   * Genera facturas de renovación cuando la suscripción está por vencer o ya venció.
+   * Solo para suscripciones ACTIVA/PRUEBA. Tipo RENOVACION.
+   * PIVOT_FACTURACION_SAAS.md
+   */
+  async generarFacturasRenovacion(ejecutadoPorId: string): Promise<{
     generadas: number;
     omitidas: number;
     errores: string[];
   }> {
     const ahora = new Date();
-    const mesActual = ahora.getMonth();
-    const anioActual = ahora.getFullYear();
-    const inicioMes = new Date(anioActual, mesActual, 1);
-    const finMes = new Date(anioActual, mesActual + 1, 0, 23, 59, 59);
+    const enSieteDias = new Date(ahora);
+    enSieteDias.setDate(enSieteDias.getDate() + 7);
 
     const suscripciones = await this.prisma.suscripcion.findMany({
       where: {
         estado: { in: [EstadoSuscripcion.ACTIVA, EstadoSuscripcion.PRUEBA] },
-        fechaVencimiento: { gte: inicioMes },
+        fechaVencimiento: { lte: enSieteDias },
+        cancelacionSolicitada: false, // No renovar suscripciones cuya cancelación fue solicitada
+      },
+      include: { plan: true, junta: { select: { id: true, nombre: true, email: true } } },
+    });
+
+    let generadas = 0;
+    let omitidas = 0;
+    const errores: string[] = [];
+
+    for (const susc of suscripciones) {
+      const yaFacturada = await this.prisma.factura.findFirst({
+        where: {
+          suscripcionId: susc.id,
+          tipo: TipoFactura.RENOVACION,
+          estado: { in: [EstadoFactura.PENDIENTE, EstadoFactura.VENCIDA, EstadoFactura.PARCIAL] },
+        },
+      });
+
+      if (yaFacturada) {
+        omitidas++;
+        continue;
+      }
+
+      try {
+        const periodo = (susc.periodo === 'mensual' || susc.periodo === 'anual')
+          ? susc.periodo
+          : this.inferirPeriodo(susc.fechaInicio, susc.fechaVencimiento);
+        const monto =
+          susc.precioPersonalizado != null
+            ? Number(susc.precioPersonalizado)
+            : periodo === 'mensual'
+              ? susc.plan.precioMensual
+              : susc.plan.precioAnual;
+
+        const fechaVencimientoFactura = new Date(susc.fechaVencimiento);
+        fechaVencimientoFactura.setDate(fechaVencimientoFactura.getDate() + 7);
+
+        const factura = await this.prisma.factura.create({
+          data: {
+            juntaId: susc.juntaId,
+            suscripcionId: susc.id,
+            monto,
+            fechaVencimiento: fechaVencimientoFactura,
+            estado: EstadoFactura.PENDIENTE,
+            tipo: TipoFactura.RENOVACION,
+            metadata: { periodo, planNombre: susc.plan.nombre },
+          },
+        });
+
+        await this.audit.registerEvent({
+          juntaId: susc.juntaId,
+          entidad: 'Factura',
+          entidadId: factura.id,
+          accion: 'FACTURA_RENOVACION_GENERADA',
+          metadata: {
+            suscripcionId: susc.id,
+            planNombre: susc.plan.nombre,
+            monto,
+            periodo,
+          },
+          ejecutadoPorId,
+        });
+
+        if (susc.junta.email) {
+          void this.email.enviarFacturaPendiente({
+            juntaNombre: susc.junta.nombre,
+            juntaEmail: susc.junta.email,
+            monto,
+            fechaVencimiento: fechaVencimientoFactura,
+            tipo: TipoFactura.RENOVACION,
+          });
+        }
+
+        generadas++;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errores.push(`${susc.junta.nombre}: ${msg}`);
+      }
+
+      // Micro-pausa: permite que el event-loop respire entre juntas.
+      // Evita pico de CPU/conexiones cuando hay muchas suscripciones por renovar.
+      await this.sleep(150);
+    }
+
+    return { generadas, omitidas, errores };
+  }
+
+  private inferirPeriodo(fechaInicio: Date, fechaVencimiento: Date): 'mensual' | 'anual' {
+    const diffMs = new Date(fechaVencimiento).getTime() - new Date(fechaInicio).getTime();
+    const diffDias = diffMs / (1000 * 60 * 60 * 24);
+    return diffDias > 180 ? 'anual' : 'mensual';
+  }
+
+  /** @deprecated Use generarFacturasRenovacion. Mantiene compatibilidad con cron existente. */
+  async generarFacturasMensuales(ejecutadoPorId: string): Promise<{
+    generadas: number;
+    omitidas: number;
+    errores: string[];
+  }> {
+    return this.generarFacturasRenovacion(ejecutadoPorId);
+  }
+
+  /**
+   * Genera facturas OVERRIDE mensuales por exceso de consumo.
+   * Ejecutar el día 1 de cada mes para facturar el mes anterior.
+   * MODELO_OVERRIDES_CONSUMO.md
+   */
+  async generarFacturasOverridesMensuales(
+    mesAno: { year: number; month: number },
+    ejecutadoPorId: string,
+  ): Promise<{ generadas: number; omitidas: number; errores: string[] }> {
+    const { year, month } = mesAno;
+    const mesOverride = `${year}-${String(month).padStart(2, '0')}`;
+
+    const suscripciones = await this.prisma.suscripcion.findMany({
+      where: {
+        estado: { in: [EstadoSuscripcion.ACTIVA, EstadoSuscripcion.PRUEBA] },
+        plan: { esPersonalizable: true },
       },
       include: { plan: true, junta: { select: { id: true, nombre: true } } },
     });
@@ -574,9 +1279,9 @@ export class PlatformFacturasService {
     for (const susc of suscripciones) {
       const yaFacturada = await this.prisma.factura.findFirst({
         where: {
-          suscripcionId: susc.id,
-          tipo: TipoFactura.MENSUAL,
-          fechaEmision: { gte: inicioMes, lte: finMes },
+          juntaId: susc.juntaId,
+          tipo: TipoFactura.OVERRIDE,
+          metadata: { path: ['mesOverride'], equals: mesOverride },
         },
       });
 
@@ -586,23 +1291,68 @@ export class PlatformFacturasService {
       }
 
       try {
-        const fechaVencimiento = new Date(anioActual, mesActual + 1, 10);
+        const limites = await this.limites.getLimitesEfectivos(susc.juntaId);
+        if (!limites) continue;
+
+        const uso = await this.limites.getUsoParaMes(susc.juntaId, year, month);
+        const { plan } = susc;
+
+        let monto = 0;
+        const detalle: Record<string, number> = {};
+
+        if (
+          limites.limiteUsuarios !== Infinity &&
+          plan.precioPorUsuarioAdicional != null &&
+          uso.usuarios > limites.limiteUsuarios
+        ) {
+          const exceso = uso.usuarios - limites.limiteUsuarios;
+          const cobro = exceso * plan.precioPorUsuarioAdicional;
+          monto += cobro;
+          detalle.usuarios = cobro;
+        }
+        if (
+          limites.limiteStorageMb !== Infinity &&
+          plan.precioPorMbAdicional != null &&
+          uso.storageMb > limites.limiteStorageMb
+        ) {
+          const exceso = Math.ceil(uso.storageMb - limites.limiteStorageMb);
+          const cobro = exceso * plan.precioPorMbAdicional;
+          monto += cobro;
+          detalle.storageMb = cobro;
+        }
+        if (
+          limites.limiteCartasMes !== Infinity &&
+          plan.precioPorCartaAdicional != null &&
+          uso.cartasEnMes > limites.limiteCartasMes
+        ) {
+          const exceso = uso.cartasEnMes - limites.limiteCartasMes;
+          const cobro = exceso * plan.precioPorCartaAdicional;
+          monto += cobro;
+          detalle.cartas = cobro;
+        }
+
+        if (monto <= 0) {
+          omitidas++;
+          continue;
+        }
+
+        const fechaVencimiento = new Date();
+        fechaVencimiento.setDate(fechaVencimiento.getDate() + 30);
 
         const factura = await this.prisma.factura.create({
           data: {
             juntaId: susc.juntaId,
             suscripcionId: susc.id,
-            monto: susc.plan.precioMensual,
-            fechaEmision: inicioMes,
+            monto,
             fechaVencimiento,
             estado: EstadoFactura.PENDIENTE,
-            tipo: TipoFactura.MENSUAL,
+            tipo: TipoFactura.OVERRIDE,
             metadata: {
-              mes: mesActual + 1,
-              anio: anioActual,
-              planNombre: susc.plan.nombre,
-              periodo: `${anioActual}-${String(mesActual + 1).padStart(2, '0')}`,
-            },
+              mesOverride,
+              detalle,
+              origen: 'cron_mensual',
+            } as Prisma.InputJsonValue,
+            creadoPorId: ejecutadoPorId,
           },
         });
 
@@ -610,14 +1360,8 @@ export class PlatformFacturasService {
           juntaId: susc.juntaId,
           entidad: 'Factura',
           entidadId: factura.id,
-          accion: 'FACTURA_MENSUAL_GENERADA',
-          metadata: {
-            suscripcionId: susc.id,
-            planNombre: susc.plan.nombre,
-            monto: susc.plan.precioMensual,
-            mes: mesActual + 1,
-            anio: anioActual,
-          },
+          accion: 'FACTURA_OVERRIDE_MENSUAL_GENERADA',
+          metadata: { mesOverride, monto, detalle },
           ejecutadoPorId,
         });
 
@@ -626,9 +1370,21 @@ export class PlatformFacturasService {
         const msg = err instanceof Error ? err.message : String(err);
         errores.push(`${susc.junta.nombre}: ${msg}`);
       }
+
+      // Micro-pausa entre juntas: evita saturar CPU/BD en día 1 (el más cargado).
+      await this.sleep(150);
     }
 
     return { generadas, omitidas, errores };
+  }
+
+  /**
+   * Micro-pausa entre iteraciones de un bucle de cron.
+   * Evita saturar CPU y conexiones de BD cuando se procesan muchas juntas el día 1.
+   * 150ms es suficiente para que el event-loop respire sin hacer el job perceptiblemente lento.
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /** Marca facturas PENDIENTE como VENCIDA si pasó fechaVencimiento. */

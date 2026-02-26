@@ -38,7 +38,7 @@ export interface FacturaCrearDialogResult {
   template: `
     <h2 mat-dialog-title>Crear factura manual</h2>
     <mat-dialog-content>
-      <p class="text-sm text-gray-600 mb-4">{{ data.juntaNombre }}</p>
+      <p class="text-sm text-jac-text-muted mb-4">{{ data.juntaNombre }}</p>
       <form [formGroup]="form">
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Monto (COP)</mat-label>

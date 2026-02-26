@@ -38,11 +38,15 @@ export class DomainExceptionFilter implements ExceptionFilter {
       this.logger.warn(`Error no controlado: ${exception.message}`, exception.stack);
     }
 
-    response.status(status).json({
+    const json: Record<string, unknown> = {
       statusCode: status,
       message: message || 'Error desconocido',
       error: this.getErrorLabel(status),
-    });
+    };
+    if (exception instanceof DomainError) {
+      json.code = exception.code;
+    }
+    response.status(status).json(json);
   }
 
   private mapDomainErrorToStatus(err: DomainError): number {
@@ -51,11 +55,13 @@ export class DomainExceptionFilter implements ExceptionFilter {
       PAGO_DUPLICADO: HttpStatus.CONFLICT,
       PAGO_CARTA_PENDIENTE: HttpStatus.UNPROCESSABLE_ENTITY,
       USUARIO_NO_ENCONTRADO: HttpStatus.NOT_FOUND,
+      USUARIO_INACTIVO: HttpStatus.FORBIDDEN,
       REQUISITO_TIPO_NO_ENCONTRADO: HttpStatus.NOT_FOUND,
       SIN_HISTORIAL_LABORAL: HttpStatus.UNPROCESSABLE_ENTITY,
       SIN_TARIFA_VIGENTE: HttpStatus.UNPROCESSABLE_ENTITY,
       HISTORIAL_SUPERPUESTO: HttpStatus.UNPROCESSABLE_ENTITY,
       REQUISITOS_CARTA_NO_CUMPLIDOS: HttpStatus.UNPROCESSABLE_ENTITY,
+      ESCUDO_NO_CONFIGURADO: HttpStatus.UNPROCESSABLE_ENTITY,
       CARTA_NO_PENDIENTE: HttpStatus.UNPROCESSABLE_ENTITY,
       CARTA_PENDIENTE_EXISTENTE: HttpStatus.CONFLICT,
       CARTA_NO_ENCONTRADA: HttpStatus.NOT_FOUND,
@@ -69,6 +75,12 @@ export class DomainExceptionFilter implements ExceptionFilter {
       ALMACENAMIENTO_NO_CONFIGURADO: HttpStatus.SERVICE_UNAVAILABLE,
       ARCHIVO_SOBREPASA_TAMANIO: HttpStatus.BAD_REQUEST,
       FORMATO_ARCHIVO_NO_PERMITIDO: HttpStatus.BAD_REQUEST,
+      LIMITE_USUARIOS_EXCEDIDO: HttpStatus.FORBIDDEN,
+      LIMITE_CARTAS_EXCEDIDO: HttpStatus.FORBIDDEN,
+      LIMITE_STORAGE_EXCEDIDO: HttpStatus.FORBIDDEN,
+      SUSCRIPCION_VENCIDA: HttpStatus.FORBIDDEN,
+      DOWNGRADE_SOLO_DIA_CORTE: HttpStatus.BAD_REQUEST,
+      DOWNGRADE_USO_EXCEDE_LIMITES: HttpStatus.BAD_REQUEST,
     };
     return map[err.code] ?? HttpStatus.UNPROCESSABLE_ENTITY;
   }

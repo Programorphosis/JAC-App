@@ -90,11 +90,32 @@ export class CartaNoPendienteError extends DomainError {
   }
 }
 
+export class EscudoNoConfiguradoError extends DomainError {
+  constructor() {
+    super(
+      'La junta no tiene escudo municipal configurado. Configure el escudo en Configuración para poder expedir cartas.',
+      'ESCUDO_NO_CONFIGURADO',
+    );
+    this.name = 'EscudoNoConfiguradoError';
+  }
+}
+
 // RequisitoService
 export class UsuarioNoEncontradoError extends DomainError {
   constructor(usuarioId: string) {
     super(`Usuario ${usuarioId} no encontrado`, 'USUARIO_NO_ENCONTRADO');
     this.name = 'UsuarioNoEncontradoError';
+  }
+}
+
+/** Usuario inactivo no puede solicitar carta ni pagar. CHECKLIST_OPERACION_JUNTAS §2.1 */
+export class UsuarioInactivoError extends DomainError {
+  constructor(usuarioId: string) {
+    super(
+      `El usuario está inactivo. Active el usuario para continuar.`,
+      'USUARIO_INACTIVO',
+    );
+    this.name = 'UsuarioInactivoError';
   }
 }
 
@@ -217,5 +238,66 @@ export class FormatoArchivoNoPermitidoError extends DomainError {
   constructor() {
     super('Formato no permitido. Use PDF, JPG o PNG', 'FORMATO_ARCHIVO_NO_PERMITIDO');
     this.name = 'FormatoArchivoNoPermitidoError';
+  }
+}
+
+// LimitesService (PA-5)
+export class LimiteUsuariosExcedidoError extends DomainError {
+  constructor(limite: number) {
+    super(
+      `Límite de usuarios alcanzado (${limite}). Actualice su plan.`,
+      'LIMITE_USUARIOS_EXCEDIDO',
+    );
+    this.name = 'LimiteUsuariosExcedidoError';
+  }
+}
+
+export class LimiteCartasExcedidoError extends DomainError {
+  constructor(limite: number) {
+    super(
+      `Límite de cartas del mes alcanzado (${limite}). Actualice su plan.`,
+      'LIMITE_CARTAS_EXCEDIDO',
+    );
+    this.name = 'LimiteCartasExcedidoError';
+  }
+}
+
+export class LimiteStorageExcedidoError extends DomainError {
+  constructor(limiteMb: number) {
+    super(
+      `Límite de almacenamiento alcanzado (${limiteMb} MB). Actualice su plan.`,
+      'LIMITE_STORAGE_EXCEDIDO',
+    );
+    this.name = 'LimiteStorageExcedidoError';
+  }
+}
+
+export class SuscripcionVencidaError extends DomainError {
+  constructor() {
+    super(
+      'La suscripción de la junta está vencida. Renueve para continuar operando.',
+      'SUSCRIPCION_VENCIDA',
+    );
+    this.name = 'SuscripcionVencidaError';
+  }
+}
+
+/** Downgrade solo permitido el día de corte (día 1 del mes). */
+/** @deprecated Downgrade permitido cualquier día; efectivo al fin del ciclo. FLUJOS_SUSCRIPCIONES_PLANES.md */
+export class DowngradeSoloDiaCorteError extends DomainError {
+  constructor(diaCorte: number) {
+    super(
+      `El cambio a un plan inferior solo se puede realizar el día ${diaCorte} de cada mes (día de corte).`,
+      'DOWNGRADE_SOLO_DIA_CORTE',
+    );
+    this.name = 'DowngradeSoloDiaCorteError';
+  }
+}
+
+/** El uso actual excede los límites del plan de downgrade. */
+export class DowngradeUsoExcedeLimitesError extends DomainError {
+  constructor(mensaje: string) {
+    super(mensaje, 'DOWNGRADE_USO_EXCEDE_LIMITES');
+    this.name = 'DowngradeUsoExcedeLimitesError';
   }
 }

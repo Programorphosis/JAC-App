@@ -4,16 +4,17 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { RouterLink } from '@angular/router';
 import { UsuariosService, DeudaResult } from '../services/usuarios.service';
 import { PagosService } from '../../pagos/services/pagos.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AppCanDirective } from '../../../core/auth/app-can.directive';
-import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
+import { getApiErrorMessage, getApiErrorCode } from '../../../shared/utils/api-error.util';
 
 @Component({
   selector: 'app-usuario-deuda',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatIconModule, NgClass, AppCanDirective],
+  imports: [MatCardModule, MatButtonModule, MatIconModule, NgClass, AppCanDirective, RouterLink],
   templateUrl: './usuario-deuda.component.html',
   styleUrl: './usuario-deuda.component.scss',
 })
@@ -22,6 +23,8 @@ export class UsuarioDeudaComponent implements OnInit {
   deuda: DeudaResult | null = null;
   loading = false;
   pagando = false;
+  /** Error al cargar deuda. Si code=SIN_TARIFA_VIGENTE, mostrar mensaje amigable + enlace. */
+  errorDeuda: { mensaje: string; sinTarifa?: boolean } | null = null;
 
   constructor(
     private readonly usuarios: UsuariosService,
@@ -38,12 +41,21 @@ export class UsuarioDeudaComponent implements OnInit {
 
   cargar(): void {
     this.loading = true;
+    this.errorDeuda = null;
     this.usuarios.getDeuda(this.usuarioId, true).subscribe({
       next: (d: DeudaResult) => {
         this.deuda = d;
         this.loading = false;
       },
-      error: () => (this.loading = false),
+      error: (err) => {
+        this.loading = false;
+        const code = getApiErrorCode(err);
+        const mensaje = getApiErrorMessage(err);
+        this.errorDeuda = {
+          mensaje,
+          sinTarifa: code === 'SIN_TARIFA_VIGENTE',
+        };
+      },
     });
   }
 

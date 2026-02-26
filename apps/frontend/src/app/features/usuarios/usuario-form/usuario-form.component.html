@@ -37,6 +37,45 @@
           <mat-label>Dirección</mat-label>
           <input matInput formControlName="direccion" />
         </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Departamento (lugar expedición)</mat-label>
+          <mat-select formControlName="departamentoLugarExpedicion">
+            <mat-option value="">— Ninguno —</mat-option>
+            @for (d of departamentosCiudades; track d.departamento) {
+              <mat-option [value]="d.departamento">{{ d.departamento }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Ciudad (lugar expedición)</mat-label>
+          <mat-select formControlName="ciudadLugarExpedicion" [disabled]="!form.get('departamentoLugarExpedicion')?.value">
+            <mat-option value="">— Ninguna —</mat-option>
+            @for (c of ciudadesLugarExpedicion; track c) {
+              <mat-option [value]="c">{{ c }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Para cartas oficiales</mat-hint>
+        </mat-form-field>
+      </div>
+      <p class="form-section-title text-jac-text-secondary">Libro de afiliados</p>
+      <p class="text-sm text-jac-text-muted -mt-2 mb-2">
+        Datos del libro físico. Van en las cartas (constancia de afiliación).
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Fecha de afiliación</mat-label>
+          <input matInput [matDatepicker]="pickerAfiliacion" formControlName="fechaAfiliacion" />
+          <mat-datepicker-toggle matSuffix [for]="pickerAfiliacion"></mat-datepicker-toggle>
+          <mat-datepicker #pickerAfiliacion></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Folio</mat-label>
+          <input matInput formControlName="folio" type="number" min="1" placeholder="Nº folio del libro" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Numeral</mat-label>
+          <input matInput formControlName="numeral" type="number" min="1" placeholder="Consecutivo del libro" />
+        </mat-form-field>
       </div>
       @if (!modoEdicion) {
         <mat-form-field appearance="outline" class="w-full">
@@ -52,7 +91,10 @@
           <mat-label>Contraseña</mat-label>
           <input matInput type="password" formControlName="password" />
         </mat-form-field>
-        <p class="text-sm text-gray-600 mb-1">Rol base: <strong>{{ rolBase }}</strong> (todos los usuarios de la junta son afiliados)</p>
+        <mat-checkbox formControlName="autorizoTratamientoDatos" class="mb-2">
+          Confirmo que el titular ha autorizado el tratamiento de sus datos personales conforme a la <a routerLink="/legal/privacidad" target="_blank" class="text-jac-primary underline">política de privacidad</a>
+        </mat-checkbox>
+        <p class="text-sm text-jac-text-muted mb-1">Rol base: <strong>{{ rolBase }}</strong> (todos los usuarios de la junta son afiliados)</p>
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Roles operativos adicionales</mat-label>
           <mat-select formControlName="rolesOperativos" multiple>
@@ -64,7 +106,7 @@
         </mat-form-field>
       }
       @if (modoEdicion && puedeEditarRoles) {
-        <p class="text-sm text-gray-600 mb-1">Rol base: <strong>{{ rolBase }}</strong> (siempre presente)</p>
+        <p class="text-sm text-jac-text-muted mb-1">Rol base: <strong>{{ rolBase }}</strong> (siempre presente)</p>
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Roles operativos adicionales</mat-label>
           <mat-select formControlName="rolesOperativos" multiple>

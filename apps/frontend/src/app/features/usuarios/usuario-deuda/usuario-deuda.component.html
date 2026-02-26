@@ -6,44 +6,45 @@
   <mat-card-content>
     @if (loading) {
       <div class="flex items-center justify-center py-8">
-        <p class="text-gray-500">Cargando...</p>
+        <p class="text-jac-text-muted">Cargando...</p>
       </div>
     } @else if (deuda) {
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex flex-col sm:flex-row sm:items-center gap-4 min-w-0">
           <div
             class="rounded-xl flex items-center justify-center shrink-0 min-h-[4rem] px-4 py-3 overflow-x-auto"
-            [ngClass]="deuda.total > 0 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'"
+            [ngClass]="deuda.total > 0 ? 'bg-jac-warning-bg text-jac-warning' : 'bg-jac-success-bg text-jac-success'"
           >
             <span class="text-xl sm:text-2xl font-bold whitespace-nowrap">{{ formatearMoneda(deuda.total) }}</span>
           </div>
           <div class="min-w-0">
             @if (deuda.total > 0) {
-              <p class="font-medium text-amber-800">Pendiente de pago</p>
-              <p class="text-sm text-gray-600">Pague su deuda para quedar al día</p>
+              <p class="font-medium text-jac-warning">Pendiente de pago</p>
+              <p class="text-sm text-jac-text-secondary">Pague su deuda para quedar al día</p>
             } @else {
-              <p class="font-medium text-green-800">Sin deuda</p>
-              <p class="text-sm text-gray-600">Está al día con la junta</p>
+              <p class="font-medium text-jac-success">Sin deuda</p>
+              <p class="text-sm text-jac-text-secondary">Está al día con la junta</p>
             }
           </div>
         </div>
         @if (deuda.total > 0) {
-          <button
-            mat-raised-button
-            *appCan="auth.permissions.PAGOS_PAGAR_ONLINE; usuarioId: usuarioId"
-            color="primary"
-            (click)="pagarDeudaOnline()"
-            [disabled]="pagando"
-            class="shrink-0"
-          >
-            {{ pagando ? 'Redirigiendo...' : 'Pagar online' }}
-          </button>
+          <ng-container *appCan="{ permission: auth.permissions.PAGOS_PAGAR_ONLINE, usuarioId: usuarioId }">
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="pagarDeudaOnline()"
+              [disabled]="pagando"
+              class="shrink-0"
+            >
+              {{ pagando ? 'Redirigiendo...' : 'Pagar online' }}
+            </button>
+          </ng-container>
         }
       </div>
 
       @if (deuda.detalle && deuda.detalle.length > 0) {
-        <div class="mt-6 pt-4 border-t border-gray-200">
-          <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Detalle por mes</h3>
+        <div class="mt-6 pt-4 border-t border-jac-border">
+          <h3 class="text-sm font-semibold text-jac-text-secondary uppercase tracking-wide mb-3">Detalle por mes</h3>
           <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
             <div class="table-responsive">
             <table class="w-full min-w-[320px]">
@@ -61,7 +62,7 @@
                     <td>
                       <span
                         class="inline-flex px-2 py-0.5 rounded text-xs font-medium"
-                        [ngClass]="d.estadoLaboral === 'TRABAJANDO' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'"
+                        [ngClass]="d.estadoLaboral === 'TRABAJANDO' ? 'bg-jac-info-bg text-jac-info' : 'bg-jac-surface-raised text-jac-text-secondary'"
                       >
                         {{ d.estadoLaboral }}
                       </span>
@@ -75,9 +76,24 @@
           </div>
         </div>
       }
+    } @else if (errorDeuda) {
+      <div class="py-8 text-center">
+        <mat-icon class="!text-4xl !w-12 !h-12 mx-auto mb-2 text-jac-warning">warning</mat-icon>
+        @if (errorDeuda.sinTarifa) {
+          <p class="font-medium text-jac-warning">Configure las tarifas antes de consultar la deuda</p>
+          <p class="text-sm text-jac-text-secondary mt-1">La junta no tiene tarifas configuradas. Configure las tarifas en Configuración → Tarifas.</p>
+          @if (auth.can(auth.permissions.TARIFAS_VER) || auth.can(auth.permissions.TARIFAS_MODIFICAR)) {
+            <a mat-raised-button color="primary" routerLink="/tarifas" class="mt-4">
+              Ir a Tarifas
+            </a>
+          }
+        } @else {
+          <p class="text-jac-text-secondary">{{ errorDeuda.mensaje }}</p>
+        }
+      </div>
     } @else {
-      <div class="py-8 text-center text-gray-500">
-        <mat-icon class="!text-4xl !w-12 !h-12 mx-auto mb-2 text-gray-300">error_outline</mat-icon>
+      <div class="py-8 text-center text-jac-text-muted">
+        <mat-icon class="!text-4xl !w-12 !h-12 mx-auto mb-2 text-jac-text-muted">error_outline</mat-icon>
         <p>No se pudo cargar la deuda</p>
       </div>
     }

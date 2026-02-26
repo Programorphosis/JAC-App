@@ -8,9 +8,10 @@
 
 | Rol | Propósito principal |
 |-----|---------------------|
-| **ADMIN** | Configuración: usuarios, requisitos, tarifas. No operativo. |
+| **ADMIN** | Configuración: usuarios, requisitos. No operativo. |
 | **SECRETARIA** | Cartas (validar), datos básicos usuarios, pago propio online. |
-| **TESORERA** | Pagos (efectivo, transferencia, online para otros), historial laboral, documentos. |
+| **TESORERA** | Pagos (efectivo, transferencia, online para otros), historial laboral, documentos, tarifas. |
+| **FISCAL** | Control y vigilancia: solo lectura (pagos, auditorías, usuarios, cartas, requisitos, tarifas, documentos). |
 | **RECEPTOR_AGUA** | Modificador: cambiar estado (AL_DÍA/MORA) de sus requisitos asignados. |
 | **AFILIADO** | Autogestión: pagar online propio, solicitar carta, subir documentos propios. |
 
@@ -97,6 +98,13 @@ Cuando un usuario ve el detalle de otro usuario (GET /usuarios/:id), qué tabs v
 | ADMIN | ✓ |
 | TESORERA | ✓ |
 | Resto | ✗ |
+
+### 3.8 Tarifas (crear, modificar, eliminar)
+
+| Rol | Crear/Modificar/Eliminar |
+|-----|--------------------------|
+| TESORERA | ✓ |
+| Resto | ✗ (solo ver: ADMIN, SECRETARIA, TESORERA) |
 
 ---
 

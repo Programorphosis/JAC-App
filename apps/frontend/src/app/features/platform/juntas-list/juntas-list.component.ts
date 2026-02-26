@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
 import { PlatformJuntasService, JuntaListItem } from '../services/platform-juntas.service';
 import { FormatearFechaPipe } from '../../../shared/pipes/formatear-fecha.pipe';
+import { NombreCompletoJuntaPipe } from '../../../shared/pipes/nombre-completo-junta.pipe';
 
 type ActivoFilter = 'todos' | true | false;
 
@@ -26,6 +27,7 @@ type ActivoFilter = 'todos' | true | false;
     FormsModule,
     DecimalPipe,
     FormatearFechaPipe,
+    NombreCompletoJuntaPipe,
   ],
   templateUrl: './juntas-list.component.html',
   styleUrl: './juntas-list.component.scss',

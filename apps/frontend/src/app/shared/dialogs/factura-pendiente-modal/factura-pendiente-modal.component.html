@@ -1,0 +1,42 @@
+<div class="factura-pendiente-modal">
+    <div class="factura-pendiente-modal-glow"></div>
+    <div class="factura-pendiente-modal-content">
+      <div class="factura-pendiente-modal-header">
+        <div class="factura-pendiente-modal-icon">
+          <mat-icon fontIcon="receipt_long" class="!text-4xl !w-12 !h-12"></mat-icon>
+        </div>
+        <h2 class="factura-pendiente-modal-title">Facturas pendientes</h2>
+        <p class="factura-pendiente-modal-subtitle">
+          Su junta tiene {{ data.facturas.length }} factura(s) pendiente(s) de pago a la plataforma.
+        </p>
+      </div>
+      <div class="factura-pendiente-modal-body">
+        <ul class="space-y-2">
+          @for (f of data.facturas; track f.id) {
+            <li class="flex justify-between items-center py-2 border-b border-jac-border-subtle last:border-0">
+              <span class="text-jac-text-secondary">
+                {{ f.fechaVencimiento | formatearFecha }} · {{ montoPendiente(f) | number }} COP
+              </span>
+              <span class="text-xs font-medium px-2 py-0.5 rounded"
+                [ngClass]="{
+                  'bg-jac-warning-bg text-jac-warning': f.estado === 'PENDIENTE',
+                  'bg-jac-error-bg text-jac-error': f.estado === 'VENCIDA',
+                  'bg-jac-info-bg text-jac-info': f.estado === 'PARCIAL'
+                }">
+                {{ f.estado }}
+              </span>
+            </li>
+          }
+        </ul>
+      </div>
+      <div class="factura-pendiente-modal-actions">
+        <button mat-raised-button color="primary" (click)="irAVer()" class="factura-pendiente-modal-btn">
+          <mat-icon fontIcon="visibility" class="!text-lg !w-5 !h-5 mr-1"></mat-icon>
+          Ver facturas
+        </button>
+        <button mat-button (click)="cerrar()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>

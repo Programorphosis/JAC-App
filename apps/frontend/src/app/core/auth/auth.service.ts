@@ -10,6 +10,7 @@ export type RolNombre =
   | 'ADMIN'
   | 'SECRETARIA'
   | 'TESORERA'
+  | 'FISCAL'
   | 'RECEPTOR_AGUA'
   | 'AFILIADO';
 
@@ -155,25 +156,31 @@ export class AuthService {
       case PERMISSIONS.PAGOS_GESTIONAR:
         return has('TESORERA');
       case PERMISSIONS.PAGOS_VER:
-        return has('TESORERA') || has('ADMIN') || has('SECRETARIA');
+        return has('TESORERA') || has('ADMIN') || has('SECRETARIA') || has('FISCAL');
       case PERMISSIONS.PAGOS_PAGAR_ONLINE:
         return has('TESORERA');
       case PERMISSIONS.PAGOS_PAGAR_ONLINE_PROPIO:
         return has('AFILIADO') || has('SECRETARIA');
       case PERMISSIONS.TARIFAS_VER:
-        return has('ADMIN') || has('SECRETARIA') || has('TESORERA');
+        return has('ADMIN') || has('SECRETARIA') || has('TESORERA') || has('FISCAL');
       case PERMISSIONS.TARIFAS_MODIFICAR:
-        return has('ADMIN');
+        return has('TESORERA');
+      case PERMISSIONS.CARTAS_VER:
+        return has('FISCAL');
       case PERMISSIONS.CARTAS_VALIDAR:
         return has('SECRETARIA');
       case PERMISSIONS.CARTAS_SOLICITAR:
         return has('AFILIADO');
       case PERMISSIONS.AUDITORIAS_VER:
-        return has('ADMIN') || has('SECRETARIA') || has('TESORERA');
+        return has('ADMIN') || has('SECRETARIA') || has('TESORERA') || has('FISCAL');
       case PERMISSIONS.DOCUMENTOS_SUBIR_OTROS:
         return has('ADMIN') || has('TESORERA');
       case PERMISSIONS.HISTORIAL_CREAR:
         return has('ADMIN') || has('TESORERA');
+      case PERMISSIONS.JUNTA_CONFIG_WOMPI:
+        return has('ADMIN');
+      case PERMISSIONS.JUNTA_SUSCRIPCION_GESTIONAR:
+        return has('TESORERA');
       default:
         return false;
     }
@@ -187,6 +194,11 @@ export class AuthService {
   /** Propio siempre; otros si tiene documentos:subir:otros. */
   canSubirDocumentoPara(usuarioId: string): boolean {
     return this.currentUser()?.id === usuarioId || this.can(PERMISSIONS.DOCUMENTOS_SUBIR_OTROS);
+  }
+
+  /** Ver cartas (listar pendientes, descargar): CARTAS_VER o CARTAS_VALIDAR. */
+  canVerCartas(): boolean {
+    return this.can(PERMISSIONS.CARTAS_VER) || this.can(PERMISSIONS.CARTAS_VALIDAR);
   }
 
   /** Solo propio y con cartas:solicitar. */

@@ -1,20 +1,20 @@
 <div class="max-w-5xl mx-auto">
   <!-- Header -->
   <header class="mb-8">
-    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">
+    <h1 class="text-2xl sm:text-3xl font-bold text-jac-text mb-1">
       {{ mensajeBienvenida() }}
     </h1>
-    <p class="text-gray-600">Panel de la Junta de Acción Comunal</p>
+    <p class="text-jac-text-secondary">Panel de la Junta de Acción Comunal</p>
   </header>
 
-  <!-- Alerta estado de carta (afiliado) – mismo estilo según estado -->
+  <!-- Alerta estado de carta (afiliado) -->
   @if (esAfiliado() && ultimaCarta(); as carta) {
     @if (carta.estado === 'APROBADA') {
-      <div class="mb-6 p-4 rounded-xl bg-green-50 border border-green-200 shadow-sm">
+      <div class="mb-6 p-4 rounded-xl bg-jac-success-bg border border-jac-success-border shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <p class="font-semibold text-green-800">¡Su carta laboral está lista!</p>
-            <p class="text-sm text-green-700 mt-1">Puede descargar el PDF en Mi cuenta, pestaña Cartas.</p>
+            <p class="font-semibold text-jac-success">¡Su carta laboral está lista!</p>
+            <p class="text-sm text-jac-success mt-1">Puede descargar el PDF en Mi cuenta, pestaña Cartas.</p>
           </div>
           <a
             mat-raised-button
@@ -28,11 +28,11 @@
         </div>
       </div>
     } @else if (carta.estado === 'PENDIENTE') {
-      <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 shadow-sm">
+      <div class="mb-6 p-4 rounded-xl bg-jac-warning-bg border border-jac-warning-border shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <p class="font-semibold text-amber-800">Su carta está en revisión</p>
-            <p class="text-sm text-amber-700 mt-1">La junta está validando su solicitud. Puede ver el estado en Mi cuenta, pestaña Cartas.</p>
+            <p class="font-semibold text-jac-warning">Su carta está en revisión</p>
+            <p class="text-sm text-jac-warning mt-1">La junta está validando su solicitud. Puede ver el estado en Mi cuenta, pestaña Cartas.</p>
           </div>
           <a
             mat-raised-button
@@ -46,11 +46,11 @@
         </div>
       </div>
     } @else if (carta.estado === 'RECHAZADA') {
-      <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 shadow-sm">
+      <div class="mb-6 p-4 rounded-xl bg-jac-error-bg border border-jac-error-border shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <p class="font-semibold text-red-800">Su carta fue rechazada</p>
-            <p class="text-sm text-red-700 mt-1">Puede ver los detalles y solicitar una nueva en Mi cuenta, pestaña Cartas.</p>
+            <p class="font-semibold text-jac-error">Su carta fue rechazada</p>
+            <p class="text-sm text-jac-error mt-1">Puede ver los detalles y solicitar una nueva en Mi cuenta, pestaña Cartas.</p>
           </div>
           <a
             mat-raised-button
@@ -66,24 +66,72 @@
     }
   }
 
-  <!-- Resumen afiliado (cuando carga) -->
+  <!-- Resumen afiliado -->
   @if (esAfiliado() && !loading) {
-    <div class="mb-6 p-4 rounded-xl bg-gray-50 border border-gray-200">
-      <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">Tu estado</h2>
-      <ul class="space-y-1 text-gray-700">
+    <div class="mb-6 p-4 rounded-xl bg-jac-surface-alt border border-jac-border">
+      <h2 class="text-sm font-semibold text-jac-text-muted uppercase tracking-wide mb-2">Tu estado</h2>
+      <ul class="space-y-1 text-jac-text-secondary">
         <li><strong>Deuda:</strong> {{ deuda() ? (deuda()!.total > 0 ? formatearMoneda(deuda()!.total) : 'Sin deuda') : '—' }}</li>
         <li><strong>Carta:</strong> {{ mensajeEstadoCarta() }}</li>
       </ul>
     </div>
   }
 
-  <!-- Alerta facturas pendientes (admin, tesorera, secretaria) -->
-  @if (auth.can(auth.permissions.PAGOS_VER) && facturasPendientes() > 0) {
-    <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 shadow-sm">
+  <!-- Banner: configure escudo municipal si no hay -->
+  @if (escudoConfigurado() === false) {
+    <div class="mb-6 p-4 rounded-xl bg-jac-warning-bg border border-jac-warning-border shadow-sm">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <p class="font-semibold text-amber-800">Facturas pendientes de pago</p>
-          <p class="text-sm text-amber-700 mt-1">
+          <p class="font-semibold text-jac-warning">Configure el escudo municipal para expedir cartas</p>
+          <p class="text-sm text-jac-warning mt-1">
+            La junta no tiene escudo municipal configurado. Suba el escudo en Configuración para poder expedir cartas laborales.
+          </p>
+        </div>
+        @if (auth.can(auth.permissions.JUNTA_CONFIG_WOMPI)) {
+          <a
+            mat-raised-button
+            color="primary"
+            routerLink="/configuracion"
+            class="shrink-0"
+          >
+            Ir a Configuración
+          </a>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Banner: configure tarifas si no hay -->
+  @if (tieneTarifas() === false) {
+    <div class="mb-6 p-4 rounded-xl bg-jac-warning-bg border border-jac-warning-border shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <p class="font-semibold text-jac-warning">Configure las tarifas antes de operar</p>
+          <p class="text-sm text-jac-warning mt-1">
+            La junta no tiene tarifas configuradas. Configure las tarifas en Configuración → Tarifas para poder registrar pagos y calcular deudas.
+          </p>
+        </div>
+        @if (auth.can(auth.permissions.TARIFAS_VER) || auth.can(auth.permissions.TARIFAS_MODIFICAR)) {
+          <a
+            mat-raised-button
+            color="primary"
+            routerLink="/tarifas"
+            class="shrink-0"
+          >
+            Ir a Tarifas
+          </a>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Alerta facturas pendientes -->
+  @if (auth.can(auth.permissions.PAGOS_VER) && facturasPendientes() > 0) {
+    <div class="mb-6 p-4 rounded-xl bg-jac-warning-bg border border-jac-warning-border shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <p class="font-semibold text-jac-warning">Facturas pendientes de pago</p>
+          <p class="text-sm text-jac-warning mt-1">
             Su junta tiene {{ facturasPendientes() }} factura(s) pendiente(s) de pago a la plataforma.
           </p>
         </div>
@@ -99,31 +147,9 @@
     </div>
   }
 
-  <!-- Avisos de plataforma -->
-  @if (avisos().length > 0) {
-    <section class="mb-6">
-      <h2 class="text-lg font-semibold text-gray-800 mb-4">Avisos</h2>
-      <div class="space-y-3">
-        @for (a of avisos(); track a.id) {
-          <mat-card class="border border-gray-100">
-            <mat-card-header class="pb-2">
-              <mat-card-title class="!text-base !font-medium">{{ a.titulo }}</mat-card-title>
-              <mat-card-subtitle class="!text-xs">
-                {{ a.fechaPublicacion | date:'medium' }}
-              </mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content class="pt-0">
-              <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ a.contenido }}</p>
-            </mat-card-content>
-          </mat-card>
-        }
-      </div>
-    </section>
-  }
-
   <!-- Accesos directos -->
   <section>
-    <h2 class="text-lg font-semibold text-gray-800 mb-4">Accesos directos</h2>
+    <h2 class="text-lg font-semibold text-jac-text mb-4">Accesos directos</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       @for (s of shortcuts(); track s.title + s.link.join('-')) {
         <a
@@ -131,28 +157,28 @@
           [queryParams]="s.queryParams ?? null"
           class="block group"
         >
-          <mat-card class="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border border-gray-100 overflow-hidden">
+          <mat-card class="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border border-jac-border-subtle overflow-hidden">
             <mat-card-content class="p-4">
               <div class="flex items-start gap-3">
                 <div
                   class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
                   [ngClass]="{
-                    'bg-blue-100 text-blue-700': !s.color || s.color === 'primary',
+                    'bg-jac-primary-light text-jac-primary': !s.color || s.color === 'primary',
                     'bg-teal-100 text-teal-700': s.color === 'accent',
-                    'bg-gray-100 text-gray-700': s.color !== 'primary' && s.color !== 'accent'
+                    'bg-jac-surface-raised text-jac-text-secondary': s.color !== 'primary' && s.color !== 'accent'
                   }"
                 >
                   <mat-icon [fontIcon]="s.icon" class="!text-2xl !w-8 !h-8"></mat-icon>
                 </div>
                 <div class="min-w-0 flex-1">
-                  <h3 class="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+                  <h3 class="font-semibold text-jac-text group-hover:text-jac-primary transition-colors">
                     {{ s.title }}
                   </h3>
-                  <p class="text-sm text-gray-600 mt-1">
+                  <p class="text-sm text-jac-text-secondary mt-1">
                     {{ s.description }}
                   </p>
                 </div>
-                <mat-icon class="flex-shrink-0 text-gray-400 group-hover:text-blue-500 transition-colors">arrow_forward</mat-icon>
+                <mat-icon class="flex-shrink-0 text-jac-text-muted group-hover:text-jac-primary transition-colors">arrow_forward</mat-icon>
               </div>
             </mat-card-content>
           </mat-card>
@@ -164,8 +190,8 @@
   <!-- Sin accesos (fallback) -->
   @if (shortcuts().length === 0) {
     <mat-card>
-      <mat-card-content class="py-8 text-center text-gray-500">
-        <mat-icon class="!text-5xl !w-16 !h-16 mx-auto mb-2 text-gray-300">touch_app</mat-icon>
+      <mat-card-content class="py-8 text-center text-jac-text-muted">
+        <mat-icon class="!text-5xl !w-16 !h-16 mx-auto mb-2 text-jac-text-muted">touch_app</mat-icon>
         <p>Usa el menú lateral para navegar.</p>
       </mat-card-content>
     </mat-card>

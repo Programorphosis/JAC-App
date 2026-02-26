@@ -6,6 +6,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { CreateJuntaBody } from '../services/platform-juntas.service';
 import { PlatformPlanesService, Plan } from '../services/platform-planes.service';
@@ -21,7 +23,9 @@ import { PlatformPlanesService, Plan } from '../services/platform-planes.service
     MatButtonModule,
     MatSelectModule,
     MatSlideToggleModule,
+    MatCheckboxModule,
     DecimalPipe,
+    RouterLink,
   ],
   templateUrl: './junta-form.component.html',
   styleUrl: './junta-form.component.scss',
@@ -38,6 +42,8 @@ export class JuntaFormComponent implements OnInit {
     direccion?: string;
     ciudad?: string;
     departamento?: string;
+    personeriaJuridica?: string | null;
+    membreteUrl?: string | null;
     enMantenimiento?: boolean;
   };
   @Output() guardar = new EventEmitter<
@@ -51,6 +57,8 @@ export class JuntaFormComponent implements OnInit {
         direccion?: string | null;
         ciudad?: string | null;
         departamento?: string | null;
+        personeriaJuridica?: string | null;
+        membreteUrl?: string | null;
         enMantenimiento?: boolean;
       }
   >();
@@ -72,6 +80,8 @@ export class JuntaFormComponent implements OnInit {
       direccion: [''],
       ciudad: [''],
       departamento: [''],
+      personeriaJuridica: [''],
+      membreteUrl: [''],
       enMantenimiento: [false],
       adminNombres: ['', Validators.required],
       adminApellidos: ['', Validators.required],
@@ -79,6 +89,8 @@ export class JuntaFormComponent implements OnInit {
       adminNumeroDocumento: ['', [Validators.required, Validators.minLength(5)]],
       adminTelefono: [''],
       adminDireccion: [''],
+      aceptoTerminos: [false, Validators.requiredTrue],
+      autorizoTratamientoDatos: [false, Validators.requiredTrue],
     });
   }
 
@@ -98,6 +110,8 @@ export class JuntaFormComponent implements OnInit {
         direccion: this.valoresIniciales.direccion || '',
         ciudad: this.valoresIniciales.ciudad || '',
         departamento: this.valoresIniciales.departamento || '',
+        personeriaJuridica: this.valoresIniciales.personeriaJuridica || '',
+        membreteUrl: this.valoresIniciales.membreteUrl || '',
         enMantenimiento: this.valoresIniciales.enMantenimiento ?? false,
       });
       this.form.get('adminNombres')?.clearValidators();
@@ -115,6 +129,7 @@ export class JuntaFormComponent implements OnInit {
     if (this.form.invalid) return;
     const v = this.form.value;
     if (this.modoEdicion) {
+      // En edición no enviamos checkboxes legales
       this.guardar.emit({
         nombre: v.nombre,
         nit: v.nit || undefined,
@@ -124,6 +139,8 @@ export class JuntaFormComponent implements OnInit {
         direccion: v.direccion || null,
         ciudad: v.ciudad || null,
         departamento: v.departamento || null,
+        personeriaJuridica: v.personeriaJuridica || null,
+        membreteUrl: v.membreteUrl || null,
         enMantenimiento: v.enMantenimiento ?? false,
       });
     } else {
@@ -133,6 +150,7 @@ export class JuntaFormComponent implements OnInit {
         montoCarta: v.montoCarta ?? undefined,
         planId: v.planId || undefined,
         diasPrueba: v.diasPrueba ?? undefined,
+        aceptoTerminos: v.aceptoTerminos === true,
         adminUser: {
           nombres: v.adminNombres,
           apellidos: v.adminApellidos,

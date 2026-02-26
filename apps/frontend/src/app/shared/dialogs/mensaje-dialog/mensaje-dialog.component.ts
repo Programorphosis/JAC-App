@@ -24,9 +24,9 @@ export interface MensajeDialogData {
   template: `
     <h2 mat-dialog-title>{{ data.titulo }}</h2>
     <mat-dialog-content>
-      <p class="text-gray-700">{{ data.mensaje }}</p>
+      <p class="text-jac-text-secondary">{{ data.mensaje }}</p>
       @if (data.textoCopiable) {
-        <div class="mt-4 flex items-center gap-2 rounded-lg bg-gray-100 p-3">
+        <div class="mt-4 flex items-center gap-2 rounded-lg bg-jac-surface-raised p-3">
           <code class="flex-1 break-all font-mono text-sm">{{ data.textoCopiable }}</code>
           <button
             mat-icon-button

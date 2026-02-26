@@ -14,6 +14,7 @@ import { AvisoCrearDialogComponent } from '../aviso-crear-dialog/aviso-crear-dia
 import { AvisoEditarDialogComponent } from '../aviso-editar-dialog/aviso-editar-dialog.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { handleApiError } from '../../../shared/operators/handle-api-error.operator';
+import { NombreCompletoJuntaPipe } from '../../../shared/pipes/nombre-completo-junta.pipe';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -29,6 +30,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     DecimalPipe,
     NgClass,
     DatePipe,
+    NombreCompletoJuntaPipe,
   ],
   templateUrl: './platform-dashboard.component.html',
   styleUrl: './platform-dashboard.component.scss',

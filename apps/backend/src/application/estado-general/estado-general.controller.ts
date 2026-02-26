@@ -35,7 +35,7 @@ export class EstadoGeneralController {
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.AFILIADO, RolNombre.RECEPTOR_AGUA)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL, RolNombre.AFILIADO, RolNombre.RECEPTOR_AGUA)
   async obtener(
     @Param('usuarioId') usuarioId: string,
     @Request() req: { user: JwtUser },

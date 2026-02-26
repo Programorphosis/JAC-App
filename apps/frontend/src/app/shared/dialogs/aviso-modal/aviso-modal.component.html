@@ -1,0 +1,26 @@
+
+    <div class="aviso-modal">
+      <div class="aviso-modal-glow"></div>
+      <div class="aviso-modal-content">
+        <div class="aviso-modal-header">
+          <div class="aviso-modal-icon">
+            <mat-icon fontIcon="campaign" class="!text-4xl !w-12 !h-12"></mat-icon>
+          </div>
+          <h2 class="aviso-modal-title">{{ data.titulo }}</h2>
+          @if (data.total > 1) {
+            <span class="aviso-modal-badge">{{ data.indice }} de {{ data.total }}</span>
+          }
+        </div>
+        <div class="aviso-modal-body">
+          <p class="aviso-modal-text">{{ data.contenido }}</p>
+          <p class="aviso-modal-fecha">{{ data.fechaPublicacion | date:'medium' }}</p>
+        </div>
+        <div class="aviso-modal-actions">
+          <button mat-raised-button color="primary" (click)="cerrar()" class="aviso-modal-btn">
+            <mat-icon fontIcon="check" class="!text-lg !w-5 !h-5 mr-1"></mat-icon>
+            Entendido
+          </button>
+        </div>
+      </div>
+    </div>
+ 

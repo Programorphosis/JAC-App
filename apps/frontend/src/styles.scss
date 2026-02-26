@@ -1,192 +1,138 @@
+// =============================================================================
+// Entry point global de estilos – JAC App
+// Regla de Dart Sass: todos los @use deben ir antes que cualquier otra regla.
+// =============================================================================
+
 @use "tailwindcss";
+@use './styles/tokens';
+@use './styles/mat-theme';
+@use './styles/tables';
+@use './styles/forms';
 
-// Custom Theming for Angular Material (paleta JAC)
-// For more information: https://material.angular.dev/guide/theming
-@use '@angular/material' as mat;
+// =============================================================================
+// Tailwind v4: mapeo de tokens CSS a utility classes
+// Debe vivir aquí (entrada PostCSS), no en un partial SCSS.
+// Uso en templates: bg-jac-surface, text-jac-text, border-jac-border, etc.
+// =============================================================================
+@theme {
+  // Brand
+  --color-jac-primary:        var(--jac-primary);
+  --color-jac-primary-mid:    var(--jac-primary-mid);
+  --color-jac-primary-light:  var(--jac-primary-light);
+  --color-jac-primary-dark:   var(--jac-primary-dark);
 
-html {
-  @include mat.theme((
-    color: (
-      theme-type: light,
-      primary: mat.$blue-palette,   // JAC: azul naval #1976d2
-      tertiary: mat.$cyan-palette,  // JAC: acento teal #00838f
-    ),
-    typography: Roboto,
-    density: 0,
-  ));
-}/* You can add global styles to this file, and also import other style files */
+  // Surfaces
+  --color-jac-surface:        var(--jac-surface);
+  --color-jac-surface-alt:    var(--jac-surface-alt);
+  --color-jac-surface-raised: var(--jac-surface-raised);
 
-html, body { height: 100%; width: 100%; margin: 0; overflow-x: hidden; }
-body { font-family: Roboto, "Helvetica Neue", sans-serif; }
+  // Cards
+  --color-jac-card:           var(--jac-card);
+  --color-jac-card-raised:    var(--jac-card-raised);
 
-/* Corregir línea divisoria en mat-form-field (conflicto Tailwind + Material) */
+  // Text
+  --color-jac-text:           var(--jac-text-primary);
+  --color-jac-text-secondary: var(--jac-text-secondary);
+  --color-jac-text-muted:     var(--jac-text-muted);
+  --color-jac-text-inverse:   var(--jac-text-inverse);
+
+  // Borders
+  --color-jac-border:         var(--jac-border);
+  --color-jac-border-subtle:  var(--jac-border-subtle);
+  --color-jac-border-strong:  var(--jac-border-strong);
+
+  // Status
+  --color-jac-success:          var(--jac-success);
+  --color-jac-success-bg:       var(--jac-success-bg);
+  --color-jac-success-border:   var(--jac-success-border);
+  --color-jac-warning:          var(--jac-warning);
+  --color-jac-warning-bg:       var(--jac-warning-bg);
+  --color-jac-warning-border:   var(--jac-warning-border);
+  --color-jac-error:            var(--jac-error);
+  --color-jac-error-bg:         var(--jac-error-bg);
+  --color-jac-error-border:     var(--jac-error-border);
+  --color-jac-info:             var(--jac-info);
+  --color-jac-info-bg:          var(--jac-info-bg);
+  --color-jac-info-border:      var(--jac-info-border);
+}
+
+// Dark mode selector-based para Tailwind v4:
+// dark:* activa cuando <html data-theme="dark">
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+// =============================================================================
+// Estilos base globales
+// =============================================================================
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  background-color: var(--jac-surface-alt);
+  color: var(--jac-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+body {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+// =============================================================================
+// Scrollbar personalizado – usa tokens JAC (dark mode automático)
+// =============================================================================
+
+// Webkit: Chrome, Edge, Safari
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--jac-surface-raised);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--jac-border-strong);
+  border-radius: 4px;
+  // El borde crea el efecto "flotante": el thumb no toca los bordes del track
+  border: 2px solid var(--jac-surface-raised);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--jac-text-muted);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--jac-surface-raised);
+}
+
+// Firefox
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--jac-border-strong) var(--jac-surface-raised);
+}
+
+// Corregir línea divisoria en mat-form-field (conflicto Tailwind + Material)
 .mdc-notched-outline__notch {
   border-right: none;
 }
 
-/* Evitar superposición label/icono en campos de búsqueda con matPrefix */
+// Evitar superposición label/icono en campos de búsqueda con matPrefix
 .search-field-with-icon .mat-mdc-form-field-icon-prefix {
   padding-inline-end: 8px;
 }
 
-/* Wrapper responsivo para tablas: scroll horizontal en pantallas pequeñas */
-.table-responsive {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  min-width: 0;
-}
-
-/* Evitar que flex children desborden (fix común en layouts flex) */
+// Evitar que flex children desborden
 .min-w-0 {
   min-width: 0;
 }
 
-/* ===== Tablas JAC – Estilo profesional y limpio ===== */
-.table-jac {
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid #e8ecf0;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-/* Angular Material tables dentro de table-jac */
-.table-jac mat-table,
-.table-jac table[mat-table] {
-  background: transparent;
-}
-
-.table-jac mat-header-row,
-.table-jac tr[mat-header-row] {
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-}
-
-.table-jac mat-header-cell,
-.table-jac th[mat-header-cell] {
-  color: #475569 !important;
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.04em !important;
-  text-transform: uppercase !important;
-  padding: 10px 12px !important;
-  border-bottom: none !important;
-}
-
-@media (min-width: 640px) {
-  .table-jac mat-header-cell,
-  .table-jac th[mat-header-cell] {
-    padding: 14px 16px !important;
-  }
-}
-
-.table-jac mat-row,
-.table-jac tr[mat-row] {
-  transition: background-color 0.15s ease;
-}
-
-.table-jac mat-row:hover,
-.table-jac tr[mat-row]:hover {
-  background-color: #f8fafc !important;
-}
-
-.table-jac mat-cell,
-.table-jac td[mat-cell] {
-  color: #334155 !important;
-  font-size: 0.8125rem !important;
-  padding: 10px 12px !important;
-  border-bottom: 1px solid #f1f5f9 !important;
-}
-
-@media (min-width: 640px) {
-  .table-jac mat-cell,
-  .table-jac td[mat-cell] {
-    font-size: 0.875rem !important;
-    padding: 14px 16px !important;
-  }
-}
-
-.table-jac mat-row:last-of-type mat-cell,
-.table-jac mat-row:last-of-type td[mat-cell],
-.table-jac tr[mat-row]:last-of-type mat-cell,
-.table-jac tr[mat-row]:last-of-type td[mat-cell] {
-  border-bottom: none !important;
-}
-
-.table-jac tr.mat-row[matNoDataRow] mat-cell,
-.table-jac tr.mat-row[matNoDataRow] td.mat-cell {
-  color: #64748b !important;
-  font-style: italic;
-  padding: 24px 16px !important;
-  text-align: center;
-}
-
-/* HTML tables (usuario-deuda, usuario-historial, etc.) */
-.table-jac table {
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-
-.table-jac thead {
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.table-jac thead th {
-  color: #475569;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 10px 12px;
-  text-align: left;
-}
-
-@media (min-width: 640px) {
-  .table-jac thead th {
-    padding: 14px 16px;
-  }
-}
-
-.table-jac tbody tr {
-  transition: background-color 0.15s ease;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.table-jac tbody tr:hover {
-  background-color: #f8fafc;
-}
-
-.table-jac tbody tr:last-child {
-  border-bottom: none;
-}
-
-.table-jac tbody td {
-  color: #334155;
-  padding: 10px 12px;
-  font-size: 0.8125rem;
-}
-
-@media (min-width: 640px) {
-  .table-jac tbody td {
-    padding: 14px 16px;
-    font-size: 0.875rem;
-  }
-}
-
-/* Paginator integrado con la tabla (hermano o hijo del wrapper table-jac) */
-.table-jac mat-paginator,
-.table-jac + mat-paginator {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e8ecf0;
-  background: #fafbfc !important;
-  border-radius: 0 0 10px 10px;
-}
-
-/* Modal de avisos al abrir sesión – estilo evento/juego */
+// Modal de avisos al abrir sesión
 .aviso-modal-panel {
   border-radius: 16px !important;
   overflow: hidden;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: var(--jac-shadow-lg), 0 0 0 1px var(--jac-border) !important;
 }

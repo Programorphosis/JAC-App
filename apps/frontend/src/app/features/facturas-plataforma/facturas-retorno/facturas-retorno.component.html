@@ -11,9 +11,9 @@
         <p class="text-center">Verificando pago...</p>
       } @else if (resultado) {
         @if (resultado.registrado) {
-          <p class="text-green-700 font-semibold">{{ resultado.mensaje }}</p>
+          <p class="text-jac-success font-semibold">{{ resultado.mensaje }}</p>
         } @else {
-          <p class="text-amber-700 font-medium">{{ resultado.mensaje }}</p>
+          <p class="text-jac-warning font-medium">{{ resultado.mensaje }}</p>
         }
         <button mat-raised-button color="primary" (click)="volver()" class="mt-4">
           Volver a facturas

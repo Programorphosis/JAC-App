@@ -13,7 +13,7 @@ import { AuditoriasService } from './auditorias.service';
  */
 @Controller('auditorias')
 @UseGuards(AuthGuard('jwt'), JuntaGuard, RolesGuard)
-@Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA)
+@Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL)
 export class AuditoriasController {
   constructor(private readonly auditorias: AuditoriasService) {}
 

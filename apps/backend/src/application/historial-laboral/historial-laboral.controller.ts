@@ -28,7 +28,7 @@ export class HistorialLaboralController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.AFILIADO)
+  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL, RolNombre.AFILIADO)
   async listar(
     @Param('usuarioId') usuarioId: string,
     @Request() req: { user: JwtUser },

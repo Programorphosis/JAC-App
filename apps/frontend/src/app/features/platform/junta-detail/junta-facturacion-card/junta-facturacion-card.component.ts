@@ -41,6 +41,8 @@ export class JuntaFacturacionCardComponent {
   @Output() reactivarFactura = new EventEmitter<FacturaItem>();
   @Output() cargarFacturas = new EventEmitter<number>();
   @Output() cargarPagos = new EventEmitter<number>();
+  @Output() crearSuscripcion = new EventEmitter<void>();
+  @Output() cambiarPlan = new EventEmitter<void>();
 
   puedeRegistrarPago(f: FacturaItem): boolean {
     if (f.estado === 'PAGADA' || f.estado === 'CANCELADA') return false;
@@ -59,18 +61,28 @@ export class JuntaFacturacionCardComponent {
     return new Date(f.fechaVencimiento) >= new Date();
   }
 
+  tieneOverrides(): boolean {
+    const s = this.junta.suscripcion;
+    if (!s) return false;
+    return (
+      s.overrideLimiteUsuarios != null ||
+      s.overrideLimiteStorageMb != null ||
+      s.overrideLimiteCartasMes != null
+    );
+  }
+
   claseEstadoFactura(estado: EstadoFactura): string {
     switch (estado) {
       case 'PAGADA':
-        return 'text-green-700';
+        return 'text-jac-success';
       case 'PENDIENTE':
-        return 'text-amber-700';
+        return 'text-jac-warning';
       case 'VENCIDA':
-        return 'text-red-700';
+        return 'text-jac-error';
       case 'PARCIAL':
-        return 'text-blue-700';
+        return 'text-jac-info';
       case 'CANCELADA':
-        return 'text-gray-600';
+        return 'text-jac-text-muted';
       default:
         return '';
     }

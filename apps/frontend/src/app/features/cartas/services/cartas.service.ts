@@ -19,6 +19,8 @@ export interface CartaItem {
   consecutivo: number | null;
   anio: number;
   rutaPdf?: string | null;
+  motivoRechazo?: string | null;
+  qrToken?: string | null;
 }
 
 export interface CartaPendienteItem {
@@ -35,6 +37,10 @@ export interface SolicitarCartaResult {
   id: string;
   estado: string;
   fechaSolicitud: string;
+  /** Consecutivo y año cuando se emite automáticamente (autovalidación). */
+  consecutivo?: number;
+  anio?: number;
+  rutaPdf?: string | null;
 }
 
 export interface ValidarCartaResult {
@@ -83,6 +89,15 @@ export class CartasService {
       .pipe(map((r) => r.data));
   }
 
+  rechazar(cartaId: string, motivoRechazo?: string | null): Observable<{ id: string; estado: string; motivoRechazo: string | null }> {
+    return this.http
+      .post<{ data: { id: string; estado: string; motivoRechazo: string | null } }>(
+        `${this.base}/${cartaId}/rechazar`,
+        { motivoRechazo: motivoRechazo ?? undefined }
+      )
+      .pipe(map((r) => r.data));
+  }
+
   getUrlDescarga(documentoId: string): Observable<{ url: string }> {
     return this.http
       .get<{ data: { url: string } }>(`${this.documentosBase}/${documentoId}/descargar`)
@@ -93,5 +108,12 @@ export class CartasService {
     return this.http
       .get<{ data: { url: string } }>(`${this.base}/${cartaId}/descargar`)
       .pipe(map((r) => r.data));
+  }
+
+  /** Descarga PDF de prueba con datos del usuario. Solo SECRETARIA/FISCAL. */
+  descargarPdfPrueba(usuarioId: string): Observable<Blob> {
+    return this.http.get(`${this.base}/pdf-prueba/${usuarioId}`, {
+      responseType: 'blob',
+    });
   }
 }

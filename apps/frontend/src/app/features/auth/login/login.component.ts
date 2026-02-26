@@ -7,6 +7,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
@@ -14,12 +16,14 @@ import { AuthService } from '../../../core/auth/auth.service';
   standalone: true,
   imports: [
     ReactiveFormsModule,
+    RouterLink,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatIconModule,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',

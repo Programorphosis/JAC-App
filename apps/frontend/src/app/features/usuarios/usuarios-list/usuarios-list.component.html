@@ -66,8 +66,16 @@
         <td mat-cell *matCellDef="let u">{{ roles(u) }}</td>
       </ng-container>
       <ng-container matColumnDef="activo">
-        <th mat-header-cell *matHeaderCellDef>Activo</th>
-        <td mat-cell *matCellDef="let u">{{ u.activo ? 'Sí' : 'No' }}</td>
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let u">
+          <span
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+            [ngClass]="u.activo ? 'bg-jac-success-bg text-jac-success' : 'bg-jac-error-bg text-jac-error font-semibold'"
+          >
+            <span class="w-1.5 h-1.5 rounded-full" [ngClass]="u.activo ? 'bg-jac-success' : 'bg-jac-error'"></span>
+            {{ u.activo ? 'Activo' : 'Inactivo' }}
+          </span>
+        </td>
       </ng-container>
       <ng-container matColumnDef="acciones">
         <th mat-header-cell *matHeaderCellDef></th>

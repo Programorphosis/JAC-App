@@ -60,11 +60,11 @@ export class PagosController {
   }
 
   /**
-   * GET /pagos – Listar pagos de la junta. TESORERA, ADMIN, SECRETARIA.
+   * GET /pagos – Listar pagos de la junta. TESORERA, ADMIN, SECRETARIA, FISCAL.
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA)
+  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.FISCAL)
   async listar(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -93,11 +93,11 @@ export class PagosController {
   }
 
   /**
-   * GET /pagos/estadisticas – Ingresos totales, por mes, por año. TESORERA, ADMIN, SECRETARIA.
+   * GET /pagos/estadisticas – Ingresos totales, por mes, por año. TESORERA, ADMIN, SECRETARIA, FISCAL.
    */
   @Get('estadisticas')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA)
+  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.FISCAL)
   async estadisticas(
     @Query('anio') anio?: string,
     @Request() req?: { user: JwtUser },
@@ -260,5 +260,30 @@ export class PagosController {
       data: result,
       meta: { timestamp: new Date().toISOString() },
     };
+  }
+
+  /**
+   * GET /pagos/exportar – Exportar pagos a CSV. Mismos filtros que listar.
+   * TESORERA, ADMIN, SECRETARIA, FISCAL.
+   */
+  @Get('exportar')
+  @UseGuards(RolesGuard)
+  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.FISCAL)
+  async exportar(
+    @Query('usuarioId') usuarioId?: string,
+    @Query('tipo') tipo?: 'JUNTA' | 'CARTA',
+    @Query('fechaDesde') fechaDesde?: string,
+    @Query('fechaHasta') fechaHasta?: string,
+    @Query('search') search?: string,
+    @Request() req?: { user: JwtUser },
+  ) {
+    const juntaId = req!.user.juntaId!;
+    const filtros: Parameters<PagosService['exportarCsv']>[1] = {};
+    if (usuarioId?.trim()) filtros.usuarioId = usuarioId.trim();
+    if (tipo === 'JUNTA' || tipo === 'CARTA') filtros.tipo = tipo;
+    if (fechaDesde?.trim()) filtros.fechaDesde = new Date(fechaDesde.trim());
+    if (fechaHasta?.trim()) filtros.fechaHasta = new Date(fechaHasta.trim());
+    if (search?.trim()) filtros.search = search.trim();
+    return this.pagos.exportarCsv(juntaId, filtros);
   }
 }

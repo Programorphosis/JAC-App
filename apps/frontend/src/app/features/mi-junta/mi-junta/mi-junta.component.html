@@ -8,15 +8,15 @@
     <header class="mb-8">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">
-            {{ junta.nombre }}
+          <h1 class="text-2xl sm:text-3xl font-bold text-jac-text mb-1">
+            {{ junta.nombre | nombreCompletoJunta }}
           </h1>
-          <p class="text-gray-600">Información de la junta</p>
+          <p class="text-jac-text-secondary">Información de la junta</p>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
           <span
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium"
-            [ngClass]="junta.activo ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'"
+            [ngClass]="junta.activo ? 'bg-jac-success-bg text-jac-success' : 'bg-jac-surface-raised text-jac-text-muted'"
           >
             <mat-icon class="!text-sm !w-3.5 !h-3.5 !leading-none shrink-0">{{ junta.activo ? 'check_circle' : 'cancel' }}</mat-icon>
             {{ junta.activo ? 'Activa' : 'Inactiva' }}
@@ -28,7 +28,7 @@
             </span>
           }
           @if (junta.enMantenimiento) {
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-800">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-jac-warning-bg text-jac-warning">
               <mat-icon class="!text-sm !w-3.5 !h-3.5 !leading-none shrink-0">build</mat-icon>
               Mantenimiento
             </span>
@@ -39,52 +39,52 @@
 
     <!-- Métricas principales -->
     <section class="mb-8">
-      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Resumen</h2>
+      <h2 class="text-sm font-semibold text-jac-text-muted uppercase tracking-wide mb-4">Resumen</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="rounded-xl border border-jac-border bg-jac-surface p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-              <mat-icon class="!text-2xl !w-8 !h-8 text-blue-600">people</mat-icon>
+            <div class="w-12 h-12 rounded-lg bg-jac-primary-light flex items-center justify-center">
+              <mat-icon class="!text-2xl !w-8 !h-8 text-jac-primary">people</mat-icon>
             </div>
             <div>
-              <p class="text-2xl font-bold text-gray-800">{{ junta._count.usuarios }}</p>
-              <p class="text-sm text-gray-500">Usuarios</p>
+              <p class="text-2xl font-bold text-jac-text">{{ junta._count.usuarios }}</p>
+              <p class="text-sm text-jac-text-muted">Usuarios</p>
             </div>
           </div>
           @if (auth.can(auth.permissions.USUARIOS_VER)) {
-            <a [routerLink]="['/usuarios']" class="mt-3 text-sm text-blue-600 hover:underline font-medium block">
+            <a [routerLink]="['/usuarios']" class="mt-3 text-sm text-jac-primary hover:underline font-medium block">
               Ver listado →
             </a>
           }
         </div>
-        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="rounded-xl border border-jac-border bg-jac-surface p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
-              <mat-icon class="!text-2xl !w-8 !h-8 text-green-600">payments</mat-icon>
+            <div class="w-12 h-12 rounded-lg bg-jac-success-bg flex items-center justify-center">
+              <mat-icon class="!text-2xl !w-8 !h-8 text-jac-success">payments</mat-icon>
             </div>
             <div>
-              <p class="text-2xl font-bold text-gray-800">{{ junta._count.pagos }}</p>
-              <p class="text-sm text-gray-500">Pagos registrados</p>
+              <p class="text-2xl font-bold text-jac-text">{{ junta._count.pagos }}</p>
+              <p class="text-sm text-jac-text-muted">Pagos registrados</p>
             </div>
           </div>
           @if (auth.can(auth.permissions.PAGOS_VER)) {
-            <a [routerLink]="['/pagos']" class="mt-3 text-sm text-blue-600 hover:underline font-medium block">
+            <a [routerLink]="['/pagos']" class="mt-3 text-sm text-jac-primary hover:underline font-medium block">
               Ver pagos →
             </a>
           }
         </div>
-        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="rounded-xl border border-jac-border bg-jac-surface p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
               <mat-icon class="!text-2xl !w-8 !h-8 text-purple-600">mail</mat-icon>
             </div>
             <div>
-              <p class="text-2xl font-bold text-gray-800">{{ junta._count.cartas }}</p>
-              <p class="text-sm text-gray-500">Cartas emitidas</p>
+              <p class="text-2xl font-bold text-jac-text">{{ junta._count.cartas }}</p>
+              <p class="text-sm text-jac-text-muted">Cartas emitidas</p>
             </div>
           </div>
           @if (auth.can(auth.permissions.CARTAS_VALIDAR)) {
-            <a [routerLink]="['/cartas']" class="mt-3 text-sm text-blue-600 hover:underline font-medium block">
+            <a [routerLink]="['/cartas']" class="mt-3 text-sm text-jac-primary hover:underline font-medium block">
               Ver cartas →
             </a>
           }
@@ -92,19 +92,19 @@
       </div>
     </section>
 
-    <!-- Estadísticas de ingresos (si tiene permiso) -->
+    <!-- Estadísticas de ingresos -->
     @if (auth.can(auth.permissions.PAGOS_VER) && estadisticas()) {
       <section class="mb-8">
-        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Ingresos totales</h2>
-        <div class="rounded-xl border border-gray-200 bg-gradient-to-br from-green-50 to-emerald-50 p-6 shadow-sm">
-          <p class="text-3xl font-bold text-gray-800">{{ formatearMoneda(estadisticas()!.total) }}</p>
-          <p class="text-sm text-gray-600 mt-1">Suma de todos los pagos registrados</p>
+        <h2 class="text-sm font-semibold text-jac-text-muted uppercase tracking-wide mb-4">Ingresos totales</h2>
+        <div class="rounded-xl border border-jac-border bg-jac-success-bg p-6 shadow-sm">
+          <p class="text-3xl font-bold text-jac-text">{{ formatearMoneda(estadisticas()!.total) }}</p>
+          <p class="text-sm text-jac-text-secondary mt-1">Suma de todos los pagos registrados</p>
           <div class="mt-4 flex flex-wrap gap-4 text-sm">
-            <span class="text-gray-600">Efectivo: <strong class="text-gray-800">{{ formatearMoneda(estadisticas()!.porMetodo.efectivo) }}</strong></span>
-            <span class="text-gray-600">Transferencia: <strong class="text-gray-800">{{ formatearMoneda(estadisticas()!.porMetodo.transferencia) }}</strong></span>
-            <span class="text-gray-600">Online: <strong class="text-gray-800">{{ formatearMoneda(estadisticas()!.porMetodo.online) }}</strong></span>
+            <span class="text-jac-text-secondary">Efectivo: <strong class="text-jac-text">{{ formatearMoneda(estadisticas()!.porMetodo.efectivo) }}</strong></span>
+            <span class="text-jac-text-secondary">Transferencia: <strong class="text-jac-text">{{ formatearMoneda(estadisticas()!.porMetodo.transferencia) }}</strong></span>
+            <span class="text-jac-text-secondary">Online: <strong class="text-jac-text">{{ formatearMoneda(estadisticas()!.porMetodo.online) }}</strong></span>
           </div>
-          <a [routerLink]="['/pagos']" class="mt-4 inline-flex items-center gap-1 text-blue-600 hover:underline font-medium">
+          <a [routerLink]="['/pagos']" class="mt-4 inline-flex items-center gap-1 text-jac-primary hover:underline font-medium">
             Ver estadísticas completas
             <mat-icon class="!text-lg !w-4 !h-4">arrow_forward</mat-icon>
           </a>
@@ -114,40 +114,40 @@
 
     <!-- Configuración junta -->
     <section class="mb-8">
-      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Configuración</h2>
-      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-jac-text-muted uppercase tracking-wide mb-4">Configuración</h2>
+      <div class="rounded-xl border border-jac-border bg-jac-surface p-6 shadow-sm">
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div class="flex items-start gap-3">
-            <mat-icon class="!text-2xl !w-8 !h-8 text-gray-400">badge</mat-icon>
+            <mat-icon class="!text-2xl !w-8 !h-8 text-jac-text-muted">badge</mat-icon>
             <div>
-              <p class="text-xs font-medium text-gray-500 uppercase">NIT</p>
-              <p class="font-medium text-gray-800">{{ junta.nit || '—' }}</p>
+              <p class="text-xs font-medium text-jac-text-muted uppercase">NIT</p>
+              <p class="font-medium text-jac-text">{{ junta.nit || '—' }}</p>
             </div>
           </div>
           <div class="flex items-start gap-3">
-            <mat-icon class="!text-2xl !w-8 !h-8 text-gray-400">description</mat-icon>
+            <mat-icon class="!text-2xl !w-8 !h-8 text-jac-text-muted">description</mat-icon>
             <div>
-              <p class="text-xs font-medium text-gray-500 uppercase">Monto carta</p>
-              <p class="font-medium text-gray-800">{{ junta.montoCarta != null ? (junta.montoCarta | number) + ' COP' : '—' }}</p>
+              <p class="text-xs font-medium text-jac-text-muted uppercase">Monto carta</p>
+              <p class="font-medium text-jac-text">{{ junta.montoCarta != null ? (junta.montoCarta | number) + ' COP' : '—' }}</p>
             </div>
           </div>
           <div class="flex items-start gap-3">
-            <mat-icon class="!text-2xl !w-8 !h-8 text-gray-400">schedule</mat-icon>
+            <mat-icon class="!text-2xl !w-8 !h-8 text-jac-text-muted">schedule</mat-icon>
             <div>
-              <p class="text-xs font-medium text-gray-500 uppercase">Vigencia carta</p>
-              <p class="font-medium text-gray-800">{{ junta.vigenciaCartaMeses ?? 3 }} meses</p>
+              <p class="text-xs font-medium text-jac-text-muted uppercase">Vigencia carta</p>
+              <p class="font-medium text-jac-text">{{ junta.vigenciaCartaMeses ?? 3 }} meses</p>
             </div>
           </div>
           <div class="flex items-start gap-3">
-            <mat-icon class="!text-2xl !w-8 !h-8 text-gray-400">event</mat-icon>
+            <mat-icon class="!text-2xl !w-8 !h-8 text-jac-text-muted">event</mat-icon>
             <div>
-              <p class="text-xs font-medium text-gray-500 uppercase">Fecha creación</p>
-              <p class="font-medium text-gray-800">{{ junta.fechaCreacion | formatearFecha }}</p>
+              <p class="text-xs font-medium text-jac-text-muted uppercase">Fecha creación</p>
+              <p class="font-medium text-jac-text">{{ junta.fechaCreacion | formatearFecha }}</p>
             </div>
           </div>
         </div>
         @if (auth.can(auth.permissions.JUNTA_CONFIG_WOMPI)) {
-          <div class="mt-6 pt-4 border-t border-gray-100">
+          <div class="mt-6 pt-4 border-t border-jac-border-subtle">
             <a
               mat-stroked-button
               color="primary"
@@ -163,59 +163,115 @@
     </section>
 
     <!-- Contacto y ubicación -->
-    @if (junta.telefono || junta.email || junta.direccion || junta.ciudad || junta.departamento) {
-      <section class="mb-8">
-        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Contacto y ubicación</h2>
-        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <section class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-jac-text-muted uppercase tracking-wide">Contacto y ubicación</h2>
+        @if (auth.can(auth.permissions.JUNTA_DATOS_EDITAR) && !editandoContacto) {
+          <button mat-stroked-button (click)="abrirEditarContacto()" class="!text-xs !h-8">
+            <mat-icon class="!text-base !w-4 !h-4">edit</mat-icon>
+            Editar
+          </button>
+        }
+      </div>
+      @if (editandoContacto) {
+        <div class="rounded-xl border border-jac-border bg-jac-surface p-6 shadow-sm">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Teléfono</mat-label>
+              <input matInput [(ngModel)]="contactoForm.telefono" placeholder="+57 3..." />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Email de contacto</mat-label>
+              <input matInput [(ngModel)]="contactoForm.email" type="email" placeholder="jac@..." />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full sm:col-span-2">
+              <mat-label>Dirección</mat-label>
+              <input matInput [(ngModel)]="contactoForm.direccion" placeholder="Calle..." />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Ciudad</mat-label>
+              <input matInput [(ngModel)]="contactoForm.ciudad" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Departamento</mat-label>
+              <input matInput [(ngModel)]="contactoForm.departamento" />
+            </mat-form-field>
+          </div>
+          <div class="flex gap-2 mt-2">
+            <button mat-raised-button color="primary" (click)="guardarContacto()" [disabled]="guardandoContacto">
+              {{ guardandoContacto ? 'Guardando...' : 'Guardar' }}
+            </button>
+            <button mat-stroked-button (click)="cancelarEditarContacto()" [disabled]="guardandoContacto">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      } @else if (junta.telefono || junta.email || junta.direccion || junta.ciudad || junta.departamento) {
+        <div class="rounded-xl border border-jac-border bg-jac-surface p-6 shadow-sm">
           <div class="grid gap-4 sm:grid-cols-2">
             @if (junta.telefono) {
               <div class="flex items-center gap-3">
-                <mat-icon class="!text-xl !w-5 !h-5 text-gray-400">phone</mat-icon>
-                <span class="text-gray-700">{{ junta.telefono }}</span>
+                <mat-icon class="!text-xl !w-5 !h-5 text-jac-text-muted">phone</mat-icon>
+                <span class="text-jac-text-secondary">{{ junta.telefono }}</span>
               </div>
             }
             @if (junta.email) {
               <div class="flex items-center gap-3">
-                <mat-icon class="!text-xl !w-5 !h-5 text-gray-400">email</mat-icon>
-                <a [href]="'mailto:' + junta.email" class="text-blue-600 hover:underline">{{ junta.email }}</a>
+                <mat-icon class="!text-xl !w-5 !h-5 text-jac-text-muted">email</mat-icon>
+                <a [href]="'mailto:' + junta.email" class="text-jac-primary hover:underline">{{ junta.email }}</a>
               </div>
             }
             @if (junta.direccion) {
               <div class="flex items-start gap-3 sm:col-span-2">
-                <mat-icon class="!text-xl !w-5 !h-5 text-gray-400 mt-0.5">location_on</mat-icon>
-                <span class="text-gray-700">{{ junta.direccion }}</span>
+                <mat-icon class="!text-xl !w-5 !h-5 text-jac-text-muted mt-0.5">location_on</mat-icon>
+                <span class="text-jac-text-secondary">{{ junta.direccion }}</span>
               </div>
             }
             @if (junta.ciudad || junta.departamento) {
               <div class="flex items-center gap-3">
-                <mat-icon class="!text-xl !w-5 !h-5 text-gray-400">place</mat-icon>
-                <span class="text-gray-700">{{ ubicacionTexto() }}</span>
+                <mat-icon class="!text-xl !w-5 !h-5 text-jac-text-muted">place</mat-icon>
+                <span class="text-jac-text-secondary">{{ ubicacionTexto() }}</span>
               </div>
             }
           </div>
         </div>
-      </section>
-    }
+      } @else if (auth.can(auth.permissions.JUNTA_DATOS_EDITAR)) {
+        <div class="rounded-xl border border-dashed border-jac-border-strong bg-jac-surface-alt p-6 text-center">
+          <p class="text-sm text-jac-text-muted">No hay datos de contacto configurados.</p>
+          <button mat-stroked-button (click)="abrirEditarContacto()" class="mt-2">
+            <mat-icon>add</mat-icon>
+            Agregar datos de contacto
+          </button>
+        </div>
+      }
+    </section>
 
     <!-- Suscripción -->
     @if (junta.suscripcion) {
       <section class="mb-8">
-        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Suscripción</h2>
-        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h2 class="text-sm font-semibold text-jac-text-muted uppercase tracking-wide mb-4">Suscripción</h2>
+        <div class="rounded-xl border border-jac-border bg-jac-surface p-6 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <p class="text-lg font-semibold text-gray-800">Plan {{ junta.suscripcion.plan.nombre }}</p>
-              <p class="text-sm text-gray-600 mt-1">
-                Estado: <span [class]="junta.suscripcion.estado === 'ACTIVA' ? 'text-green-600 font-medium' : 'text-gray-600'">{{ junta.suscripcion.estado }}</span>
+              <p class="text-lg font-semibold text-jac-text">Plan {{ junta.suscripcion.plan.nombre }}</p>
+              <p class="text-sm text-jac-text-secondary mt-1">
+                Estado: <span [class]="junta.suscripcion.estado === 'ACTIVA' ? 'text-jac-success font-medium' : 'text-jac-text-secondary'">{{ junta.suscripcion.estado }}</span>
                 · Vence: {{ junta.suscripcion.fechaVencimiento | formatearFecha }}
               </p>
-              <p class="text-sm text-gray-500 mt-1">{{ junta.suscripcion.plan.precioMensual | number }} COP/mes</p>
+              <p class="text-sm text-jac-text-muted mt-1">{{ junta.suscripcion.plan.precioMensual | number }} COP/mes</p>
             </div>
-            @if (auth.can(auth.permissions.PAGOS_VER)) {
-              <a mat-stroked-button color="primary" routerLink="/facturas-plataforma">
-                Ver facturas
-              </a>
-            }
+            <div class="flex gap-2 flex-wrap">
+              @if (auth.can(auth.permissions.JUNTA_SUSCRIPCION_GESTIONAR)) {
+                <a mat-stroked-button color="primary" routerLink="/plan-suscripcion">
+                  Gestionar plan
+                </a>
+              }
+              @if (auth.can(auth.permissions.PAGOS_VER)) {
+                <a mat-stroked-button color="primary" routerLink="/facturas-plataforma">
+                  Ver facturas
+                </a>
+              }
+            </div>
           </div>
         </div>
       </section>

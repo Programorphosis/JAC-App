@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsBoolean, IsArray, IsIn } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsArray, IsIn, IsDateString, IsInt, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -18,6 +19,10 @@ export class UpdateUserDto {
   direccion?: string;
 
   @IsOptional()
+  @IsString()
+  lugarExpedicion?: string | null;
+
+  @IsOptional()
   @IsBoolean()
   activo?: boolean;
 
@@ -29,4 +34,23 @@ export class UpdateUserDto {
     message: 'Roles inválidos',
   })
   roles?: string[];
+
+  /** Fecha de afiliación (libro físico). Para cartas. */
+  @IsOptional()
+  @IsDateString()
+  fechaAfiliacion?: string | null;
+
+  /** Folio del libro de afiliados. Para cartas. */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  folio?: number | null;
+
+  /** Numeral consecutivo del libro. Para cartas. */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  numeral?: number | null;
 }

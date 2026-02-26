@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
@@ -32,6 +33,7 @@ type SortBy = 'apellidos' | 'nombres' | 'numeroDocumento' | 'fechaCreacion';
     MatSelectModule,
     ReactiveFormsModule,
     FormsModule,
+    NgClass,
     AppCanDirective,
     FormatearNombrePipe,
   ],

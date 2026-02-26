@@ -5,6 +5,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { S3StorageService } from '../../infrastructure/storage/s3-storage.service';
+import { LimitesService } from '../../infrastructure/limits/limites.service';
 import type { MulterFile } from './types';
 import { randomUUID } from 'crypto';
 import {
@@ -29,6 +30,7 @@ export class DocumentosService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly s3: S3StorageService,
+    private readonly limites: LimitesService,
   ) {}
 
   async subir(params: SubirDocumentoParams): Promise<{
@@ -54,6 +56,9 @@ export class DocumentosService {
 
     this.s3.validateFile(params.file);
 
+    const sizeBytes = params.file.buffer.byteLength ?? params.file.size ?? 0;
+    await this.limites.validarStorage(params.juntaId, sizeBytes);
+
     const ext = this.getExtension(params.file.originalname);
     // Estructura: documentos/{juntaId}/{userId}/{tipo}/{uuid}.{ext}
     const key = `documentos/${params.juntaId}/${params.usuarioId}/${params.tipo}/${randomUUID()}${ext}`;
@@ -69,6 +74,7 @@ export class DocumentosService {
         usuarioId: params.usuarioId,
         tipo: params.tipo,
         rutaS3: key,
+        sizeBytes: sizeBytes > 0 ? BigInt(sizeBytes) : null,
         subidoPorId: params.subidoPorId,
       },
     });

@@ -57,6 +57,17 @@ export class S3StorageService {
     }
   }
 
+  /** Valida que sea PNG para escudo municipal. */
+  validateEscudoFile(file: { size: number; mimetype: string }): void {
+    const maxMb = 2;
+    if (file.size > maxMb * 1024 * 1024) {
+      throw new ArchivoSobrepasaTamanioError(maxMb);
+    }
+    if (file.mimetype !== 'image/png') {
+      throw new FormatoArchivoNoPermitidoError();
+    }
+  }
+
   async upload(params: {
     key: string;
     body: Buffer;
@@ -79,5 +90,19 @@ export class S3StorageService {
       Key: key,
     });
     return getSignedUrl(this.client, command, { expiresIn });
+  }
+
+  /** Obtiene bytes de un objeto S3. Para escudo, imágenes, etc. */
+  async getObjectBytes(key: string): Promise<Uint8Array> {
+    const response = await this.client.send(
+      new GetObjectCommand({ Bucket: this.bucket, Key: key }),
+    );
+    const body = response.Body;
+    if (!body) throw new Error(`Objeto S3 vacío: ${key}`);
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of body as AsyncIterable<Uint8Array>) {
+      chunks.push(chunk);
+    }
+    return Buffer.concat(chunks);
   }
 }

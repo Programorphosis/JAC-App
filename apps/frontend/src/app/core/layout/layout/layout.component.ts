@@ -15,6 +15,7 @@ import { AppCanDirective } from '../../auth/app-can.directive';
 import { FormatearNombrePipe } from '../../../shared/pipes/formatear-nombre.pipe';
 import { AvisosSesionService } from '../../services/avisos-sesion.service';
 import { FacturasPendientesSesionService } from '../../services/facturas-pendientes-sesion.service';
+import { ThemeService } from '../../services/theme.service';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
@@ -38,6 +39,7 @@ import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 })
 export class LayoutComponent implements OnInit {
   readonly auth = inject(AuthService);
+  readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
   private readonly breakpoint = inject(BreakpointObserver);
@@ -74,6 +76,7 @@ export class LayoutComponent implements OnInit {
     const url = this.router.url;
     this.miJacExpanded =
       url.startsWith('/mi-junta') ||
+      url.startsWith('/plan-suscripcion') ||
       url.startsWith('/facturas-plataforma') ||
       url.startsWith('/requisitos') ||
       url.startsWith('/tarifas') ||
@@ -84,6 +87,7 @@ export class LayoutComponent implements OnInit {
         const u = e.url;
         this.miJacExpanded =
           u.startsWith('/mi-junta') ||
+          u.startsWith('/plan-suscripcion') ||
           u.startsWith('/facturas-plataforma') ||
           u.startsWith('/requisitos') ||
           u.startsWith('/tarifas') ||

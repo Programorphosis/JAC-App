@@ -67,6 +67,11 @@ export class LetterService {
         usuarioNombres: carta.usuarioNombres,
         usuarioApellidos: carta.usuarioApellidos,
         usuarioDocumento: carta.usuarioDocumento,
+        usuarioTelefono: carta.usuarioTelefono,
+        usuarioLugarExpedicion: carta.usuarioLugarExpedicion,
+        fechaAfiliacion: carta.fechaAfiliacion,
+        folio: carta.folio,
+        numeral: carta.numeral,
       });
       if (pdfResult) {
         rutaPdf = pdfResult.rutaPdf;

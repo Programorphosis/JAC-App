@@ -9,32 +9,32 @@
 
 | Fase | Objetivo | Estado |
 |------|----------|--------|
-| PA5-0 | Enriquecer modelo Plan y Suscripción | Pendiente |
-| PA5-1 | Storage real (Documento.sizeBytes) | Pendiente |
-| PA5-2 | Refactor LimitesService (overrides, ilimitados, vencimiento) | Pendiente |
-| PA5-3 | Integrar validación en upload documentos | Pendiente |
-| PA5-4 | Política de vencimiento y bloqueo | Pendiente |
-| PA5-5 | Frontend: límites efectivos y alertas mejoradas | Pendiente |
+| PA5-0 | Enriquecer modelo Plan y Suscripción | ✅ Completado |
+| PA5-1 | Storage real (Documento.sizeBytes) | ✅ Completado |
+| PA5-2 | Refactor LimitesService (overrides, ilimitados, vencimiento) | ✅ Completado |
+| PA5-3 | Integrar validación en upload documentos | ✅ Completado |
+| PA5-4 | Política de vencimiento y bloqueo | ✅ Completado |
+| PA5-5 | Frontend: límites efectivos y alertas mejoradas | ✅ Completado |
 
 ---
 
-## Estado actual (línea base)
+## Estado actual (post PA-5)
 
 | Componente | Ubicación | Estado |
 |------------|-----------|--------|
-| Plan | `prisma/schema.prisma` | limiteUsuarios, limiteStorageMb, limiteCartasMes (null=ilimitado). Sin flags explícitos ni descripcion |
-| Suscripcion | `prisma/schema.prisma` | juntaId, planId, fechas, estado. Sin overrides |
-| Documento | `prisma/schema.prisma` | Sin sizeBytes |
-| LimitesService | `infrastructure/limits/limites.service.ts` | validarCrearUsuario, validarEmitirCarta, validarStorage. Solo lee Plan |
-| UsersService | `application/users/users.service.ts` | Integrado |
-| Cartas | `application/cartas/cartas.controller.ts` | Integrado |
-| DocumentosService | `application/documentos/documentos.service.ts` | **No integrado** |
-| Alertas | `GET /api/platform/juntas/:id/alertas` | Existe |
-| junta-detail | `platform/junta-detail/` | Muestra uso y alertas; usa plan directo |
+| Plan | `prisma/schema.prisma` | ✅ descripcion, permiteUsuariosIlimitados, permiteStorageIlimitado, permiteCartasIlimitadas, esPersonalizable |
+| Suscripcion | `prisma/schema.prisma` | ✅ overrideLimiteUsuarios, overrideLimiteStorageMb, overrideLimiteCartasMes, esPlanPersonalizado, precioPersonalizado |
+| Documento | `prisma/schema.prisma` | ✅ sizeBytes (BigInt?) |
+| LimitesService | `infrastructure/limits/limites.service.ts` | ✅ getLimitesEfectivos, overrides, ilimitados, política vencimiento, errores dominio |
+| UsersService | `application/users/users.service.ts` | ✅ Integrado |
+| Cartas | `application/cartas/cartas.controller.ts` | ✅ Integrado |
+| DocumentosService | `application/documentos/documentos.service.ts` | ✅ Integrado (validarStorage antes de subir) |
+| Alertas | `GET /api/platform/juntas/:id/alertas` | ✅ Con niveles 80%/95%/100% |
+| junta-detail | `platform/junta-detail/` | ✅ Límites efectivos, plan personalizado, alertas con colores |
 
 ---
 
-## Fase PA5-0: Enriquecer modelo Plan y Suscripción
+## Fase PA5-0: Enriquecer modelo Plan y Suscripción ✅
 
 **Objetivo:** Schema alineado al plan SaaS flexible.
 
@@ -75,7 +75,7 @@ fechaCreacion             DateTime @default(now())
 
 ---
 
-## Fase PA5-1: Storage real (Documento.sizeBytes)
+## Fase PA5-1: Storage real (Documento.sizeBytes) ✅
 
 **Objetivo:** Calcular uso de storage en MB reales, no por count.
 
@@ -98,7 +98,7 @@ sizeBytes  BigInt?  // tamaño real del archivo en bytes
 
 ---
 
-## Fase PA5-2: Refactor LimitesService
+## Fase PA5-2: Refactor LimitesService ✅
 
 **Objetivo:** Límites efectivos = override ?? plan, con soporte ilimitados y estado vencido.
 
@@ -128,7 +128,7 @@ if (plan.permiteUsuariosIlimitados) limiteUsuarios = Infinity
 
 ---
 
-## Fase PA5-3: Integrar validación en upload documentos
+## Fase PA5-3: Integrar validación en upload documentos ✅
 
 **Objetivo:** DocumentosService valide storage antes de subir.
 
@@ -144,7 +144,7 @@ if (plan.permiteUsuariosIlimitados) limiteUsuarios = Infinity
 
 ---
 
-## Fase PA5-4: Política de vencimiento
+## Fase PA5-4: Política de vencimiento ✅
 
 **Objetivo:** Juntas con suscripción VENCIDA bloqueadas según política.
 
@@ -159,7 +159,7 @@ if (plan.permiteUsuariosIlimitados) limiteUsuarios = Infinity
 
 ---
 
-## Fase PA5-5: Frontend – límites efectivos y alertas
+## Fase PA5-5: Frontend – límites efectivos y alertas ✅
 
 **Objetivo:** UI use límites efectivos (con overrides) y muestre niveles 80% / 95% / 100%.
 
@@ -202,13 +202,13 @@ PA5-0 (Schema) → PA5-1 (Storage) → PA5-2 (LimitesService) → PA5-3 (Documen
 
 ## Criterio de cierre PA-5
 
-- [ ] Plan y Suscripción con campos nuevos (migración aplicada)
-- [ ] Documento.sizeBytes; upload guarda tamaño real
-- [ ] LimitesService usa overrides e ilimitados
-- [ ] DocumentosService valida antes de subir
-- [ ] Suscripción VENCIDA bloquea según política
-- [ ] Frontend muestra límites efectivos y alertas mejoradas
-- [ ] Plan personalizado operativo (override en suscripción)
+- [x] Plan y Suscripción con campos nuevos (migración aplicada)
+- [x] Documento.sizeBytes; upload guarda tamaño real
+- [x] LimitesService usa overrides e ilimitados
+- [x] DocumentosService valida antes de subir
+- [x] Suscripción VENCIDA bloquea según política
+- [x] Frontend muestra límites efectivos y alertas mejoradas
+- [x] Plan personalizado operativo (override en suscripción)
 
 ---
 

@@ -1,0 +1,108 @@
+<article class="legal-document">
+  <header class="legal-doc-header">
+    <h1>Política de cancelación y reembolsos</h1>
+    <p class="legal-doc-meta">Última actualización: 25 de febrero de 2026 · Versión 1.0</p>
+  </header>
+
+  <div class="legal-doc-body">
+    <p class="legal-intro">
+      Esta política regula la cancelación de la suscripción a JAC App y las condiciones de reembolso. Es coherente con los <a routerLink="/legal/terminos">Términos de servicio</a> (secciones 10 y 11) y con las obligaciones del proveedor SaaS en Colombia. La cancelación solicitada por medios electrónicos tiene plena validez conforme a la <strong>Ley 527 de 1999</strong>.
+    </p>
+
+    <section id="cancelacion" class="legal-section">
+      <h2>1. Cancelación de la suscripción</h2>
+      <p>El cliente (Junta de Acción Comunal) puede cancelar su suscripción en cualquier momento, sin necesidad de justificar la decisión. La cancelación se solicita desde la sección «Plan y suscripción» de la aplicación, mediante un botón explícito que requiere confirmación.</p>
+      <ul>
+        <li><strong>Efectividad:</strong> La cancelación es efectiva al final del periodo ya pagado (fecha de vencimiento de la suscripción). No se generarán facturas de renovación tras la cancelación.</li>
+        <li><strong>Confirmación:</strong> Se muestra un diálogo de confirmación con advertencias claras antes de aplicar la cancelación.</li>
+        <li><strong>Estado:</strong> La suscripción pasa a estado «Cancelación solicitada» o «Cancelada» según el flujo técnico; el acceso se mantiene hasta la fecha de vencimiento.</li>
+      </ul>
+      <p class="legal-cite"><em>Referencia:</em> Términos de servicio §10; Ley 527 de 1999 (validez electrónica); obligaciones SaaS.</p>
+    </section>
+
+    <section id="reembolsos" class="legal-section">
+      <h2>2. Reembolsos</h2>
+      <p><strong>No hay reembolso por el periodo actual.</strong> Esta es la regla general en la mayoría de servicios SaaS de suscripción mensual o anual en Colombia.</p>
+      <ul>
+        <li>El servicio se factura por periodos completos (mensual o anual).</li>
+        <li>Una vez pagado un periodo, el monto no se reembolsa aunque se cancele antes del vencimiento.</li>
+        <li>El cliente tendrá acceso al servicio hasta la fecha de vencimiento del periodo ya pagado.</li>
+      </ul>
+      <p><strong>Excepciones:</strong> Si en el futuro se ofreciera una garantía de satisfacción o política de reembolso bajo condiciones específicas, se comunicaría por separado y constaría en los términos vigentes en ese momento.</p>
+      <p class="legal-cite"><em>Referencia:</em> Práctica habitual SaaS; Código de Comercio (contratos de servicios); Términos §10.</p>
+    </section>
+
+    <section id="acceso" class="legal-section">
+      <h2>3. Acceso tras la cancelación</h2>
+      <p>Tras solicitar la cancelación:</p>
+      <ul>
+        <li><strong>Hasta el vencimiento:</strong> Mantendrá acceso completo a todas las funcionalidades del plan hasta la fecha de vencimiento del periodo actual.</li>
+        <li><strong>Facturación:</strong> No se emitirán nuevas facturas de renovación.</li>
+        <li><strong>Al vencer:</strong> El acceso se suspenderá automáticamente. No podrá iniciar sesión ni acceder a los datos de la junta a través de la plataforma.</li>
+      </ul>
+      <p>Se recomienda exportar o respaldar los datos necesarios antes de que finalice el periodo de acceso.</p>
+      <p class="legal-cite"><em>Referencia:</em> Términos §10; flujo técnico en <code>plan-suscripcion.component</code>.</p>
+    </section>
+
+    <section id="exportacion" class="legal-section">
+      <h2>4. Exportación de datos</h2>
+      <p>Conforme a las obligaciones del proveedor SaaS y al derecho del titular a conocer y disponer de sus datos (Ley 1581 de 2012), el cliente puede solicitar una exportación de sus datos antes de que finalice su acceso.</p>
+      <ul>
+        <li><strong>Momento:</strong> Dentro de los 30 días siguientes a la fecha de terminación (o antes del vencimiento del acceso).</li>
+        <li><strong>Contenido:</strong> Usuarios, pagos, cartas, requisitos, tarifas, historial laboral en formato estándar (CSV, JSON).</li>
+        <li><strong>Canal:</strong> Contactar al soporte mediante el correo o formulario indicado en la aplicación.</li>
+      </ul>
+      <p>La plataforma ofrece también la posibilidad de que el Platform Admin exporte los datos de una junta desde el panel de administración (formato JSON o CSV).</p>
+      <p class="legal-cite"><em>Referencia:</em> Términos §11 (Devolución de datos); Ley 1581, arts. 8-9; obligaciones SaaS (devolución de bases de datos al cliente).</p>
+    </section>
+
+    <section id="retencion-datos" class="legal-section">
+      <h2>5. Retención de datos tras cancelación</h2>
+      <p>Tras la cancelación y el cese del acceso, los datos se conservan conforme a la <a routerLink="/legal/privacidad">Política de privacidad</a> y a las obligaciones legales:</p>
+      <ul>
+        <li><strong>Pagos y facturas:</strong> 5 años (obligaciones tributarias).</li>
+        <li><strong>Cartas, historial laboral:</strong> 5 años (auditoría legal).</li>
+        <li><strong>Logs de auditoría:</strong> 5-10 años (defensa ante auditorías).</li>
+      </ul>
+      <p>Al finalizar los plazos de retención, los datos se suprimen o anonimizan de forma segura. El cliente no tiene derecho a que se borren antes del plazo legal cuando exista obligación de conservación.</p>
+      <p class="legal-cite"><em>Referencia:</em> Política de privacidad §7; Ley 1581 (temporalidad); Estatuto Tributario; <code>docs/legal/INVESTIGACION_LEGISLACION_COLOMBIANA_JAC_SAAS.md</code> §7.</p>
+    </section>
+
+    <section id="consultas" class="legal-section">
+      <h2>6. Consultas</h2>
+      <p>Para dudas sobre la cancelación, reembolsos o exportación de datos, utilice el canal de contacto indicado en la aplicación (correo electrónico, formulario de ayuda). Responderemos en un plazo razonable.</p>
+      <p class="legal-cite"><em>Referencia:</em> Términos; Política de privacidad §9.</p>
+    </section>
+
+    <section id="marco-legal" class="legal-section">
+      <h2>7. Marco legal de referencia</h2>
+      <table class="legal-table">
+        <thead>
+          <tr>
+            <th>Norma</th>
+            <th>Aplicación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Ley 527 de 1999</td>
+            <td>Validez de la cancelación solicitada por medios electrónicos.</td>
+          </tr>
+          <tr>
+            <td>Ley 1581 de 2012</td>
+            <td>Derecho a exportación de datos; retención y supresión.</td>
+          </tr>
+          <tr>
+            <td>Términos de servicio</td>
+            <td>§10 Duración y terminación; §11 Devolución de datos.</td>
+          </tr>
+          <tr>
+            <td>Obligaciones SaaS</td>
+            <td>Devolución de bases de datos al finalizar contrato.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="legal-cite"><em>Fuentes:</em> <a routerLink="/legal/terminos">Términos</a>, <a routerLink="/legal/privacidad">Política de privacidad</a>, <code>docs/legal/INVENTARIO_DOCUMENTACION_LEGAL_OBLIGATORIA.md</code> §1.3.</p>
+    </section>
+  </div>
+</article>

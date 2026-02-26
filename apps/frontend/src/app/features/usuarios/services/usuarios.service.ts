@@ -12,8 +12,12 @@ export interface UsuarioListItem {
   apellidos: string;
   telefono: string | null;
   direccion: string | null;
+  lugarExpedicion?: string | null;
   activo: boolean;
   fechaCreacion: string;
+  fechaAfiliacion?: string | null;
+  folio?: number | null;
+  numeral?: number | null;
   roles: string[];
 }
 
@@ -24,10 +28,17 @@ export interface CreateUserBody {
   apellidos: string;
   telefono?: string;
   direccion?: string;
+  lugarExpedicion?: string;
   password: string;
   roles?: string[];
   /** Estado laboral inicial. Por defecto NO_TRABAJANDO. */
   estadoLaboralInicial?: 'TRABAJANDO' | 'NO_TRABAJANDO';
+  /** Fecha de afiliación (libro físico). Para cartas. */
+  fechaAfiliacion?: string;
+  /** Folio del libro de afiliados. Para cartas. */
+  folio?: number;
+  /** Numeral consecutivo del libro. Para cartas. */
+  numeral?: number;
 }
 
 export interface UpdateUserBody {
@@ -35,8 +46,15 @@ export interface UpdateUserBody {
   apellidos?: string;
   telefono?: string;
   direccion?: string;
+  lugarExpedicion?: string | null;
   activo?: boolean;
   roles?: string[];
+  /** Fecha de afiliación (libro físico). Para cartas. */
+  fechaAfiliacion?: string | null;
+  /** Folio del libro de afiliados. Para cartas. */
+  folio?: number | null;
+  /** Numeral consecutivo del libro. Para cartas. */
+  numeral?: number | null;
 }
 
 export interface DeudaResult {

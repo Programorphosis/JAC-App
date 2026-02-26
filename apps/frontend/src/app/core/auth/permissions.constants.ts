@@ -16,12 +16,15 @@ export const PERMISSIONS = {
   PAGOS_PAGAR_ONLINE_PROPIO: 'pagos:pagarOnline:propio',
   TARIFAS_VER: 'tarifas:ver',
   TARIFAS_MODIFICAR: 'tarifas:modificar',
+  CARTAS_VER: 'cartas:ver',
   CARTAS_VALIDAR: 'cartas:validar',
   CARTAS_SOLICITAR: 'cartas:solicitar',
   AUDITORIAS_VER: 'auditorias:ver',
   DOCUMENTOS_SUBIR_OTROS: 'documentos:subir:otros',
   HISTORIAL_CREAR: 'historial:crear',
   JUNTA_CONFIG_WOMPI: 'junta:configWompi',
+  JUNTA_DATOS_EDITAR: 'junta:datos:editar',
+  JUNTA_SUSCRIPCION_GESTIONAR: 'junta:suscripcion:gestionar',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

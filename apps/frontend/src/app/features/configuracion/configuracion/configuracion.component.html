@@ -15,7 +15,7 @@
         <mat-card-subtitle>Opciones de tu JAC</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <p class="text-gray-600">
+        <p class="text-jac-text-muted">
           Configura las credenciales de Wompi para que tu junta reciba pagos online (cuota, carta).
           Solo el administrador de la junta puede modificar esta configuración.
         </p>
@@ -24,70 +24,128 @@
 
     <mat-card *appCan="auth.permissions.JUNTA_CONFIG_WOMPI">
       <mat-card-header>
-        <mat-card-title>Wompi – Pagos online</mat-card-title>
+        <mat-card-title>Escudo municipal</mat-card-title>
         <mat-card-subtitle>
-          @if (junta?.wompiConfigurado) {
-            <span class="text-green-700 font-medium">Configurado</span>
+          @if (junta?.escudoConfigurado) {
+            <span class="text-jac-success font-medium">Configurado</span>
           } @else {
-            <span class="text-amber-700">No configurado</span>
+            <span class="text-jac-warning">No configurado</span>
           }
         </mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <p class="text-sm text-gray-600 mb-4">
-          Credenciales para que tu junta reciba pagos de afiliados directamente. Se encriptan al guardar.
-          Dejar vacío para borrar. Si ya está configurado y solo quiere cambiar un campo, reingrese todos.
+        <p class="text-sm text-jac-text-muted mb-4">
+          El escudo del municipio aparece en las cartas laborales expedidas. Formato PNG, máximo 2 MB.
+          Sin escudo configurado no se pueden expedir cartas.
         </p>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+          <input
+            #escudoInput
+            type="file"
+            accept="image/png"
+            class="hidden"
+            (change)="onEscudoSelected($event)"
+          />
+          <button mat-stroked-button type="button" (click)="escudoInput.click()" [disabled]="subiendoEscudo">
+            <mat-icon>upload_file</mat-icon>
+            {{ junta?.escudoConfigurado ? 'Cambiar escudo' : 'Subir escudo' }}
+          </button>
+          @if (subiendoEscudo) {
+            <mat-spinner diameter="24"></mat-spinner>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
 
-        @if (junta?.webhookUrl) {
-          <div class="mb-4 p-4 bg-blue-50 rounded border border-blue-200">
-            <p class="text-sm font-medium text-blue-900 mb-2">URL de eventos (webhook)</p>
-            <p class="text-xs text-blue-700 mb-2">
-              Copia esta URL y configúrala en tu dashboard de Wompi (Desarrollo → Programadores → URL de eventos).
-              Así los pagos se registrarán automáticamente sin esperar al retorno del usuario.
+    <mat-card *appCan="auth.permissions.JUNTA_CONFIG_WOMPI">
+      <mat-card-header>
+        <mat-card-title>Wompi – Pagos online</mat-card-title>
+        <mat-card-subtitle>
+          @if (junta?.wompiConfigurado) {
+            <span class="text-jac-success font-medium">Configurado</span>
+          } @else {
+            <span class="text-jac-warning">No configurado</span>
+          }
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (!mostrarFormularioWompi) {
+          <!-- Vista resumida -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p class="text-sm text-jac-text-muted">
+              @if (junta?.wompiConfigurado) {
+                Las credenciales de Wompi están configuradas para esta junta.
+              } @else {
+                Sin credenciales Wompi. Los afiliados no pueden pagar en línea.
+              }
             </p>
-            <div class="flex gap-2 items-center">
-              <code class="flex-1 text-sm bg-white px-2 py-1 rounded border break-all">{{ junta?.webhookUrl }}</code>
-              <button mat-stroked-button type="button" (click)="copiarWebhook()">
-                <mat-icon>content_copy</mat-icon>
-                Copiar
-              </button>
-            </div>
+            <button mat-stroked-button (click)="abrirFormularioWompi()" class="shrink-0">
+              <mat-icon>settings</mat-icon>
+              {{ junta?.wompiConfigurado ? 'Cambiar credenciales' : 'Configurar' }}
+            </button>
           </div>
         } @else {
-          <p class="text-sm text-amber-700 mb-4">
-            Para ver la URL del webhook, el administrador de la plataforma debe configurar API_PUBLIC_URL.
+          <!-- Formulario de configuración -->
+          <p class="text-sm text-jac-text-muted mb-4">
+            Credenciales para que tu junta reciba pagos de afiliados directamente. Se encriptan al guardar.
+            Dejar vacío para borrar. Si ya está configurado y solo quiere cambiar un campo, reingrese todos.
           </p>
-        }
 
-        <form class="flex flex-col gap-4" (ngSubmit)="enviar()">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Private Key</mat-label>
-            <input matInput [(ngModel)]="form.wompiPrivateKey" name="wompiPrivateKey" type="password" placeholder="prv_test_... o prv_prod_..." />
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Public Key</mat-label>
-            <input matInput [(ngModel)]="form.wompiPublicKey" name="wompiPublicKey" placeholder="pub_test_... o pub_prod_..." />
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Integrity Secret</mat-label>
-            <input matInput [(ngModel)]="form.wompiIntegritySecret" name="wompiIntegritySecret" type="password" placeholder="test_integrity_... o prod_integrity_..." />
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Events Secret (webhooks)</mat-label>
-            <input matInput [(ngModel)]="form.wompiEventsSecret" name="wompiEventsSecret" type="password" placeholder="test_events_... o prod_events_..." />
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Ambiente</mat-label>
-            <mat-select [(ngModel)]="form.wompiEnvironment" name="wompiEnvironment">
-              <mat-option value="sandbox">Sandbox (pruebas)</mat-option>
-              <mat-option value="production">Production</mat-option>
-            </mat-select>
-          </mat-form-field>
-          <button mat-raised-button color="primary" type="submit" [disabled]="guardando">
-            {{ guardando ? 'Guardando...' : 'Guardar configuración' }}
-          </button>
-        </form>
+          @if (junta?.webhookUrl) {
+            <div class="mb-4 p-4 bg-jac-info-bg rounded border border-jac-info-border">
+              <p class="text-sm font-medium text-jac-info mb-2">URL de eventos (webhook)</p>
+              <p class="text-xs text-jac-text-secondary mb-2">
+                Copia esta URL y configúrala en tu dashboard de Wompi (Desarrollo → Programadores → URL de eventos).
+                Así los pagos se registrarán automáticamente sin esperar al retorno del usuario.
+              </p>
+              <div class="flex gap-2 items-center">
+                <code class="flex-1 text-sm bg-jac-surface px-2 py-1 rounded border border-jac-border break-all text-jac-text-secondary">{{ junta?.webhookUrl }}</code>
+                <button mat-stroked-button type="button" (click)="copiarWebhook()">
+                  <mat-icon>content_copy</mat-icon>
+                  Copiar
+                </button>
+              </div>
+            </div>
+          } @else {
+            <p class="text-sm text-jac-warning mb-4">
+              Para ver la URL del webhook, el administrador de la plataforma debe configurar API_PUBLIC_URL.
+            </p>
+          }
+
+          <form class="flex flex-col gap-4" (ngSubmit)="enviar()">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Private Key</mat-label>
+              <input matInput [(ngModel)]="form.wompiPrivateKey" name="wompiPrivateKey" type="password" placeholder="prv_test_... o prv_prod_..." />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Public Key</mat-label>
+              <input matInput [(ngModel)]="form.wompiPublicKey" name="wompiPublicKey" placeholder="pub_test_... o pub_prod_..." />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Integrity Secret</mat-label>
+              <input matInput [(ngModel)]="form.wompiIntegritySecret" name="wompiIntegritySecret" type="password" placeholder="test_integrity_... o prod_integrity_..." />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Events Secret (webhooks)</mat-label>
+              <input matInput [(ngModel)]="form.wompiEventsSecret" name="wompiEventsSecret" type="password" placeholder="test_events_... o prod_events_..." />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Ambiente</mat-label>
+              <mat-select [(ngModel)]="form.wompiEnvironment" name="wompiEnvironment">
+                <mat-option value="sandbox">Sandbox (pruebas)</mat-option>
+                <mat-option value="production">Production</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <div class="flex gap-2 flex-wrap">
+              <button mat-raised-button color="primary" type="submit" [disabled]="guardando">
+                {{ guardando ? 'Guardando...' : 'Guardar configuración' }}
+              </button>
+              <button mat-stroked-button type="button" (click)="cancelarFormularioWompi()" [disabled]="guardando">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        }
       </mat-card-content>
     </mat-card>
 

@@ -1,0 +1,59 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Stack de MONITOREO – JAC App
+#
+# Corre independiente del stack principal.
+# USO:
+#   docker compose -f docker-compose.monitoring.yml up -d
+#
+# Uptime Kuma: http://localhost:3001
+#   - Primera vez: crear cuenta admin
+#   - Agregar monitores:
+#       • HTTP(s) → http://frontend/                      (App web)
+#       • HTTP(s) → http://backend:3000/api/health/live   (Liveness backend)
+#       • HTTP(s) → http://backend:3000/api/health/ready  (Readiness DB)
+#
+# pgAdmin (opcional, quitar si no se necesita):
+#   http://localhost:5050  →  PGADMIN_EMAIL / PGADMIN_PASSWORD
+# ──────────────────────────────────────────────────────────────────────────
+
+services:
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: jac-uptime-kuma
+    volumes:
+      - uptime-kuma-data:/app/data
+    ports:
+      - "3001:3001"
+    networks:
+      - monitoring
+      - jac_internal        # ← conecta con la red interna del stack principal
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: jac-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL:    ${PGADMIN_EMAIL:-admin@jac.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-changeme}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - monitoring
+      - jac_internal
+    restart: unless-stopped
+    profiles:
+      - pgadmin    # Activar solo con: docker compose --profile pgadmin up -d
+
+networks:
+  monitoring:
+    driver: bridge
+  jac_internal:
+    external: true          # Red creada por docker-compose.yml
+    name: jac-app_internal  # Nombre que genera compose: <proyecto>_internal
+
+volumes:
+  uptime-kuma-data:
+  pgadmin-data:

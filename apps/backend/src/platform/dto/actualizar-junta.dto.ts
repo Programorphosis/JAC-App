@@ -56,6 +56,16 @@ export class ActualizarJuntaDto {
   departamento?: string | null;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  personeriaJuridica?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  membreteUrl?: string | null;
+
+  @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
   enMantenimiento?: boolean;

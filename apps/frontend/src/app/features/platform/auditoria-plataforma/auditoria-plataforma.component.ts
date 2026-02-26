@@ -2,12 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatButtonToggleModule, MatButtonToggleChange } from '@angular/material/button-toggle';
 import {
   PlatformAuditoriaService,
   AuditoriaPlataformaItem,
+  TipoAuditoriaPlataforma,
 } from '../services/platform-auditoria.service';
 import { FormatearNombrePipe } from '../../../shared/pipes/formatear-nombre.pipe';
 import { FormatearFechaHoraPipe } from '../../../shared/pipes/formatear-fecha-hora.pipe';
+import { NombreCompletoJuntaPipe } from '../../../shared/pipes/nombre-completo-junta.pipe';
 
 @Component({
   selector: 'app-auditoria-plataforma',
@@ -16,8 +19,10 @@ import { FormatearFechaHoraPipe } from '../../../shared/pipes/formatear-fecha-ho
     MatTableModule,
     MatCardModule,
     MatPaginatorModule,
+    MatButtonToggleModule,
     FormatearNombrePipe,
     FormatearFechaHoraPipe,
+    NombreCompletoJuntaPipe,
   ],
   templateUrl: './auditoria-plataforma.component.html',
   styleUrl: './auditoria-plataforma.component.scss',
@@ -29,6 +34,7 @@ export class AuditoriaPlataformaComponent implements OnInit {
   total = 0;
   page = 1;
   limit = 25;
+  tipo: TipoAuditoriaPlataforma = 'all';
 
   constructor(private readonly auditoria: PlatformAuditoriaService) {}
 
@@ -36,9 +42,15 @@ export class AuditoriaPlataformaComponent implements OnInit {
     this.cargar();
   }
 
+  onTipoChange(event: MatButtonToggleChange): void {
+    this.tipo = event.value as TipoAuditoriaPlataforma;
+    this.page = 1;
+    this.cargar();
+  }
+
   cargar(): void {
     this.loading = true;
-    this.auditoria.listar(this.page, this.limit).subscribe({
+    this.auditoria.listar(this.page, this.limit, this.tipo).subscribe({
       next: (res) => {
         this.dataSource.data = res.data;
         this.total = res.meta.total;

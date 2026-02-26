@@ -29,7 +29,8 @@ export class UsuarioPropioOAdminGuard implements CanActivate {
     const esAdminOSecretariaOTesorera =
       user.roles.includes(RolNombre.ADMIN) ||
       user.roles.includes(RolNombre.SECRETARIA) ||
-      user.roles.includes(RolNombre.TESORERA);
+      user.roles.includes(RolNombre.TESORERA) ||
+      user.roles.includes(RolNombre.FISCAL);
     const esModificador = user.esModificador && user.juntaId;
 
     if (esAdminOSecretariaOTesorera || esModificador) {

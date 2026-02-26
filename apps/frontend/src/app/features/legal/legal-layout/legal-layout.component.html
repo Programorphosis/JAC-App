@@ -1,0 +1,34 @@
+<div class="legal-layout">
+  <mat-sidenav-container class="legal-sidenav-container">
+    <mat-sidenav #sidenav mode="side" opened class="legal-sidenav" [fixedInViewport]="true">
+      <mat-nav-list class="legal-nav-docs">
+        <span class="legal-nav-label">Documentos</span>
+        <a mat-list-item routerLink="/legal/terminos" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+          <mat-icon matListItemIcon>description</mat-icon>
+          <span matListItemTitle>Términos de servicio</span>
+        </a>
+        <a mat-list-item routerLink="/legal/privacidad" routerLinkActive="active">
+          <mat-icon matListItemIcon>privacy_tip</mat-icon>
+          <span matListItemTitle>Política de privacidad</span>
+        </a>
+        <a mat-list-item routerLink="/legal/cancelacion" routerLinkActive="active">
+          <mat-icon matListItemIcon>cancel</mat-icon>
+          <span matListItemTitle>Política de cancelación</span>
+        </a>
+      </mat-nav-list>
+      @if (nav.sections().length > 0) {
+        <mat-nav-list class="legal-nav-sections">
+          <span class="legal-nav-label">En este documento</span>
+          @for (s of nav.sections(); track s.id) {
+            <button mat-list-item (click)="scrollToSection(s.id)" class="legal-nav-section">
+              <span matListItemTitle>{{ s.label }}</span>
+            </button>
+          }
+        </mat-nav-list>
+      }
+    </mat-sidenav>
+    <mat-sidenav-content class="legal-content-area">
+      <router-outlet></router-outlet>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

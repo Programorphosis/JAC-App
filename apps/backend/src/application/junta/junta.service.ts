@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../../domain/services/audit.service';
 import * as bcrypt from 'bcrypt';
-import { RolNombre, EstadoSuscripcion } from '@prisma/client';
+import { RolNombre, EstadoSuscripcion, EstadoFactura, TipoFactura } from '@prisma/client';
+import {
+  calcularFechaVencimiento,
+  getEstadoSuscripcion,
+} from '../../common/utils/suscripcion-fechas.util';
 
 export interface CreateJuntaAdminUser {
   nombres: string;
@@ -13,6 +17,9 @@ export interface CreateJuntaAdminUser {
   direccion?: string;
 }
 
+/** Versión de términos de servicio para trazabilidad de aceptación (Ley 527). */
+export const TERMINOS_VERSION = '2026-02-25';
+
 export interface CreateJuntaParams {
   nombre: string;
   nit?: string;
@@ -22,6 +29,8 @@ export interface CreateJuntaParams {
   ejecutadoPorId: string;
   planId?: string;
   diasPrueba?: number;
+  /** Requerido: aceptación de términos de servicio (Ley 527). */
+  aceptoTerminos: boolean;
 }
 
 export interface CreateJuntaResult {
@@ -43,6 +52,9 @@ export class JuntaService {
   ) {}
 
   async createJunta(params: CreateJuntaParams): Promise<CreateJuntaResult> {
+    if (!params.aceptoTerminos) {
+      throw new BadRequestException('Se requiere aceptar los términos de servicio para crear una junta');
+    }
     const passwordHash = await bcrypt.hash(params.passwordTemporal, 10);
 
     const result = await this.prisma.$transaction(async (tx) => {
@@ -51,6 +63,8 @@ export class JuntaService {
           nombre: params.nombre,
           nit: params.nit ?? null,
           montoCarta: params.montoCarta ?? null,
+          terminosAceptadosEn: new Date(),
+          terminosVersion: TERMINOS_VERSION,
         },
       });
 
@@ -89,21 +103,39 @@ export class JuntaService {
       if (planId) {
         const plan = await tx.plan.findUniqueOrThrow({ where: { id: planId } });
         const dias = params.diasPrueba ?? plan.diasPrueba ?? 0;
-        const fechaVencimiento = new Date();
-        if (dias > 0) {
-          fechaVencimiento.setDate(fechaVencimiento.getDate() + dias);
-        } else {
-          fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 1);
-        }
-        const estado = dias > 0 ? EstadoSuscripcion.PRUEBA : EstadoSuscripcion.ACTIVA;
-        await tx.suscripcion.create({
+        const periodo = 'anual' as const;
+        const fechaInicio = new Date();
+        const fechaVencimiento = calcularFechaVencimiento({
+          fechaInicio,
+          diasPrueba: dias,
+          periodo: dias > 0 ? undefined : periodo,
+        });
+        const estado = getEstadoSuscripcion(dias) as EstadoSuscripcion;
+        const suscripcion = await tx.suscripcion.create({
           data: {
             juntaId: junta.id,
             planId,
+            fechaInicio,
             fechaVencimiento,
+            periodo,
             estado,
           },
         });
+        if (dias > 0) {
+          const monto = plan.precioAnual;
+          await tx.factura.create({
+            data: {
+              juntaId: junta.id,
+              suscripcionId: suscripcion.id,
+              monto,
+              fechaVencimiento: new Date(fechaVencimiento),
+              estado: EstadoFactura.PENDIENTE,
+              tipo: TipoFactura.SUSCRIPCION,
+              metadata: { periodo },
+              creadoPorId: params.ejecutadoPorId,
+            },
+          });
+        }
       }
 
       return { junta, adminUsuario };

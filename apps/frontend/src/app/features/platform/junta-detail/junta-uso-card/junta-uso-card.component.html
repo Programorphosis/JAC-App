@@ -7,54 +7,60 @@
     <mat-card-content>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div>
-          <p class="text-xl font-bold text-gray-800">{{ uso.usuariosActivos }}</p>
-          <p class="text-sm text-gray-600">Usuarios activos</p>
-          @if (junta.suscripcion && junta.suscripcion.plan.limiteUsuarios != null) {
-            <div class="mt-1 h-2 bg-gray-200 rounded overflow-hidden">
+          <p class="text-xl font-bold text-jac-text">{{ uso.usuariosActivos }}</p>
+          <p class="text-sm text-jac-text-muted">Usuarios activos</p>
+          @if (limiteUsuarios() != null) {
+            <div class="mt-1 h-2 bg-jac-surface-raised rounded overflow-hidden">
               <div
                 class="h-full rounded transition-all"
-                [ngClass]="colorProgreso(progreso(uso.usuariosActivos, junta.suscripcion!.plan.limiteUsuarios!))"
-                [style.width.%]="progreso(uso.usuariosActivos, junta.suscripcion!.plan.limiteUsuarios!)"
+                [ngClass]="colorProgreso(progreso(uso.usuariosActivos, limiteUsuarios()!))"
+                [style.width.%]="progreso(uso.usuariosActivos, limiteUsuarios()!)"
               ></div>
             </div>
-            <p class="text-xs text-gray-500">{{ uso.usuariosActivos }}/{{ junta.suscripcion!.plan.limiteUsuarios }}</p>
+            <p class="text-xs text-jac-text-muted">{{ uso.usuariosActivos }}/{{ limiteUsuarios() }}</p>
+          } @else if (tieneLimiteUsuarios()) {
+            <p class="text-xs text-jac-text-muted">Ilimitado</p>
           }
         </div>
         <div>
-          <p class="text-xl font-bold text-gray-800">{{ uso.pagosEsteMes }}</p>
-          <p class="text-sm text-gray-600">Pagos este mes</p>
+          <p class="text-xl font-bold text-jac-text">{{ uso.pagosEsteMes }}</p>
+          <p class="text-sm text-jac-text-muted">Pagos este mes</p>
         </div>
         <div>
-          <p class="text-xl font-bold text-gray-800">{{ uso.cartasEsteMes }}</p>
-          <p class="text-sm text-gray-600">Cartas este mes</p>
-          @if (junta.suscripcion && junta.suscripcion.plan.limiteCartasMes != null) {
-            <div class="mt-1 h-2 bg-gray-200 rounded overflow-hidden">
+          <p class="text-xl font-bold text-jac-text">{{ uso.cartasEsteMes }}</p>
+          <p class="text-sm text-jac-text-muted">Cartas este mes</p>
+          @if (limiteCartas() != null) {
+            <div class="mt-1 h-2 bg-jac-surface-raised rounded overflow-hidden">
               <div
                 class="h-full rounded transition-all"
-                [ngClass]="colorProgreso(progreso(uso.cartasEsteMes, junta.suscripcion!.plan.limiteCartasMes!))"
-                [style.width.%]="progreso(uso.cartasEsteMes, junta.suscripcion!.plan.limiteCartasMes!)"
+                [ngClass]="colorProgreso(progreso(uso.cartasEsteMes, limiteCartas()!))"
+                [style.width.%]="progreso(uso.cartasEsteMes, limiteCartas()!)"
               ></div>
             </div>
-            <p class="text-xs text-gray-500">{{ uso.cartasEsteMes }}/{{ junta.suscripcion!.plan.limiteCartasMes }}</p>
+            <p class="text-xs text-jac-text-muted">{{ uso.cartasEsteMes }}/{{ limiteCartas() }}</p>
+          } @else if (tieneLimiteCartas()) {
+            <p class="text-xs text-jac-text-muted">Ilimitado</p>
           }
         </div>
         <div>
-          <p class="text-xl font-bold text-gray-800">{{ uso.documentosCount }}</p>
-          <p class="text-sm text-gray-600">Documentos</p>
-          @if (junta.suscripcion && junta.suscripcion.plan.limiteStorageMb != null) {
-            <div class="mt-1 h-2 bg-gray-200 rounded overflow-hidden">
+          <p class="text-xl font-bold text-jac-text">{{ uso.storageMb != null ? (uso.storageMb | number:'1.1-1') + ' MB' : uso.documentosCount }}</p>
+          <p class="text-sm text-jac-text-muted">Storage</p>
+          @if (limiteStorage() != null) {
+            <div class="mt-1 h-2 bg-jac-surface-raised rounded overflow-hidden">
               <div
                 class="h-full rounded transition-all"
-                [ngClass]="colorProgreso(progreso(uso.documentosCount, junta.suscripcion!.plan.limiteStorageMb!))"
-                [style.width.%]="progreso(uso.documentosCount, junta.suscripcion!.plan.limiteStorageMb!)"
+                [ngClass]="colorProgreso(progreso(storageActual(), limiteStorage()!))"
+                [style.width.%]="progreso(storageActual(), limiteStorage()!)"
               ></div>
             </div>
-            <p class="text-xs text-gray-500">{{ uso.documentosCount }}/{{ junta.suscripcion!.plan.limiteStorageMb }}</p>
+            <p class="text-xs text-jac-text-muted">{{ storageActual() | number:'1.1-1' }}/{{ limiteStorage() }} MB</p>
+          } @else if (tieneLimiteStorage()) {
+            <p class="text-xs text-jac-text-muted">Ilimitado</p>
           }
         </div>
       </div>
     </mat-card-content>
   </mat-card>
 } @else if (loading) {
-  <p class="mt-4 text-gray-600 text-sm">Cargando uso...</p>
+  <p class="mt-4 text-jac-text-muted text-sm">Cargando uso...</p>
 }

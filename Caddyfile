@@ -1,0 +1,36 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Caddyfile — Reverse proxy con HTTPS automático (Let's Encrypt)
+#
+# INSTRUCCIONES:
+#   1. En .env.production, asegúrate de tener:
+#         DOMAIN=tu-dominio.com
+#   2. El dominio debe apuntar (DNS A/AAAA) a la IP del servidor ANTES de
+#      levantar Caddy por primera vez. Let's Encrypt valida el dominio.
+#   3. Los certificados se renuevan automáticamente.
+#
+# Puertos requeridos abiertos en firewall:
+#   80  → HTTP (Caddy redirige automáticamente a HTTPS)
+#   443 → HTTPS
+# ──────────────────────────────────────────────────────────────────────────
+
+{$DOMAIN} {
+    # Todo el tráfico web va al contenedor frontend (Angular + nginx interno)
+    reverse_proxy frontend:80
+
+    # Logs de acceso en formato JSON (compatible con agregadores de logs)
+    log {
+        output stdout
+        format json
+    }
+
+    # Headers de seguridad adicionales
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options    "nosniff"
+        Referrer-Policy           "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # Compresión (complementa la de nginx)
+    encode zstd gzip
+}

@@ -1,18 +1,28 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+
+export type TipoAuditoriaPlataforma = 'juntas' | 'accesos' | 'all';
 
 /**
  * Servicio de auditoría de plataforma.
- * Responsabilidad: listar acciones sobre juntas (CREACION, ACTUALIZACION, BAJA).
- * Dependencias: solo Prisma. Sin lógica de negocio de juntas.
+ * Responsabilidad: listar acciones (juntas, accesos sensibles, o todas).
+ * - juntas: CREACION, ACTUALIZACION, BAJA de Junta.
+ * - accesos: LOGIN_*, IMPERSONACION_*, CAMBIO_ROL (entidad Auth/Usuario).
+ * - all: sin filtro por entidad.
  */
 @Injectable()
 export class PlatformAuditoriaService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listar(page = 1, limit = 50) {
+  async listar(page = 1, limit = 50, tipo: TipoAuditoriaPlataforma = 'all') {
     const skip = (page - 1) * limit;
-    const where = { entidad: 'Junta' };
+    const where: Prisma.AuditoriaWhereInput =
+      tipo === 'juntas'
+        ? { entidad: 'Junta' }
+        : tipo === 'accesos'
+          ? { entidad: { in: ['Auth', 'Usuario'] } }
+          : {};
     const [data, total] = await Promise.all([
       this.prisma.auditoria.findMany({
         where,

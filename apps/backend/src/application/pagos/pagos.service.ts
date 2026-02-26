@@ -13,6 +13,7 @@ import {
   PagoDuplicadoError,
   PagoCartaPendienteError,
   UsuarioNoEncontradoError,
+  UsuarioInactivoError,
   IntencionPagoNoEncontradaError,
   WompiNoConfiguradoError,
 } from '../../domain/errors';
@@ -56,6 +57,23 @@ export class PagosService {
     private readonly wompi: WompiService,
     private readonly encryption: EncryptionService,
   ) {}
+
+  /**
+   * Valida que el usuario esté activo. Usuario inactivo no puede pagar ni solicitar carta.
+   * CHECKLIST_OPERACION_JUNTAS §2.1, PLAN_IMPLEMENTACION_OPERACION Fase 1.1
+   */
+  private async validarUsuarioActivo(usuarioId: string, juntaId: string): Promise<void> {
+    const usuario = await this.prisma.usuario.findFirst({
+      where: { id: usuarioId, juntaId },
+      select: { activo: true },
+    });
+    if (!usuario) {
+      throw new UsuarioNoEncontradoError(usuarioId);
+    }
+    if (!usuario.activo) {
+      throw new UsuarioInactivoError(usuarioId);
+    }
+  }
 
   /**
    * Obtiene credenciales Wompi de la junta (desencriptadas).
@@ -188,6 +206,94 @@ export class PagosService {
   }
 
   /**
+   * Exporta pagos a CSV con los mismos filtros que listar.
+   * Límite: 10.000 registros. Para contabilidad externa.
+   */
+  async exportarCsv(
+    juntaId: string,
+    filtros?: {
+      usuarioId?: string;
+      tipo?: TipoPago;
+      fechaDesde?: Date;
+      fechaHasta?: Date;
+      search?: string;
+    },
+  ): Promise<{ data: string; filename: string }> {
+    const MAX_EXPORT = 10_000;
+    const where: Record<string, unknown> = { juntaId };
+
+    if (filtros?.usuarioId) where.usuarioId = filtros.usuarioId;
+    if (filtros?.tipo) where.tipo = filtros.tipo;
+    if (filtros?.fechaDesde || filtros?.fechaHasta) {
+      where.fechaPago = {};
+      if (filtros.fechaDesde) (where.fechaPago as Record<string, Date>).gte = filtros.fechaDesde;
+      if (filtros.fechaHasta) (where.fechaPago as Record<string, Date>).lte = filtros.fechaHasta;
+    }
+    if (filtros?.search && filtros.search.trim().length >= 2) {
+      const term = filtros.search.trim();
+      const isNum = /^\d+$/.test(term);
+      where.OR = [
+        { usuario: { nombres: { contains: term, mode: 'insensitive' } } },
+        { usuario: { apellidos: { contains: term, mode: 'insensitive' } } },
+        { usuario: { numeroDocumento: { contains: term, mode: 'insensitive' } } },
+        { referenciaExterna: { contains: term, mode: 'insensitive' } },
+        ...(isNum ? [{ consecutivo: parseInt(term, 10) }] : []),
+      ];
+    }
+
+    const pagos = await this.prisma.pago.findMany({
+      where,
+      take: MAX_EXPORT,
+      orderBy: { fechaPago: 'desc' },
+      select: {
+        fechaPago: true,
+        tipo: true,
+        metodo: true,
+        monto: true,
+        consecutivo: true,
+        referenciaExterna: true,
+        usuario: { select: { nombres: true, apellidos: true, numeroDocumento: true } },
+        registradoPor: { select: { nombres: true, apellidos: true } },
+      },
+    });
+
+    const escape = (v: unknown): string => {
+      if (v == null) return '';
+      const s = String(v).replace(/"/g, '""');
+      return `"${s}"`;
+    };
+
+    const lines: string[] = [];
+    lines.push('Fecha,Tipo,Método,Monto,Consecutivo,Referencia,Usuario,Registrado por');
+    for (const p of pagos) {
+      const fecha = p.fechaPago ? new Date(p.fechaPago).toISOString().slice(0, 10) : '';
+      const usuario = p.usuario
+        ? `${p.usuario.nombres} ${p.usuario.apellidos} (${p.usuario.numeroDocumento})`
+        : '';
+      const reg = p.registradoPor ? `${p.registradoPor.nombres} ${p.registradoPor.apellidos}` : '';
+      lines.push(
+        [
+          escape(fecha),
+          escape(p.tipo),
+          escape(p.metodo),
+          p.monto,
+          p.consecutivo,
+          escape(p.referenciaExterna),
+          escape(usuario),
+          escape(reg),
+        ].join(','),
+      );
+    }
+
+    const fecha = new Date().toISOString().slice(0, 10);
+    const filename = `pagos_${fecha}.csv`;
+    return {
+      data: '\uFEFF' + lines.join('\n'),
+      filename,
+    };
+  }
+
+  /**
    * Estadísticas contables: ingresos totales, desglose por método/tipo, por mes, por año.
    * Multi-tenant: juntaId obligatorio desde JWT.
    */
@@ -279,6 +385,7 @@ export class PagosService {
   }
 
   async registrarPagoEfectivo(params: RegistrarPagoEfectivoParams) {
+    await this.validarUsuarioActivo(params.usuarioId, params.juntaId);
     return this.paymentRunner.registerJuntaPayment({
       usuarioId: params.usuarioId,
       juntaId: params.juntaId,
@@ -292,6 +399,7 @@ export class PagosService {
    * Registra pago tipo CARTA. Monto desde Junta.montoCarta.
    */
   async registrarPagoCarta(params: RegistrarPagoCartaParams) {
+    await this.validarUsuarioActivo(params.usuarioId, params.juntaId);
     return this.paymentRunner.registerCartaPayment(
       params as RunnerCartaParams,
     );
@@ -303,6 +411,8 @@ export class PagosService {
 
   async crearIntencionPagoOnline(params: CrearIntencionPagoParams) {
     const { usuarioId, juntaId, iniciadoPorId } = params;
+
+    await this.validarUsuarioActivo(usuarioId, juntaId);
 
     const deuda = await this.debtService.calculateUserDebt({ usuarioId, juntaId });
 
@@ -360,6 +470,8 @@ export class PagosService {
    */
   async crearIntencionPagoCartaOnline(params: CrearIntencionPagoCartaParams) {
     const { usuarioId, juntaId, iniciadoPorId } = params;
+
+    await this.validarUsuarioActivo(usuarioId, juntaId);
 
     const [junta, usuario] = await Promise.all([
       this.prisma.junta.findUnique({
@@ -486,6 +598,8 @@ export class PagosService {
       throw new IntencionPagoNoEncontradaError();
     }
 
+    await this.validarUsuarioActivo(intencion.usuarioId, intencion.juntaId);
+
     const baseParams = {
       usuarioId: intencion.usuarioId,
       juntaId: intencion.juntaId,
@@ -563,6 +677,15 @@ export class PagosService {
             'No se encontró la intención de pago o el monto no coincide. Contacta al administrador.',
         };
       }
+      if (err instanceof UsuarioInactivoError) {
+        return {
+          registrado: false,
+          codigo: 'USUARIO_INACTIVO',
+          status: tx.status,
+          mensaje:
+            'El usuario está inactivo. Active el usuario para poder registrar el pago.',
+        };
+      }
       throw err;
     }
   }
@@ -596,6 +719,7 @@ export type VerificarPagoCodigo =
   | 'TRANSACCION_PENDIENTE'
   | 'TRANSACCION_RECHAZADA'
   | 'INTENCION_NO_ENCONTRADA'
+  | 'USUARIO_INACTIVO'
   | 'ESTADO_DESCONOCIDO';
 
 export interface VerificarPagoResult {

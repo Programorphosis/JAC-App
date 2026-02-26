@@ -5,17 +5,40 @@
       <mat-card-subtitle>
         {{ junta.suscripcion.plan.nombre }} · {{ junta.suscripcion.estado }}
         · Vence {{ junta.suscripcion.fechaVencimiento | formatearFecha }}
+        @if (junta.suscripcion.esPlanPersonalizado) {
+          <span class="ml-1 px-1.5 py-0.5 rounded text-xs bg-jac-primary-light text-jac-primary">Plan personalizado</span>
+        }
       </mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
-      <p class="text-sm text-gray-600">
+      <p class="text-sm text-jac-text-muted">
         {{ junta.suscripcion.plan.precioMensual | number }} COP/mes ·
         {{ junta.suscripcion.plan.precioAnual | number }} COP/año
       </p>
-      @if (junta.suscripcion.plan.limiteUsuarios != null) {
-        <p class="text-sm">Límite usuarios: {{ junta.suscripcion.plan.limiteUsuarios }}</p>
+      @if (tieneOverrides()) {
+        <p class="text-sm mt-1 font-medium">Límites personalizados:</p>
+          <ul class="text-sm text-jac-text-muted list-disc list-inside">
+          @if (junta.suscripcion.overrideLimiteUsuarios != null) {
+            <li>Usuarios: {{ junta.suscripcion.overrideLimiteUsuarios }}</li>
+          }
+          @if (junta.suscripcion.overrideLimiteStorageMb != null) {
+            <li>Storage: {{ junta.suscripcion.overrideLimiteStorageMb }} MB</li>
+          }
+          @if (junta.suscripcion.overrideLimiteCartasMes != null) {
+            <li>Cartas/mes: {{ junta.suscripcion.overrideLimiteCartasMes }}</li>
+          }
+        </ul>
+      } @else if (junta.suscripcion.plan.limiteUsuarios != null || junta.suscripcion.plan.limiteStorageMb != null || junta.suscripcion.plan.limiteCartasMes != null) {
+        <p class="text-sm mt-1">Límites del plan: usuarios {{ junta.suscripcion.plan.limiteUsuarios ?? '∞' }}, storage {{ junta.suscripcion.plan.limiteStorageMb ?? '∞' }} MB, cartas/mes {{ junta.suscripcion.plan.limiteCartasMes ?? '∞' }}</p>
       }
-      <button mat-stroked-button class="mt-2" (click)="cambiarPlan.emit()">Cambiar plan</button>
+      <div class="flex flex-wrap gap-2 mt-2">
+        <button mat-stroked-button (click)="cambiarPlan.emit()">Cambiar plan</button>
+        @if (junta.suscripcion.plan.esPersonalizable) {
+          <span class="text-xs text-jac-info bg-jac-info-bg border border-jac-info-border rounded px-2 py-1">
+            Excesos se facturan automáticamente al inicio del mes
+          </span>
+        }
+      </div>
     </mat-card-content>
   </mat-card>
 } @else {

@@ -1,5 +1,7 @@
-import { IsString, IsOptional, IsInt, Min } from 'class-validator';
+import { IsString, IsOptional, IsInt, Min, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
+
+const PERIODOS_VALIDOS = ['mensual', 'anual'] as const;
 
 export class CrearSuscripcionDto {
   @IsString()
@@ -10,4 +12,8 @@ export class CrearSuscripcionDto {
   @IsInt()
   @Min(0)
   diasPrueba?: number;
+
+  @IsOptional()
+  @IsIn(PERIODOS_VALIDOS)
+  periodo?: (typeof PERIODOS_VALIDOS)[number];
 }

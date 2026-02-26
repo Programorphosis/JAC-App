@@ -41,7 +41,7 @@ export interface PagoRegistrarDialogResult {
   template: `
     <h2 mat-dialog-title>Registrar pago</h2>
     <mat-dialog-content>
-      <p class="text-sm text-gray-600 mb-4">
+      <p class="text-sm text-jac-text-muted mb-4">
         Total: {{ data.montoTotal | number }} COP · Pagado: {{ data.montoPagado | number }} COP ·
         Pendiente: {{ data.montoPendiente | number }} COP
       </p>

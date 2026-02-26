@@ -1,15 +1,28 @@
-<!-- Layout: solo Tailwind en contenedores -->
-<div class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-  <div class="w-full max-w-md">
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>JAC App</mat-card-title>
-        <mat-card-subtitle>Iniciar sesión</mat-card-subtitle>
+<div class="login-page">
+  <div class="login-container">
+
+    <!-- Brand -->
+    <div class="login-brand">
+      <div class="login-brand-icon">
+        <mat-icon>account_balance</mat-icon>
+      </div>
+      <h1 class="login-brand-name">JAC App</h1>
+      <p class="login-brand-tagline">Juntas de Acción Comunal</p>
+    </div>
+
+    <!-- Card -->
+    <mat-card class="login-card">
+      <mat-card-header class="login-card-header">
+        <mat-card-title>Iniciar sesión</mat-card-title>
+        <mat-card-subtitle>Ingresa tus credenciales para continuar</mat-card-subtitle>
       </mat-card-header>
-      <mat-card-content>
+
+      <mat-card-content class="login-card-content">
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
-          <mat-form-field appearance="outline">
-            <mat-label>Tipo documento</mat-label>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Tipo de documento</mat-label>
+            <mat-icon matPrefix>badge</mat-icon>
             <mat-select formControlName="tipoDocumento">
               <mat-option value="CC">Cédula de ciudadanía</mat-option>
               <mat-option value="CE">Cédula de extranjería</mat-option>
@@ -17,44 +30,56 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="w-full">
             <mat-label>Número de documento</mat-label>
-            <input matInput formControlName="numeroDocumento" type="text" />
+            <mat-icon matPrefix>person</mat-icon>
+            <input matInput formControlName="numeroDocumento" type="text" autocomplete="username" />
             @if (form.get('numeroDocumento')?.hasError('required')) {
               <mat-error>Requerido</mat-error>
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="w-full">
             <mat-label>Contraseña</mat-label>
-            <input matInput formControlName="password" type="password" />
+            <mat-icon matPrefix>lock</mat-icon>
+            <input matInput formControlName="password" type="password" autocomplete="current-password" />
             @if (form.get('password')?.hasError('required')) {
-              <mat-error>Requerido</mat-error>
+              <mat-error>Requerida</mat-error>
             }
           </mat-form-field>
 
-          <mat-checkbox formControlName="platformAdmin">
+          <mat-checkbox formControlName="platformAdmin" class="text-sm">
             Acceso Platform Admin
           </mat-checkbox>
 
           @if (error) {
-            <div class="mt-4" role="alert">
-              <span class="form-error">{{ error }}</span>
+            <div class="form-error-banner" role="alert">
+              <mat-icon class="!text-base !w-5 !h-5 shrink-0">error_outline</mat-icon>
+              <span>{{ error }}</span>
             </div>
           }
 
-          <div class="w-full">
-            <button
-              mat-raised-button
-              color="primary"
-              type="submit"
-              [disabled]="loading || form.invalid"
-            >
-              {{ loading ? 'Entrando...' : 'Entrar' }}
-            </button>
-          </div>
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            class="login-submit-btn"
+            [disabled]="loading || form.invalid"
+          >
+            @if (!loading) {
+              <mat-icon>login</mat-icon>
+            }
+            {{ loading ? 'Verificando...' : 'Ingresar' }}
+          </button>
+
         </form>
       </mat-card-content>
+      <mat-card-footer class="login-footer">
+        <a routerLink="/legal/terminos" target="_blank">Términos de servicio</a>
+        <span>·</span>
+        <a routerLink="/legal/privacidad" target="_blank">Política de privacidad</a>
+      </mat-card-footer>
     </mat-card>
+
   </div>
 </div>

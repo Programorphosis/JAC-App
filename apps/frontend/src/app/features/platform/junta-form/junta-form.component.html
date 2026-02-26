@@ -5,8 +5,9 @@
   <mat-card-content>
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
       <mat-form-field appearance="outline">
-        <mat-label>Nombre</mat-label>
-        <input matInput formControlName="nombre" />
+        <mat-label>Jurisdicción</mat-label>
+        <input matInput formControlName="nombre" placeholder="Ej: Vereda Rubiales, Barrio Centro" />
+        <mat-hint>Solo la jurisdicción (vereda, barrio, sector). Evite incluir "Junta de Acción Comunal".</mat-hint>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
@@ -20,7 +21,7 @@
       </mat-form-field>
 
       @if (!modoEdicion && planes.length > 0) {
-        <h3 class="text-lg font-medium">Suscripción</h3>
+        <h3 class="form-section-title">Suscripción</h3>
         <mat-form-field appearance="outline">
           <mat-label>Plan</mat-label>
           <mat-select formControlName="planId">
@@ -29,7 +30,7 @@
               <mat-option [value]="p.id">
                 {{ p.nombre }} – {{ p.precioMensual | number }} COP/mes
                 @if (p.diasPrueba > 0) {
-                  <span class="text-gray-500">({{ p.diasPrueba }} días prueba)</span>
+                  <span class="text-jac-text-muted">({{ p.diasPrueba }} días prueba)</span>
                 }
               </mat-option>
             }
@@ -61,12 +62,22 @@
         <mat-label>Departamento</mat-label>
         <input matInput formControlName="departamento" />
       </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Personería jurídica</mat-label>
+        <input matInput formControlName="personeriaJuridica" placeholder="Ej: 385 de 2004-12-14" />
+        <mat-hint>Para cartas oficiales</mat-hint>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>URL membrete (versión premium)</mat-label>
+        <input matInput formControlName="membreteUrl" placeholder="https://... imagen escaneada" />
+        <mat-hint>Imagen de fondo para cartas con membrete</mat-hint>
+      </mat-form-field>
       @if (modoEdicion) {
         <mat-slide-toggle formControlName="enMantenimiento">En mantenimiento</mat-slide-toggle>
       }
 
       @if (!modoEdicion) {
-        <h3 class="text-lg font-medium">Admin inicial</h3>
+        <h3 class="form-section-title">Admin inicial</h3>
         <mat-form-field appearance="outline">
           <mat-label>Nombres</mat-label>
           <input matInput formControlName="adminNombres" />
@@ -95,6 +106,14 @@
           <mat-label>Dirección</mat-label>
           <input matInput formControlName="adminDireccion" />
         </mat-form-field>
+        <div class="flex flex-col gap-2 mt-2">
+          <mat-checkbox formControlName="aceptoTerminos">
+            Acepto los <a routerLink="/legal/terminos" target="_blank" class="text-jac-primary underline">términos de servicio</a> en nombre de la junta
+          </mat-checkbox>
+          <mat-checkbox formControlName="autorizoTratamientoDatos">
+            Autorizo el tratamiento de mis datos personales conforme a la <a routerLink="/legal/privacidad" target="_blank" class="text-jac-primary underline">política de privacidad</a>
+          </mat-checkbox>
+        </div>
       }
 
       <div class="flex gap-2">

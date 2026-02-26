@@ -1,0 +1,153 @@
+// =============================================================================
+// Tablas JAC – Estilo profesional y limpio
+// Clases utilitarias: .table-jac, .table-responsive
+// Depende de: _tokens.scss
+// =============================================================================
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  min-width: 0;
+}
+
+.table-jac {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--jac-border);
+  background: var(--jac-surface);
+  box-shadow: var(--jac-shadow-sm);
+}
+
+// Angular Material tables dentro de table-jac
+.table-jac mat-table,
+.table-jac table[mat-table] {
+  background: transparent;
+}
+
+.table-jac mat-header-row,
+.table-jac tr[mat-header-row] {
+  background: var(--jac-surface-raised) !important;
+  border-bottom: 1px solid var(--jac-border) !important;
+}
+
+.table-jac mat-header-cell,
+.table-jac th[mat-header-cell] {
+  color: var(--jac-text-secondary) !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  padding: 10px 12px !important;
+  border-bottom: none !important;
+}
+
+@media (min-width: 640px) {
+  .table-jac mat-header-cell,
+  .table-jac th[mat-header-cell] {
+    padding: 14px 16px !important;
+  }
+}
+
+.table-jac mat-row,
+.table-jac tr[mat-row] {
+  transition: background-color 0.15s ease;
+}
+
+.table-jac mat-row:hover,
+.table-jac tr[mat-row]:hover {
+  background-color: var(--jac-surface-alt) !important;
+}
+
+.table-jac mat-cell,
+.table-jac td[mat-cell] {
+  color: var(--jac-text-primary) !important;
+  font-size: 0.8125rem !important;
+  padding: 10px 12px !important;
+  border-bottom: 1px solid var(--jac-border-subtle) !important;
+}
+
+@media (min-width: 640px) {
+  .table-jac mat-cell,
+  .table-jac td[mat-cell] {
+    font-size: 0.875rem !important;
+    padding: 14px 16px !important;
+  }
+}
+
+.table-jac mat-row:last-of-type mat-cell,
+.table-jac mat-row:last-of-type td[mat-cell],
+.table-jac tr[mat-row]:last-of-type mat-cell,
+.table-jac tr[mat-row]:last-of-type td[mat-cell] {
+  border-bottom: none !important;
+}
+
+.table-jac tr.mat-row[matNoDataRow] mat-cell,
+.table-jac tr.mat-row[matNoDataRow] td.mat-cell {
+  color: var(--jac-text-muted) !important;
+  font-style: italic;
+  padding: 24px 16px !important;
+  text-align: center;
+}
+
+// HTML tables (usuario-deuda, historial, etc.)
+.table-jac table {
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table-jac thead {
+  background: var(--jac-surface-raised);
+  border-bottom: 1px solid var(--jac-border);
+}
+
+.table-jac thead th {
+  color: var(--jac-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+@media (min-width: 640px) {
+  .table-jac thead th {
+    padding: 14px 16px;
+  }
+}
+
+.table-jac tbody tr {
+  transition: background-color 0.15s ease;
+  border-bottom: 1px solid var(--jac-border-subtle);
+}
+
+.table-jac tbody tr:hover {
+  background-color: var(--jac-surface-alt);
+}
+
+.table-jac tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table-jac tbody td {
+  color: var(--jac-text-primary);
+  padding: 10px 12px;
+  font-size: 0.8125rem;
+}
+
+@media (min-width: 640px) {
+  .table-jac tbody td {
+    padding: 14px 16px;
+    font-size: 0.875rem;
+  }
+}
+
+// Paginator integrado
+.table-jac mat-paginator,
+.table-jac + mat-paginator {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--jac-border);
+  background: var(--jac-surface-alt) !important;
+  border-radius: 0 0 10px 10px;
+}

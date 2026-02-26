@@ -30,6 +30,7 @@ export type VerificarPagoCodigo =
   | 'TRANSACCION_PENDIENTE'
   | 'TRANSACCION_RECHAZADA'
   | 'INTENCION_NO_ENCONTRADA'
+  | 'USUARIO_INACTIVO'
   | 'ESTADO_DESCONOCIDO';
 
 export interface VerificarPagoResult {
@@ -157,5 +158,26 @@ export class PagosService {
       });
     }
     return this.http.get<EstadisticasPagos>(`${this.base}/estadisticas`);
+  }
+
+  /** Exporta pagos a CSV. Aplica los mismos filtros que listar. */
+  exportarCsv(params?: {
+    usuarioId?: string;
+    tipo?: 'JUNTA' | 'CARTA';
+    fechaDesde?: string;
+    fechaHasta?: string;
+    search?: string;
+  }): Observable<{ data: string; filename: string }> {
+    const httpParams: Record<string, string> = {};
+    if (params) {
+      if (params.usuarioId) httpParams['usuarioId'] = params.usuarioId;
+      if (params.tipo) httpParams['tipo'] = params.tipo;
+      if (params.fechaDesde) httpParams['fechaDesde'] = params.fechaDesde;
+      if (params.fechaHasta) httpParams['fechaHasta'] = params.fechaHasta;
+      if (params.search && params.search.trim().length >= 2) httpParams['search'] = params.search.trim();
+    }
+    return this.http.get<{ data: string; filename: string }>(`${this.base}/exportar`, {
+      params: httpParams,
+    });
   }
 }

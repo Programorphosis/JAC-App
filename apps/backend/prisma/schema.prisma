@@ -19,6 +19,7 @@ enum RolNombre {
   ADMIN
   SECRETARIA
   TESORERA
+  FISCAL
   RECEPTOR_AGUA
   AFILIADO
 }
@@ -86,6 +87,10 @@ enum TipoFactura {
   MENSUAL
   MANUAL
   AJUSTE
+  SUSCRIPCION
+  RENOVACION
+  OVERRIDE
+  UPGRADE
 }
 
 enum MetodoPagoFactura {
@@ -103,16 +108,26 @@ enum MetodoPagoFactura {
 model Plan {
   id                String   @id @default(uuid())
   nombre            String   @unique
+  descripcion       String?
   precioMensual     Int      // COP
   precioAnual       Int      // COP
-  limiteUsuarios    Int?     // null = ilimitado
-  limiteStorageMb   Int?     // null = ilimitado
-  limiteCartasMes   Int?     // null = ilimitado
+  limiteUsuarios    Int?     // null + permiteUsuariosIlimitados = ilimitado
+  limiteStorageMb   Int?     // null + permiteStorageIlimitado = ilimitado
+  limiteCartasMes   Int?     // null + permiteCartasIlimitadas = ilimitado
+  permiteUsuariosIlimitados  Boolean @default(false)
+  permiteStorageIlimitado    Boolean @default(false)
+  permiteCartasIlimitadas    Boolean @default(false)
+  esPersonalizable  Boolean  @default(false)
   diasPrueba        Int      @default(0)
   activo            Boolean  @default(true)
   fechaCreacion     DateTime @default(now())
+  // Precios por demanda (solo si esPersonalizable). COP por unidad adicional.
+  precioPorUsuarioAdicional  Int?
+  precioPorMbAdicional       Int?
+  precioPorCartaAdicional    Int?
 
-  suscripciones     Suscripcion[]
+  suscripciones       Suscripcion[]
+  suscripcionesPendientes Suscripcion[] @relation("PlanPendiente")
 }
 
 model Suscripcion {
@@ -123,7 +138,23 @@ model Suscripcion {
   plan              Plan              @relation(fields: [planId], references: [id])
   fechaInicio       DateTime         @default(now())
   fechaVencimiento  DateTime
+  periodo           String?           // 'mensual' | 'anual' – para facturación renovación
   estado            EstadoSuscripcion @default(PRUEBA)
+  overrideLimiteUsuarios    Int?
+  overrideLimiteStorageMb   Int?
+  overrideLimiteCartasMes   Int?
+  esPlanPersonalizado       Boolean   @default(false)
+  precioPersonalizado       Decimal?  @db.Decimal(12, 2)
+  motivoPersonalizacion    String?
+  fechaCreacion             DateTime  @default(now())
+  // Downgrade programado: efectivo al fin del ciclo (cuando fechaVencimiento < hoy)
+  planIdPendiente   String?
+  planPendiente     Plan?             @relation("PlanPendiente", fields: [planIdPendiente], references: [id])
+  periodoPendiente  String?           // 'mensual' | 'anual' para cuando se aplique el downgrade
+  // Cancelación al final del período: la suscripción sigue ACTIVA hasta fechaVencimiento
+  // El cron de renovación omite suscripciones con cancelacionSolicitada=true
+  cancelacionSolicitada Boolean @default(false)
+  fechaCancelacionSolicitada DateTime?
 
   facturas          Factura[]
 
@@ -213,6 +244,9 @@ model Junta {
   direccion           String?
   ciudad              String?
   departamento        String?
+  personeriaJuridica  String?   // ej. "385 de 2004-12-14" – para cartas
+  membreteUrl         String?   // URL de imagen de membrete escaneado (versión premium)
+  escudoS3Key         String?   // S3 key: juntas/{juntaId}/escudo.png – obligatorio para expedir cartas
   enMantenimiento     Boolean   @default(false)
 
   // Wompi por junta – credenciales encriptadas (WOMPI_POR_JUNTA_DOC)
@@ -221,6 +255,10 @@ model Junta {
   wompiIntegritySecret String?   // test_integrity_... o prod_integrity_...
   wompiEventsSecret    String?   // test_events_... o prod_events_...
   wompiEnvironment     String?   // "sandbox" | "production"
+
+  // Aceptación términos de servicio (Ley 527, documentación legal)
+  terminosAceptadosEn   DateTime? // fecha de aceptación
+  terminosVersion       String?   // versión aceptada (ej. "2026-02-25")
 
   usuarios         Usuario[]
   tarifas          Tarifa[]
@@ -269,9 +307,15 @@ model Usuario {
   apellidos         String
   telefono          String?
   direccion         String?
+  lugarExpedicion   String?  // lugar de expedición del documento (ej. Bogotá, Villavicencio)
   activo            Boolean  @default(true)
   fechaCreacion     DateTime @default(now())
   passwordHash      String   // bcrypt hash; requerido para login
+
+  // Libro de afiliados (físico) – usados en cartas
+  fechaAfiliacion   DateTime?  // fecha en que se afilió a la junta
+  folio             Int?      // número de folio del libro donde está registrado
+  numeral           Int?      // consecutivo del libro
 
   roles             UsuarioRol[]
   historialLaboral   HistorialLaboral[]
@@ -353,7 +397,7 @@ model Tarifa {
 
   fechaCreacion  DateTime @default(now())
 
-  @@index([juntaId, estadoLaboral, fechaVigencia])
+  @@unique([juntaId, estadoLaboral, fechaVigencia])
 }
 
 //////////////////////////////////////////////////////
@@ -388,6 +432,7 @@ model Pago {
   @@unique([juntaId, tipo, consecutivo])
   @@index([juntaId])
   @@index([usuarioId])
+  @@index([juntaId, fechaPago])   // listados por junta filtrados por rango de fechas
 }
 
 model IntencionPago {
@@ -508,6 +553,8 @@ model Carta {
   @@unique([juntaId, anio, consecutivo])
   @@index([juntaId])
   @@index([usuarioId])
+  @@index([juntaId, estado])         // filtros por estado dentro de una junta
+  @@index([juntaId, fechaSolicitud]) // listados paginados ordenados por fecha
 }
 
 //////////////////////////////////////////////////////
@@ -522,6 +569,7 @@ model Documento {
 
   tipo         String
   rutaS3       String
+  sizeBytes    BigInt?  // PA5-1: tamaño real en bytes para cálculo de storage
 
   subidoPorId  String
   subidoPor    Usuario  @relation("DocumentoSubidoPor", fields: [subidoPorId], references: [id])
@@ -590,4 +638,5 @@ model Auditoria {
 
   @@index([juntaId])
   @@index([entidad])
+  @@index([juntaId, fecha])  // listados de auditoría paginados por fecha
 }

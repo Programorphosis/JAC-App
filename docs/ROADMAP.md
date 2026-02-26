@@ -439,6 +439,10 @@ Fase 12 (Deploy)
 | Documentos (upload) | `flujoDocumentos.md` |
 | Bootstrap y onboarding | `flujoBootstrapYOnboarding.md` |
 | **Administrador de plataforma** | `PLAN_ADMINISTRADOR_PLATAFORMA.md`, `ROADMAP_ADMINISTRADOR_PLATAFORMA.md` |
+| **Checklist SaaS profesional** | `CHECKLIST_SAAS_PROFESIONAL.md` |
+| **Checklist operación juntas** | `CHECKLIST_OPERACION_JUNTAS.md` |
+| **Validación checklist operación** | `VALIDACION_CHECKLIST_OPERACION.md` |
+| **Plan implementación operación** | `PLAN_IMPLEMENTACION_OPERACION.md` |
 | API | `convencionesAPI.md` |
 | Consecutivos y cron | `consecutivosYCronJobs.md` |
 | Dominio | `definicionDomainServices.md` |

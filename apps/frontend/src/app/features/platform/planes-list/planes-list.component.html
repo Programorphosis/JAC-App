@@ -1,9 +1,20 @@
 <div class="flex flex-col gap-4">
-  <div class="flex items-center gap-2">
-    <a mat-icon-button routerLink="/platform" aria-label="Volver">
-      <mat-icon>arrow_back</mat-icon>
-    </a>
-    <h2>Planes</h2>
+  <div class="flex items-center justify-between gap-2 flex-wrap">
+    <div class="flex items-center gap-2">
+      <a mat-icon-button routerLink="/platform" aria-label="Volver">
+        <mat-icon>arrow_back</mat-icon>
+      </a>
+      <h2>Planes</h2>
+    </div>
+    <div class="flex items-center gap-2">
+      <mat-slide-toggle [(ngModel)]="incluirInactivos" (ngModelChange)="incluirInactivos = $event; cargar()">
+        Incluir inactivos
+      </mat-slide-toggle>
+      <button mat-raised-button color="primary" (click)="abrirCrear()">
+        <mat-icon>add</mat-icon>
+        Nuevo plan
+      </button>
+    </div>
   </div>
 
   @if (loading) {
@@ -11,18 +22,34 @@
   } @else {
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       @for (plan of planes; track plan.id) {
-        <mat-card class="border border-gray-100">
-          <mat-card-header>
-            <mat-card-title>{{ plan.nombre }}</mat-card-title>
-            <mat-card-subtitle>
-              {{ plan.precioMensual | number }} COP/mes · {{ plan.precioAnual | number }} COP/año
-            </mat-card-subtitle>
+        <mat-card class="border border-jac-border" [class.opacity-75]="!plan.activo">
+          <mat-card-header class="flex flex-row justify-between items-start">
+            <div>
+              <mat-card-title class="flex items-center gap-2">
+                {{ plan.nombre }}
+                @if (!plan.activo) {
+                  <span class="text-xs px-2 py-0.5 rounded bg-jac-surface-raised text-jac-text-muted">Inactivo</span>
+                }
+                @if (plan.esPersonalizable) {
+                  <span class="text-xs px-2 py-0.5 rounded bg-jac-primary-light text-jac-primary">Personalizable</span>
+                }
+              </mat-card-title>
+              <mat-card-subtitle>
+                {{ plan.precioMensual | number }} COP/mes · {{ plan.precioAnual | number }} COP/año
+              </mat-card-subtitle>
+            </div>
+            <button mat-icon-button (click)="abrirEditar(plan)" matTooltip="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
           </mat-card-header>
           <mat-card-content>
-            <ul class="text-sm text-gray-600 space-y-1">
-              <li>Usuarios: {{ limiteTexto(plan.limiteUsuarios) }}</li>
-              <li>Storage: {{ limiteTexto(plan.limiteStorageMb) }} MB</li>
-              <li>Cartas/mes: {{ limiteTexto(plan.limiteCartasMes) }}</li>
+            @if (plan.descripcion) {
+              <p class="text-sm text-jac-text-muted mb-2">{{ plan.descripcion }}</p>
+            }
+            <ul class="text-sm text-jac-text-muted space-y-1">
+              <li>Usuarios: {{ limiteTexto(plan.limiteUsuarios, plan.permiteUsuariosIlimitados) }}</li>
+              <li>Storage: {{ limiteTexto(plan.limiteStorageMb, plan.permiteStorageIlimitado) }} MB</li>
+              <li>Cartas/mes: {{ limiteTexto(plan.limiteCartasMes, plan.permiteCartasIlimitadas) }}</li>
               <li>Días de prueba: {{ plan.diasPrueba }}</li>
             </ul>
           </mat-card-content>

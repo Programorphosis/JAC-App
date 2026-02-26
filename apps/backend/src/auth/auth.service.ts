@@ -73,19 +73,24 @@ export class AuthService {
     });
 
     if (!usuario || !usuario.activo) {
+      // Registrar intento fallido sin revelar si el usuario existe (prevenir enumeración)
+      await this.registrarLoginFallido(dto.juntaId ?? null, dto.numeroDocumento, 'CREDENCIALES_INVALIDAS');
       throw new UnauthorizedException('Credenciales inválidas');
     }
     if (usuario.juntaId && usuario.junta) {
       if (!usuario.junta.activo) {
+        await this.registrarLoginFallido(usuario.juntaId, usuario.numeroDocumento, 'JUNTA_INACTIVA');
         throw new UnauthorizedException('La junta no está activa');
       }
       if (usuario.junta.enMantenimiento) {
+        await this.registrarLoginFallido(usuario.juntaId, usuario.numeroDocumento, 'JUNTA_EN_MANTENIMIENTO');
         throw new UnauthorizedException('La junta está en mantenimiento. Intente más tarde.');
       }
     }
 
     const ok = await bcrypt.compare(dto.password, usuario.passwordHash);
     if (!ok) {
+      await this.registrarLoginFallido(usuario.juntaId, usuario.numeroDocumento, 'PASSWORD_INCORRECTO');
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
@@ -387,5 +392,34 @@ export class AuthService {
         requisitoTipoIds: usuario.requisitosComoModificador?.map((r) => r.id) ?? [],
       },
     };
+  }
+
+  /**
+   * Registra intento de login fallido en auditoría.
+   * No expone si el usuario existe o no (previene enumeración de cuentas).
+   * juntaId puede ser null para Platform Admin o cuando la junta no se identifica.
+   */
+  private async registrarLoginFallido(
+    juntaId: string | null,
+    numeroDocumento: string,
+    motivo: string,
+  ): Promise<void> {
+    try {
+      // Para login fallido usamos juntaId='sistema' si no hay junta (Platform Admin o junta no encontrada)
+      // Solo registramos en Auditoria si tenemos juntaId válido; si no, el log queda en console.warn
+      if (juntaId) {
+        await this.audit.registerEvent({
+          juntaId,
+          entidad: 'Auth',
+          entidadId: `login:${numeroDocumento}`,
+          accion: 'LOGIN_FALLIDO',
+          metadata: { motivo },
+          ejecutadoPorId: 'sistema',
+        });
+      }
+      // Para logins sin junta identificable, solo logueamos sin guardar en BD (no hay juntaId)
+    } catch {
+      // No propagamos errores de auditoría en login fallido
+    }
   }
 }

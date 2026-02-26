@@ -8,8 +8,8 @@ import { DatePipe } from '@angular/common';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UsuariosService, DeudaResult } from '../../usuarios/services/usuarios.service';
 import { CartasService, EstadoGeneralResult, CartaItem } from '../../cartas/services/cartas.service';
-import { AvisosService, AvisoPlataforma } from '../../../core/services/avisos.service';
 import { FacturasPlataformaService } from '../../../core/services/facturas-plataforma.service';
+import { MiJuntaService } from '../../mi-junta/services/mi-junta.service';
 import { formatearNombre } from '../../../shared/utils/formatear-nombre.util';
 
 export interface Shortcut {
@@ -32,16 +32,17 @@ export class DashboardComponent implements OnInit {
   deuda = signal<DeudaResult | null>(null);
   estadoCarta = signal<EstadoGeneralResult | null>(null);
   cartas = signal<CartaItem[]>([]);
-  avisos = signal<AvisoPlataforma[]>([]);
   facturasPendientes = signal<number>(0);
+  tieneTarifas = signal<boolean | null>(null);
+  escudoConfigurado = signal<boolean | null>(null);
   loading = false;
 
   constructor(
     readonly auth: AuthService,
     private readonly usuarios: UsuariosService,
     private readonly cartasSvc: CartasService,
-    private readonly avisosSvc: AvisosService,
-    private readonly facturasSvc: FacturasPlataformaService
+    private readonly facturasSvc: FacturasPlataformaService,
+    private readonly miJunta: MiJuntaService
   ) {}
 
   /** Accesos directos según permisos del usuario. */
@@ -147,8 +148,19 @@ export class DashboardComponent implements OnInit {
       });
     }
 
-    // Tarifas
-    if (this.auth.can(p.TARIFAS_VER)) {
+    // Plan y suscripción (TESORERA)
+    if (this.auth.can(p.JUNTA_SUSCRIPCION_GESTIONAR)) {
+      list.push({
+        icon: 'subscriptions',
+        title: 'Plan y suscripción',
+        description: 'Elegir plan, cambiar periodicidad, solicitar overrides y pagar facturas.',
+        link: ['/plan-suscripcion'],
+        color: 'primary',
+      });
+    }
+
+    // Tarifas (solo SECRETARIA y TESORERA; ADMIN no ve este acceso directo)
+    if (this.auth.can(p.TARIFAS_VER) && !this.auth.hasRole('ADMIN')) {
       list.push({
         icon: 'attach_money',
         title: 'Tarifas',
@@ -200,12 +212,17 @@ export class DashboardComponent implements OnInit {
         next: (c) => this.cartas.set(c),
       });
     }
-    this.avisosSvc.listarActivos().subscribe({
-      next: (a) => this.avisos.set(a),
-    });
     if (this.auth.can(this.auth.permissions.PAGOS_VER) && this.auth.currentUser()?.juntaId) {
       this.facturasSvc.listarPendientes().subscribe({
         next: (f) => this.facturasPendientes.set(f.length),
+      });
+    }
+    if (!this.auth.isPlatformAdmin() && this.auth.currentUser()?.juntaId) {
+      this.miJunta.obtener().subscribe({
+        next: (j) => {
+          this.tieneTarifas.set(j.tieneTarifas);
+          this.escudoConfigurado.set(j.escudoConfigurado);
+        },
       });
     }
   }
