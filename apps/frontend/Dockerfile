@@ -6,7 +6,8 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+# npm install: apps/frontend no tiene package-lock.json propio (monorepo usa el de la raíz)
+RUN npm install
 
 COPY . .
 # ng build --configuration production usa environment.prod.ts
