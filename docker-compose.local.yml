@@ -1,0 +1,33 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Override para desarrollo LOCAL con Docker
+#
+# USO:
+#   1. cp .env.local.example .env.local
+#   2. Editar .env.local (DB_PASSWORD, JWT_SECRET, etc.)
+#   3. docker compose -f docker-compose.yml -f docker-compose.local.yml --env-file .env.local up -d --build
+#   4. Seed (primera vez): npm run db:seed
+#      (PostgreSQL expuesto en 5432 para que el host pueda ejecutar el seed)
+#
+# URLs:
+#   - App: http://localhost
+#   - MailHog (emails): http://localhost:8025
+#
+# Detener:
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml down
+# ──────────────────────────────────────────────────────────────────────────
+
+services:
+  postgres:
+    ports: ["5432:5432"]
+
+  backend:
+    env_file: .env.local
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: jac-mailhog
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    networks:
+      - internal

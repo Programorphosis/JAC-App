@@ -19,4 +19,4 @@ echo "[Entrypoint] PostgreSQL listo. Ejecutando migraciones..."
 npx prisma migrate deploy
 
 echo "[Entrypoint] Iniciando aplicación..."
-exec node dist/main
+exec node dist/src/main

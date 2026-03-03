@@ -166,6 +166,43 @@ Login: `POST http://localhost:3000/api/auth/login`
 
 ---
 
+## 10. Levantar con Docker (local)
+
+Para ejecutar todo el stack en local con Docker (PostgreSQL, backend, frontend, Caddy, MailHog):
+
+```bash
+# 1. Crear .env.local desde el ejemplo
+cp .env.local.example .env.local
+
+# 2. Editar .env.local: DB_PASSWORD, JWT_SECRET, JWT_REFRESH_SECRET, etc.
+#    (Los valores por defecto funcionan para pruebas rápidas.)
+
+# 3. Levantar el stack
+docker compose -f docker-compose.yml -f docker-compose.local.yml --env-file .env.local up -d --build
+
+# 4. Cargar datos de prueba (solo la primera vez)
+#    En apps/backend/.env pon DATABASE_URL=postgresql://jac_user:TU_DB_PASSWORD@localhost:5432/jac_db?schema=public
+#    (usa el mismo DB_PASSWORD que en .env.local)
+npm run db:seed
+```
+
+**URLs:**
+
+| Servicio | URL |
+|----------|-----|
+| App (frontend + API) | http://localhost |
+| MailHog (emails) | http://localhost:8025 |
+
+**Detener:**
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local.yml down
+```
+
+> **Nota:** Caddy sirve HTTP en localhost (sin SSL). Las migraciones se aplican automáticamente al iniciar el backend. El seed hay que ejecutarlo manualmente la primera vez.
+
+---
+
 ## Solución de problemas
 
 **"Authentication failed" con la base de datos**
