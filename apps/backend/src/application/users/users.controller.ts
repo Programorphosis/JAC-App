@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -21,6 +22,7 @@ import { RolNombre } from '@prisma/client';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { JwtUser } from '../../auth/strategies/jwt.strategy';
 
+@ApiTags('usuarios')
 @Controller('usuarios')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
 export class UsersController {

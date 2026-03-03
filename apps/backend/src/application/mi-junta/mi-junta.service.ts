@@ -9,7 +9,7 @@ import { AuditService } from '../../domain/services/audit.service';
 import { LimitesService } from '../../infrastructure/limits/limites.service';
 import { S3StorageService } from '../../infrastructure/storage/s3-storage.service';
 import { AlmacenamientoNoConfiguradoError } from '../../domain/errors';
-import { EstadoSuscripcion, EstadoFactura, TipoFactura } from '@prisma/client';
+import { EstadoSuscripcion, EstadoFactura, TipoFactura, TipoPago } from '@prisma/client';
 import {
   calcularFechaVencimiento,
   getEstadoSuscripcion,
@@ -109,6 +109,115 @@ export class MiJuntaService {
       tieneTarifas: tarifasCount > 0,
       escudoConfigurado: !!escudoS3Key,
     };
+  }
+
+  /**
+   * Métricas para el dashboard: usuarios, pagos, cartas.
+   */
+  async metricas(juntaId: string) {
+    const now = new Date();
+    const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1);
+    const finMes = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    const [totalUsuarios, usuariosActivos, totalPagos, pagosEsteMes, totalCartas, cartasAprobadas] =
+      await Promise.all([
+        this.prisma.usuario.count({ where: { juntaId } }),
+        this.prisma.usuario.count({ where: { juntaId, activo: true } }),
+        this.prisma.pago.count({ where: { juntaId } }),
+        this.prisma.pago.count({
+          where: {
+            juntaId,
+            fechaPago: { gte: inicioMes, lte: finMes },
+          },
+        }),
+        this.prisma.carta.count({ where: { juntaId } }),
+        this.prisma.carta.count({ where: { juntaId, estado: 'APROBADA' } }),
+      ]);
+
+    return {
+      totalUsuarios,
+      usuariosActivos,
+      totalPagos,
+      pagosEsteMes,
+      totalCartas,
+      cartasAprobadas,
+    };
+  }
+
+  /**
+   * Reporte anual por junta: resumen contable (pagos, cartas) en CSV.
+   * GET /api/mi-junta/reporte-anual?anio=2025
+   */
+  async reporteAnual(juntaId: string, anio: number): Promise<{ data: string; filename: string }> {
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+      select: { nombre: true },
+    });
+    if (!junta) throw new NotFoundException('Junta no encontrada');
+
+    const inicio = new Date(anio, 0, 1);
+    const fin = new Date(anio, 11, 31, 23, 59, 59);
+
+    const [pagos, cartas] = await Promise.all([
+      this.prisma.pago.findMany({
+        where: {
+          juntaId,
+          fechaPago: { gte: inicio, lte: fin },
+        },
+        select: { fechaPago: true, tipo: true, monto: true },
+      }),
+      this.prisma.carta.findMany({
+        where: {
+          juntaId,
+          estado: 'APROBADA',
+          fechaEmision: { gte: inicio, lte: fin },
+        },
+        select: { fechaEmision: true },
+      }),
+    ]);
+
+    const UTF8_BOM = '\uFEFF';
+    const escape = (v: unknown): string => {
+      if (v == null) return '';
+      const s = String(v).replace(/"/g, '""');
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+    };
+
+    const lines: string[] = [];
+    lines.push(`Reporte anual - ${escape(junta.nombre)} - ${anio}`);
+    lines.push('');
+
+    const totalPagosJunta = pagos.filter((p) => p.tipo === TipoPago.JUNTA).reduce((s, p) => s + p.monto, 0);
+    const totalPagosCarta = pagos.filter((p) => p.tipo === TipoPago.CARTA).reduce((s, p) => s + p.monto, 0);
+    lines.push('Resumen del año');
+    lines.push(`Total pagos cuota junta (COP),${totalPagosJunta}`);
+    lines.push(`Total pagos carta (COP),${totalPagosCarta}`);
+    lines.push(`Total ingresos (COP),${totalPagosJunta + totalPagosCarta}`);
+    lines.push(`Cartas aprobadas,${cartas.length}`);
+    lines.push('');
+
+    lines.push('Detalle por mes');
+    lines.push('Mes,Pagos cuota junta (COP),Pagos carta (COP),Cartas aprobadas');
+    for (let m = 1; m <= 12; m++) {
+      const mesInicio = new Date(anio, m - 1, 1);
+      const mesFin = new Date(anio, m, 0, 23, 59, 59);
+      const pagosMes = pagos.filter((p) => {
+        const d = p.fechaPago ? new Date(p.fechaPago) : null;
+        return d && d >= mesInicio && d <= mesFin;
+      });
+      const cartasMes = cartas.filter((c) => {
+        const d = c.fechaEmision ? new Date(c.fechaEmision) : null;
+        return d && d >= mesInicio && d <= mesFin;
+      });
+      const pJunta = pagosMes.filter((p) => p.tipo === TipoPago.JUNTA).reduce((s, p) => s + p.monto, 0);
+      const pCarta = pagosMes.filter((p) => p.tipo === TipoPago.CARTA).reduce((s, p) => s + p.monto, 0);
+      const nombresMes = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      lines.push(`${nombresMes[m - 1]} ${anio},${pJunta},${pCarta},${cartasMes.length}`);
+    }
+
+    const nombreSafe = junta.nombre.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_').slice(0, 40) || 'junta';
+    const filename = `reporte_anual_${nombreSafe}_${anio}.csv`;
+    return { data: UTF8_BOM + lines.join('\n'), filename };
   }
 
   /**
@@ -245,6 +354,47 @@ export class MiJuntaService {
     return {
       ok: true,
       mensaje: `Cancelación registrada. El acceso y los límites del plan permanecen hasta el ${suscripcion.fechaVencimiento.toLocaleDateString('es-CO')}. No se generará renovación.`,
+    };
+  }
+
+  /**
+   * Revoca la solicitud de cancelación. La suscripción seguirá renovándose normalmente.
+   * Solo aplica cuando cancelacionSolicitada=true y estado es ACTIVA o PRUEBA.
+   */
+  async reactivarSuscripcion(juntaId: string, ejecutadoPorId: string) {
+    const suscripcion = await this.prisma.suscripcion.findUnique({
+      where: { juntaId },
+      include: { plan: { select: { nombre: true } } },
+    });
+    if (!suscripcion) throw new NotFoundException('La junta no tiene suscripción');
+    if (!suscripcion.cancelacionSolicitada) {
+      throw new BadRequestException('No hay cancelación pendiente que reactivar');
+    }
+    const estadosActivos: string[] = ['ACTIVA', 'PRUEBA'];
+    if (!estadosActivos.includes(suscripcion.estado)) {
+      throw new BadRequestException('Solo se puede reactivar una suscripción activa o en período de prueba');
+    }
+
+    await this.prisma.suscripcion.update({
+      where: { juntaId },
+      data: {
+        cancelacionSolicitada: false,
+        fechaCancelacionSolicitada: null,
+      },
+    });
+
+    await this.audit.registerEvent({
+      juntaId,
+      entidad: 'Suscripcion',
+      entidadId: suscripcion.id,
+      accion: 'REACTIVACION_SUSCRIPCION',
+      metadata: { planNombre: suscripcion.plan.nombre },
+      ejecutadoPorId,
+    });
+
+    return {
+      ok: true,
+      mensaje: 'Suscripción reactivada. Se generarán renovaciones normalmente.',
     };
   }
 

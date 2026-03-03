@@ -104,10 +104,16 @@
             <span class="text-jac-text-secondary">Transferencia: <strong class="text-jac-text">{{ formatearMoneda(estadisticas()!.porMetodo.transferencia) }}</strong></span>
             <span class="text-jac-text-secondary">Online: <strong class="text-jac-text">{{ formatearMoneda(estadisticas()!.porMetodo.online) }}</strong></span>
           </div>
-          <a [routerLink]="['/pagos']" class="mt-4 inline-flex items-center gap-1 text-jac-primary hover:underline font-medium">
-            Ver estadísticas completas
-            <mat-icon class="!text-lg !w-4 !h-4">arrow_forward</mat-icon>
-          </a>
+          <div class="mt-4 flex flex-wrap gap-4">
+            <a [routerLink]="['/pagos']" class="inline-flex items-center gap-1 text-jac-primary hover:underline font-medium">
+              Ver estadísticas completas
+              <mat-icon class="!text-lg !w-4 !h-4">arrow_forward</mat-icon>
+            </a>
+            <button mat-stroked-button (click)="descargarReporteAnual()" [disabled]="exportandoReporte" class="!text-sm">
+              <mat-icon class="!text-lg !w-4 !h-4">download</mat-icon>
+              {{ exportandoReporte ? 'Exportando...' : 'Reporte anual (CSV)' }}
+            </button>
+          </div>
         </div>
       </section>
     }

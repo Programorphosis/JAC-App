@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import Mailgun from 'mailgun.js';
-import FormData from 'form-data';
+import * as nodemailer from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 
 /** Tipos de factura para el asunto del email. */
 const TIPO_LABEL: Record<string, string> = {
@@ -10,46 +10,56 @@ const TIPO_LABEL: Record<string, string> = {
   TRIAL: 'Período de prueba',
 };
 
+type EmailTransport = 'ses' | 'mailhog' | 'disabled';
+
 /**
- * Servicio de email transaccional vía Mailgun.
- * Si MAILGUN_API_KEY o MAILGUN_DOMAIN no están configurados, los envíos se omiten
- * silenciosamente (no crashea la app).
+ * Servicio de email transaccional vía Nodemailer.
+ * Soporta: AWS SES (producción), MailHog (desarrollo local).
+ *
+ * Variables de entorno:
+ *   EMAIL_TRANSPORT: 'ses' | 'mailhog' | 'disabled'
+ *   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS (para ses)
+ *   EMAIL_FROM, APP_PUBLIC_URL
+ *
+ * Si EMAIL_TRANSPORT=disabled o no configurado, los envíos se omiten silenciosamente.
  */
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private readonly mg: ReturnType<InstanceType<typeof Mailgun>['client']> | null = null;
-  private readonly domain: string;
+  private readonly transporter: Transporter | null = null;
   private readonly from: string;
   private readonly enabled: boolean;
   private readonly appUrl: string;
 
   constructor() {
-    const apiKey = process.env.MAILGUN_API_KEY;
-    const domain = process.env.MAILGUN_DOMAIN;
-    const region = process.env.MAILGUN_REGION; // 'EU' | undefined
-
-    this.domain = domain ?? '';
+    const transport = (process.env.EMAIL_TRANSPORT ?? 'disabled') as EmailTransport;
     this.appUrl = (process.env.APP_PUBLIC_URL ?? 'http://localhost:4200').replace(/\/$/, '');
-    this.from = process.env.EMAIL_FROM ?? `JAC App <noreply@${this.domain}>`;
+    this.from = process.env.EMAIL_FROM ?? 'JAC App <noreply@localhost>';
 
-    if (!apiKey || !domain) {
+    if (transport === 'disabled') {
       this.logger.warn(
-        'Email no configurado (MAILGUN_API_KEY o MAILGUN_DOMAIN ausente). Los emails se omitirán.',
+        'Email deshabilitado (EMAIL_TRANSPORT=disabled o no configurado). Los emails se omitirán.',
       );
       this.enabled = false;
       return;
     }
 
-    const mailgun = new Mailgun(FormData);
-    this.mg = mailgun.client({
-      username: 'api',
-      key: apiKey,
-      ...(region === 'EU' && { url: 'https://api.eu.mailgun.net' }),
-    });
+    const host = process.env.SMTP_HOST ?? 'localhost';
+    const port = parseInt(process.env.SMTP_PORT ?? '1025', 10);
+    const secure = process.env.SMTP_SECURE === 'true';
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+
+    const config = {
+      host,
+      port,
+      secure,
+      auth: user && pass ? { user, pass } : undefined,
+    };
+
+    this.transporter = nodemailer.createTransport(config);
     this.enabled = true;
-    this.logger.log(`Email configurado: ${domain} (${region ?? 'US'})`);
+    this.logger.log(`Email configurado: ${transport} (${host}:${port})`);
   }
 
   /** Envío genérico. No lanza excepción: los errores quedan solo en logs. */
@@ -59,10 +69,10 @@ export class EmailService {
     html: string;
     text?: string;
   }): Promise<void> {
-    if (!this.enabled || !this.mg) return;
+    if (!this.enabled || !this.transporter) return;
 
     try {
-      await this.mg.messages.create(this.domain, {
+      await this.transporter.sendMail({
         from: this.from,
         to: opts.to,
         subject: opts.subject,
@@ -201,6 +211,35 @@ export class EmailService {
           </p>
           <p style="color:#888;font-size:13px">
             Si tienes dudas, contacta al soporte de JAC App.
+          </p>
+        `,
+      }),
+    });
+  }
+
+  /**
+   * Código de recuperación de contraseña. Se envía al email indicado por el usuario.
+   */
+  async enviarCodigoRecuperacion(opts: {
+    to: string;
+    codigo: string;
+    nombreUsuario: string;
+  }): Promise<void> {
+    await this.enviar({
+      to: opts.to,
+      subject: 'Código de recuperación de contraseña – JAC App',
+      html: this.wrapBase({
+        title: 'Recuperación de contraseña',
+        body: `
+          <p>Hola ${opts.nombreUsuario},</p>
+          <p>Has solicitado recuperar tu contraseña en JAC App.</p>
+          <p>Tu código de verificación es:</p>
+          <p style="font-size:24px;font-weight:bold;letter-spacing:8px;color:#1565C0;margin:20px 0">
+            ${opts.codigo}
+          </p>
+          <p>Este código expira en 15 minutos. Si no solicitaste este cambio, ignora este mensaje.</p>
+          <p style="color:#888;font-size:13px">
+            Por seguridad, no compartas este código con nadie.
           </p>
         `,
       }),

@@ -174,7 +174,9 @@ export class UsersService {
       );
     }
 
-    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const passwordInicial =
+      dto.password && dto.password.length >= 6 ? dto.password : dto.numeroDocumento;
+    const passwordHash = await bcrypt.hash(passwordInicial, 10);
     const rolesRaw = dto.roles?.length ? dto.roles : [];
     const roles = rolesRaw.includes(ROL_BASE) ? rolesRaw : [ROL_BASE, ...rolesRaw];
 

@@ -26,3 +26,12 @@
     opacity: 0.7;
   }
 }
+
+/* Anchos específicos para skeleton de pagos (7 columnas) */
+:host .skeleton-table .skeleton-row .skeleton-cell:nth-child(1) { width: 140px; }
+:host .skeleton-table .skeleton-row .skeleton-cell:nth-child(2) { width: 80px; }
+:host .skeleton-table .skeleton-row .skeleton-cell:nth-child(3) { width: 100px; }
+:host .skeleton-table .skeleton-row .skeleton-cell:nth-child(4) { width: 90px; }
+:host .skeleton-table .skeleton-row .skeleton-cell:nth-child(5) { width: 140px; }
+:host .skeleton-table .skeleton-row .skeleton-cell:nth-child(6) { width: 70px; }
+:host .skeleton-table .skeleton-row .skeleton-cell:nth-child(7) { width: 120px; }

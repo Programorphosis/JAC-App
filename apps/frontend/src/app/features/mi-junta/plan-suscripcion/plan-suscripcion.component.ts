@@ -61,6 +61,7 @@ export class PlanSuscripcionComponent implements OnInit {
   loading = true;
   cancelando = false;
   guardandoCancelacion = false;
+  guardandoReactivacion = false;
   motivoCancelacion = '';
 
   ngOnInit(): void {
@@ -283,6 +284,23 @@ export class PlanSuscripcionComponent implements OnInit {
         },
         error: () => {
           this.guardandoCancelacion = false;
+        },
+      });
+  }
+
+  reactivarSuscripcion(): void {
+    this.guardandoReactivacion = true;
+    this.miJunta
+      .reactivarSuscripcion()
+      .pipe(handleApiError(this.snackBar))
+      .subscribe({
+        next: (r) => {
+          this.guardandoReactivacion = false;
+          this.snackBar.open(r.mensaje, 'Cerrar', { duration: 4000 });
+          this.cargar();
+        },
+        error: () => {
+          this.guardandoReactivacion = false;
         },
       });
   }

@@ -4,7 +4,6 @@ import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { DatePipe } from '@angular/common';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UsuariosService, DeudaResult } from '../../usuarios/services/usuarios.service';
 import { CartasService, EstadoGeneralResult, CartaItem } from '../../cartas/services/cartas.service';
@@ -24,7 +23,7 @@ export interface Shortcut {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatIconModule, RouterLink, NgClass, DatePipe],
+  imports: [MatCardModule, MatButtonModule, MatIconModule, RouterLink, NgClass],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -35,6 +34,14 @@ export class DashboardComponent implements OnInit {
   facturasPendientes = signal<number>(0);
   tieneTarifas = signal<boolean | null>(null);
   escudoConfigurado = signal<boolean | null>(null);
+  metricas = signal<{
+    totalUsuarios: number;
+    usuariosActivos: number;
+    totalPagos: number;
+    pagosEsteMes: number;
+    totalCartas: number;
+    cartasAprobadas: number;
+  } | null>(null);
   loading = false;
 
   constructor(
@@ -224,6 +231,15 @@ export class DashboardComponent implements OnInit {
           this.escudoConfigurado.set(j.escudoConfigurado);
         },
       });
+      if (
+        this.auth.can(this.auth.permissions.USUARIOS_VER) ||
+        this.auth.can(this.auth.permissions.PAGOS_VER) ||
+        this.auth.can(this.auth.permissions.CARTAS_VER)
+      ) {
+        this.miJunta.metricas().subscribe({
+          next: (m) => this.metricas.set(m),
+        });
+      }
     }
   }
 

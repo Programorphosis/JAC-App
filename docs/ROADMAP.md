@@ -441,6 +441,10 @@ Fase 12 (Deploy)
 | **Administrador de plataforma** | `PLAN_ADMINISTRADOR_PLATAFORMA.md`, `ROADMAP_ADMINISTRADOR_PLATAFORMA.md` |
 | **Checklist SaaS profesional** | `CHECKLIST_SAAS_PROFESIONAL.md` |
 | **Checklist operación juntas** | `CHECKLIST_OPERACION_JUNTAS.md` |
+| **Análisis pilares arquitectura** | `ANALISIS_PILARES_ARQUITECTURA_SOLUCIONES.md` |
+| **Guía email completa** | `GUIA_EMAIL_COMPLETA.md` |
+| **Configuración SES** | `EMAIL_SES_SETUP.md` |
+| **Paso a paso Lightsail** | `PASO_A_PASO_LIGHTSAIL.md` |
 | **Validación checklist operación** | `VALIDACION_CHECKLIST_OPERACION.md` |
 | **Plan implementación operación** | `PLAN_IMPLEMENTACION_OPERACION.md` |
 | API | `convencionesAPI.md` |

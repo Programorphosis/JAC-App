@@ -40,6 +40,25 @@
     }
   </div>
 
+  @if (loading) {
+    <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0 skeleton-table">
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="skeleton-row">
+          <div class="skeleton-cell"></div>
+          <div class="skeleton-cell"></div>
+          <div class="skeleton-cell"></div>
+          <div class="skeleton-cell"></div>
+          <div class="skeleton-cell"></div>
+        </div>
+      }
+    </div>
+  } @else if (total === 0 && dataSource.data.length === 0) {
+    <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0 empty-state">
+      <mat-icon>people_outline</mat-icon>
+      <p>No hay usuarios en la junta</p>
+      <p class="!text-sm !mt-1">Agrega el primer usuario para comenzar</p>
+    </div>
+  } @else {
   <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
     <div class="table-responsive">
     <table mat-table [dataSource]="dataSource" class="w-full" style="min-width: 600px">
@@ -91,11 +110,7 @@
 
       <tr class="mat-row" *matNoDataRow>
         <td class="mat-cell" [attr.colspan]="displayedColumns.length">
-          @if (loading) {
-            Cargando...
-          } @else {
-            No hay usuarios
-          }
+          No hay usuarios
         </td>
       </tr>
     </table>
@@ -108,6 +123,7 @@
       showFirstLastButtons
     ></mat-paginator>
   </div>
+  }
   </mat-card-content>
   <button mat-raised-button *appCan="auth.permissions.USUARIOS_CREAR" color="primary" (click)="crear()" class="m-2 sm:m-4 mb-4">Nuevo usuario</button>
 </mat-card>

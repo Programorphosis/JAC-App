@@ -27,6 +27,9 @@ import { CrearIntencionPagoDto } from './dto/crear-intencion-pago.dto';
  * Módulo de pagos – efectivo, transferencia y online.
  * Referencia: ROADMAP Fase 5, flujoDePagos.md
  */
+import { ApiTags } from '@nestjs/swagger';
+
+@ApiTags('pagos')
 @Controller('pagos')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
 @Throttle({ default: { limit: 20, ttl: 60_000 } }) // 20 requests/min en endpoints de pago

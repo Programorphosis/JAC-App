@@ -77,6 +77,42 @@
     </div>
   }
 
+  <!-- Checklist de onboarding (solo si falta algo por configurar) -->
+  @if (!auth.isPlatformAdmin() && (tieneTarifas() === false || escudoConfigurado() === false) && (auth.can(auth.permissions.TARIFAS_VER) || auth.can(auth.permissions.JUNTA_CONFIG_WOMPI))) {
+    <div class="mb-6 p-4 rounded-xl bg-jac-surface-alt border border-jac-border">
+      <h3 class="text-sm font-semibold text-jac-text uppercase tracking-wide mb-3">Configuración inicial</h3>
+      <ul class="space-y-2">
+        <li class="flex items-center gap-2">
+          @if (tieneTarifas()) {
+            <mat-icon class="!text-lg !w-5 !h-5 text-jac-success">check_circle</mat-icon>
+            <span class="text-jac-text-secondary">Tarifas configuradas</span>
+          } @else {
+            <mat-icon class="!text-lg !w-5 !h-5 text-jac-warning">radio_button_unchecked</mat-icon>
+            <a routerLink="/tarifas" class="text-jac-primary hover:underline">Configurar tarifas</a>
+            <span class="text-jac-text-muted text-sm">— Requerido para registrar pagos</span>
+          }
+        </li>
+        <li class="flex items-center gap-2">
+          @if (escudoConfigurado()) {
+            <mat-icon class="!text-lg !w-5 !h-5 text-jac-success">check_circle</mat-icon>
+            <span class="text-jac-text-secondary">Escudo municipal subido</span>
+          } @else {
+            <mat-icon class="!text-lg !w-5 !h-5 text-jac-warning">radio_button_unchecked</mat-icon>
+            <a routerLink="/configuracion" class="text-jac-primary hover:underline">Subir escudo municipal</a>
+            <span class="text-jac-text-muted text-sm">— Requerido para expedir cartas</span>
+          }
+        </li>
+        <li class="flex items-center gap-2">
+          <mat-icon class="!text-lg !w-5 !h-5 text-jac-text-muted">info</mat-icon>
+          <span class="text-jac-text-muted text-sm">Opcional: crear requisitos (agua, aseo) en Requisitos</span>
+        </li>
+      </ul>
+      @if (tieneTarifas() && escudoConfigurado()) {
+        <p class="mt-3 text-sm text-jac-success font-medium">¡Configuración completa! La junta está lista para operar.</p>
+      }
+    </div>
+  }
+
   <!-- Banner: configure escudo municipal si no hay -->
   @if (escudoConfigurado() === false) {
     <div class="mb-6 p-4 rounded-xl bg-jac-warning-bg border border-jac-warning-border shadow-sm">
@@ -145,6 +181,36 @@
         </a>
       </div>
     </div>
+  }
+
+  <!-- Métricas (ADMIN, SECRETARIA, TESORERA, FISCAL) -->
+  @if (metricas(); as m) {
+    <section class="mb-8">
+      <h2 class="text-lg font-semibold text-jac-text mb-4">Resumen de la junta</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <mat-card class="!p-4 border border-jac-border-subtle">
+          <mat-card-content class="!p-0">
+            <p class="text-sm text-jac-text-muted">Usuarios activos</p>
+            <p class="text-2xl font-bold text-jac-text">{{ m.usuariosActivos }}</p>
+            <p class="text-xs text-jac-text-muted">de {{ m.totalUsuarios }} total</p>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="!p-4 border border-jac-border-subtle">
+          <mat-card-content class="!p-0">
+            <p class="text-sm text-jac-text-muted">Pagos este mes</p>
+            <p class="text-2xl font-bold text-jac-text">{{ m.pagosEsteMes }}</p>
+            <p class="text-xs text-jac-text-muted">{{ m.totalPagos }} total</p>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="!p-4 border border-jac-border-subtle">
+          <mat-card-content class="!p-0">
+            <p class="text-sm text-jac-text-muted">Cartas emitidas</p>
+            <p class="text-2xl font-bold text-jac-text">{{ m.cartasAprobadas }}</p>
+            <p class="text-xs text-jac-text-muted">{{ m.totalCartas }} solicitudes</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </section>
   }
 
   <!-- Accesos directos -->

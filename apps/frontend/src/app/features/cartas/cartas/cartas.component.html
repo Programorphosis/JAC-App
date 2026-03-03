@@ -2,6 +2,24 @@
   <h2>Cartas pendientes</h2>
   <p>Cartas solicitadas que requieren validación (deuda=0, requisitos al día, pago carta).</p>
 
+  @if (loading) {
+    <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0 skeleton-table">
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="skeleton-row">
+          <div class="skeleton-cell"></div>
+          <div class="skeleton-cell"></div>
+          <div class="skeleton-cell"></div>
+          <div class="skeleton-cell"></div>
+        </div>
+      }
+    </div>
+  } @else if (dataSource.data.length === 0) {
+    <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0 empty-state">
+      <mat-icon>mail_outline</mat-icon>
+      <p>No hay cartas pendientes</p>
+      <p class="!text-sm !mt-1">Las solicitudes de cartas aparecerán aquí cuando estén listas para validar</p>
+    </div>
+  } @else {
   <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
     <div class="table-responsive">
     <table mat-table [dataSource]="dataSource" class="w-full" style="min-width: 500px">
@@ -32,14 +50,11 @@
 
       <tr class="mat-row" *matNoDataRow>
         <td class="mat-cell" [attr.colspan]="displayedColumns.length">
-          @if (loading) {
-            Cargando...
-          } @else {
-            No hay cartas pendientes
-          }
+          No hay cartas pendientes
         </td>
       </tr>
     </table>
     </div>
   </div>
+  }
 </div>

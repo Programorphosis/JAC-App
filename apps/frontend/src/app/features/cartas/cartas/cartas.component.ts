@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
@@ -18,7 +19,7 @@ import { AppCanDirective } from '../../../core/auth/app-can.directive';
 @Component({
   selector: 'app-cartas',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatTableModule, FormatearFechaPipe, AppCanDirective],
+  imports: [MatCardModule, MatButtonModule, MatIconModule, MatTableModule, FormatearFechaPipe, AppCanDirective],
   templateUrl: './cartas.component.html',
   styleUrl: './cartas.component.scss',
 })

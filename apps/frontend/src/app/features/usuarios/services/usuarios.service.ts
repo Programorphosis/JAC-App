@@ -29,7 +29,8 @@ export interface CreateUserBody {
   telefono?: string;
   direccion?: string;
   lugarExpedicion?: string;
-  password: string;
+  /** Si no se envía, se usa numeroDocumento como contraseña inicial. */
+  password?: string;
   roles?: string[];
   /** Estado laboral inicial. Por defecto NO_TRABAJANDO. */
   estadoLaboralInicial?: 'TRABAJANDO' | 'NO_TRABAJANDO';

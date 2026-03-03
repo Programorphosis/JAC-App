@@ -78,7 +78,7 @@ export class UsuarioFormComponent implements OnInit {
       direccion: [''],
       departamentoLugarExpedicion: [''],
       ciudadLugarExpedicion: [''],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.minLength(6)]], // opcional: si vacío, backend usa cédula
       rolesOperativos: [[] as string[]],
       estadoLaboralInicial: ['NO_TRABAJANDO'],
       activo: [true],
@@ -167,7 +167,7 @@ export class UsuarioFormComponent implements OnInit {
         telefono: v.telefono || undefined,
         direccion: v.direccion || undefined,
         lugarExpedicion: lugarExpedicion || undefined,
-        password: v.password,
+        password: v.password?.trim() || undefined,
         roles: [ROL_BASE, ...(Array.isArray(v.rolesOperativos) ? v.rolesOperativos : [])],
         estadoLaboralInicial: v.estadoLaboralInicial || 'NO_TRABAJANDO',
         fechaAfiliacion: this.formatFechaAfiliacion(v.fechaAfiliacion) ?? undefined,

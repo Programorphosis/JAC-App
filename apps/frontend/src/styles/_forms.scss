@@ -44,6 +44,19 @@
   line-height: 1.5;
 }
 
+// Banner de éxito (ej. tras recuperar contraseña).
+.form-success-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  color: #2e7d32;
+  font-size: 0.875rem;
+}
+
 // Dentro de .form-panel los campos son siempre full-width.
 .form-panel mat-form-field {
   width: 100%;

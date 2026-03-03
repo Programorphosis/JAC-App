@@ -1,0 +1,27 @@
+# ──────────────────────────────────────────────────────────────────────────
+# MailHog — Servidor SMTP local para desarrollo
+#
+# USO (desarrollo local):
+#   docker compose -f docker-compose.mailhog.yml up -d
+#
+# Luego en apps/backend/.env:
+#   EMAIL_TRANSPORT=mailhog
+#   SMTP_HOST=localhost
+#   SMTP_PORT=1025
+#
+# Ver correos en: http://localhost:8025
+# ──────────────────────────────────────────────────────────────────────────
+
+services:
+  mailhog:
+    image: mailhog/mailhog
+    container_name: jac-mailhog
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    networks:
+      - mailhog-net
+
+networks:
+  mailhog-net:
+    driver: bridge

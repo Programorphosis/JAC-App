@@ -90,6 +90,10 @@
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Contraseña</mat-label>
           <input matInput type="password" formControlName="password" />
+          <mat-hint>Dejar vacío para usar la cédula como contraseña inicial (el usuario deberá cambiarla)</mat-hint>
+          @if (form.get('password')?.hasError('minlength') && form.get('password')?.value) {
+            <mat-error>Mínimo 6 caracteres</mat-error>
+          }
         </mat-form-field>
         <mat-checkbox formControlName="autorizoTratamientoDatos" class="mb-2">
           Confirmo que el titular ha autorizado el tratamiento de sus datos personales conforme a la <a routerLink="/legal/privacidad" target="_blank" class="text-jac-primary underline">política de privacidad</a>

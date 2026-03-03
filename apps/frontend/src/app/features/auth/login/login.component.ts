@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -33,10 +33,13 @@ export class LoginComponent implements OnInit {
   loading = false;
   error = '';
 
+  mensajeExito = '';
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly auth: AuthService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly route: ActivatedRoute
   ) {
     this.form = this.fb.group({
       tipoDocumento: ['CC', Validators.required],
@@ -47,8 +50,14 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.mensajeExito = this.route.snapshot.queryParamMap.get('mensaje') ?? '';
     if (this.auth.isAuthenticated()) {
-      this.router.navigate([this.auth.isPlatformAdmin() ? '/platform' : '/']);
+      const user = this.auth.currentUser();
+      if (user?.requiereCambioPassword) {
+        this.router.navigate(['/cambiar-password']);
+      } else {
+        this.router.navigate([this.auth.isPlatformAdmin() ? '/platform' : '/']);
+      }
     }
   }
 
@@ -68,7 +77,10 @@ export class LoginComponent implements OnInit {
       .subscribe({
         next: () => {
           this.loading = false;
-          if (this.auth.isPlatformAdmin()) {
+          const user = this.auth.currentUser();
+          if (user?.requiereCambioPassword) {
+            this.router.navigate(['/cambiar-password']);
+          } else if (this.auth.isPlatformAdmin()) {
             this.router.navigate(['/platform']);
           } else {
             this.router.navigate(['/']);

@@ -52,6 +52,17 @@
             Acceso Platform Admin
           </mat-checkbox>
 
+          <a routerLink="/recuperar-contrasena" class="text-sm text-primary self-end">
+            Olvidé mi contraseña
+          </a>
+
+          @if (mensajeExito) {
+            <div class="form-success-banner" role="status">
+              <mat-icon class="!text-base !w-5 !h-5 shrink-0">check_circle</mat-icon>
+              <span>{{ mensajeExito }}</span>
+            </div>
+          }
+
           @if (error) {
             <div class="form-error-banner" role="alert">
               <mat-icon class="!text-base !w-5 !h-5 shrink-0">error_outline</mat-icon>

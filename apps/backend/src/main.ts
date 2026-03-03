@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger, LoggerService } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
@@ -74,6 +75,21 @@ async function bootstrap() {
     origin: process.env.CORS_ORIGIN || 'http://localhost:4200',
     credentials: true,
   });
+
+  // Swagger — documentación de API (solo en desarrollo o si SWAGGER_ENABLED=true)
+  const swaggerEnabled =
+    process.env.NODE_ENV !== 'production' || process.env.SWAGGER_ENABLED === 'true';
+  if (swaggerEnabled) {
+    const config = new DocumentBuilder()
+      .setTitle('JAC App API')
+      .setDescription('API para Juntas de Acción Comunal en Colombia')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+    logger.log('Swagger disponible en /api/docs');
+  }
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);

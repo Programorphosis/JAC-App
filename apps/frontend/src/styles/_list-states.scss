@@ -1,0 +1,69 @@
+// =============================================================================
+// Estados de listados: skeleton de carga y empty state
+// Uso: clases .skeleton-table y .empty-state en tablas/cards de listados
+// =============================================================================
+
+.skeleton-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+
+  .skeleton-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--jac-border-subtle);
+
+    .skeleton-cell {
+      height: 16px;
+      border-radius: 4px;
+      background: linear-gradient(
+        90deg,
+        var(--jac-surface-alt) 25%,
+        var(--jac-surface-raised) 50%,
+        var(--jac-surface-alt) 75%
+      );
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.2s ease-in-out infinite;
+    }
+
+    // Anchos por defecto (5 columnas). Los componentes pueden sobrescribir con :host.
+    .skeleton-cell:nth-child(1) { width: 120px; }
+    .skeleton-cell:nth-child(2) { width: 180px; }
+    .skeleton-cell:nth-child(3) { width: 140px; }
+    .skeleton-cell:nth-child(4) { width: 80px; }
+    .skeleton-cell:nth-child(5) { width: 48px; }
+    .skeleton-cell:nth-child(6) { width: 70px; }
+    .skeleton-cell:nth-child(7) { width: 120px; }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--jac-text-secondary);
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    opacity: 0.5;
+    margin-bottom: 16px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

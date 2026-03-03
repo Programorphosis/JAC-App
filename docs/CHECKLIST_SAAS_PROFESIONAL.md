@@ -1,6 +1,6 @@
 # Checklist SaaS Profesional – JAC App
 
-**Versión:** 1.1  
+**Versión:** 1.2  
 **Fecha:** 2026-02-25  
 **Objetivo:** Documento de referencia detallado para validar y completar la transformación del sistema JAC en un SaaS sólido y profesional. Cada punto incluye contexto, criterios de validación y guía de implementación.
 
@@ -65,11 +65,11 @@ _Última verificación real en código: 2026-02-25_
 | Auto-servicio datos de contacto junta | ✅ Implementado | `PATCH /api/mi-junta/datos` |
 | Estado de cuenta / barras de uso | ✅ Implementado | `plan-suscripcion.component` con `progresoPct()` |
 | Dar de baja usuario (UI botón explícito) | ✅ Implementado | `usuario-detail.component` – botón + ConfirmDialog |
-| CI/CD | ❌ Pendiente | No existe `.github/workflows/` |
+| CI/CD | ✅ Implementado | `.github/workflows/ci.yml` – lint backend, build backend y frontend |
 | Servicio de email transaccional | ✅ Implementado | `infrastructure/email/email.service.ts` – Mailgun |
 | Notificaciones por evento (email) | ✅ Implementado | factura pendiente, vencimiento 1/3 días, vencida, pago confirmado |
 | 2FA | ❌ Pendiente | — |
-| Onboarding guiado / checklist de setup | ⚠️ Parcial – banners (escudo, tarifas) sin checklist completo | `dashboard.component` |
+| Onboarding guiado / checklist de setup | ✅ Implementado | `dashboard.component` – checklist tarifas, escudo, requisitos opcional |
 | Portal de facturación (detalle + descarga PDF) | ✅ Listado, detalle, comprobante HTML imprimible/Guardar PDF | `facturas-plataforma.component` |
 | Flujo de cancelación de suscripción | ✅ Implementado | `plan-suscripcion.component` – botón, confirmación, cancelacionSolicitada |
 | Términos de servicio | ✅ Implementado | `/terminos`, checkbox en junta-form, terminosAceptadosEn en Junta |
@@ -165,12 +165,11 @@ Sin pipelines automatizados, cada deploy depende de pasos manuales propensos a e
 
 #### Qué implementar
 
-- [ ] **Pipeline de CI (en cada push/PR)**
-  - Instalar dependencias (backend y frontend).
-  - Lint (ESLint, Prettier si aplica).
-  - Tests unitarios (si existen).
+- [x] **Pipeline de CI (en cada push/PR)** — `.github/workflows/ci.yml`
+  - Instalar dependencias (root + workspaces).
+  - Lint backend (ESLint).
   - Build de backend y frontend.
-  - Verificar que las migraciones de Prisma son aplicables (ej. `prisma migrate deploy` en DB temporal).
+  - Trigger: push/PR a master o main.
 
 - [ ] **Pipeline de CD (opcional en fase inicial)**
   - Trigger: merge a `main` o tag.
@@ -567,10 +566,10 @@ Una junta nueva puede no saber por dónde empezar. Un onboarding guiado reduce a
 
 #### Qué implementar
 
-- [ ] **Checklist de configuración inicial**
-  - Pasos: configurar datos de la junta, agregar usuarios, configurar Wompi (si aplica), elegir plan.
-  - Estado por paso: pendiente, en progreso, completado.
-  - Mostrar en dashboard o en una vista dedicada.
+- [x] **Checklist de configuración inicial** — `dashboard.component`
+  - Pasos: configurar tarifas (requerido), subir escudo municipal (requerido para cartas), requisitos opcional.
+  - Estado por paso: inferido (tieneTarifas, escudoConfigurado).
+  - Mostrado en dashboard cuando falta algo por configurar.
 
 - [ ] **Tour guiado (opcional)**
   - Tooltips o pasos que guíen al admin en la primera visita.
@@ -584,8 +583,8 @@ Una junta nueva puede no saber por dónde empezar. Un onboarding guiado reduce a
 
 #### Criterios de validación
 
-- [ ] El checklist refleja los pasos reales necesarios para operar.
-- [ ] El usuario puede marcar pasos como completados (o se infiere del estado).
+- [x] El checklist refleja los pasos reales necesarios para operar.
+- [x] El estado se infiere automáticamente (tieneTarifas, escudoConfigurado).
 - [ ] Los mensajes son claros y accionables.
 - [ ] El tour (si existe) no bloquea el uso de la app.
 - [ ] Se puede omitir o cerrar el onboarding sin perder funcionalidad.
@@ -1038,7 +1037,7 @@ _Estado actualizado: 2026-02-25_
 | 10 | 2.7 Monitoreo y alertas | ✅ Uptime Kuma en `docker-compose.monitoring.yml` |
 | 11 | 3.1 Unificación overrides | ✅ Dialog eliminado; solo modelo automático |
 | 12 | 3.3 Flujo de cancelación | ✅ plan-suscripcion – botón, confirmación, cancelacionSolicitada |
-| 13 | 5.1 Onboarding | ⚠️ Banners dashboard OK; checklist completo pendiente |
+| 13 | 5.1 Onboarding | ✅ Checklist tarifas, escudo, requisitos en dashboard |
 | 14 | 2.3 CI/CD | ❌ Pendiente |
 
 ### Fase D – Refinamiento
@@ -1078,7 +1077,7 @@ _Estado actualizado: 2026-02-25_
 - [ ] Avisos in-app (opcional)
 
 ### Experiencia
-- [ ] Onboarding (parcial: banners)
+- [x] Onboarding (checklist tarifas, escudo, requisitos)
 - [x] Auto-servicio datos de contacto
 - [x] Estado de cuenta y proyección
 

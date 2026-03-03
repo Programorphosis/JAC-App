@@ -7,6 +7,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { TarifasService } from './tarifas.service';
 import { CreateTarifaDto } from './dto/create-tarifa.dto';
@@ -16,6 +17,7 @@ import { RolNombre } from '@prisma/client';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { JwtUser } from '../../auth/strategies/jwt.strategy';
 
+@ApiTags('tarifas')
 @Controller('tarifas')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
 export class TarifasController {

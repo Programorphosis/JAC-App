@@ -3,8 +3,9 @@ import { EmailService } from './email.service';
 
 /**
  * Global para que EmailService esté disponible sin importar en cada módulo.
- * Configuración vía variables de entorno: MAILGUN_API_KEY, MAILGUN_DOMAIN,
- * EMAIL_FROM, MAILGUN_REGION, APP_PUBLIC_URL.
+ * Configuración vía variables de entorno: EMAIL_TRANSPORT, SMTP_HOST, SMTP_PORT,
+ * SMTP_USER, SMTP_PASS, EMAIL_FROM, APP_PUBLIC_URL.
+ * Ver docs/EMAIL_SES_SETUP.md para configuración de AWS SES.
  */
 @Global()
 @Module({

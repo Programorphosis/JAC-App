@@ -26,9 +26,11 @@ export class CreateUserDto {
   @IsString()
   lugarExpedicion?: string;
 
+  /** Si no se envía, se usa numeroDocumento como contraseña inicial (usuario debe cambiarla en primer login). */
+  @IsOptional()
   @IsString()
   @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
-  password: string;
+  password?: string;
 
   @IsOptional()
   @IsArray()

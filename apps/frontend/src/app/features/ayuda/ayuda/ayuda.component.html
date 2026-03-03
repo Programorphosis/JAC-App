@@ -1,18 +1,80 @@
-<div class="flex flex-col gap-4">
-  <h2>Ayuda</h2>
+<div class="max-w-4xl mx-auto flex flex-col gap-6">
+  <header>
+    <h1 class="text-2xl font-bold text-jac-text">Centro de ayuda</h1>
+    <p class="text-jac-text-secondary mt-1">Guías y referencia para usar el sistema</p>
+  </header>
 
   <mat-card>
     <mat-card-header>
-      <div mat-card-avatar class="flex items-center justify-center">
-        <mat-icon>help_outline</mat-icon>
+      <div mat-card-avatar class="flex items-center justify-center w-10 h-10 rounded-full bg-jac-primary-light">
+        <mat-icon class="text-jac-primary">groups</mat-icon>
       </div>
-      <mat-card-title>Centro de ayuda</mat-card-title>
-      <mat-card-subtitle>En desarrollo</mat-card-subtitle>
+      <mat-card-title>¿Qué hace cada rol?</mat-card-title>
+      <mat-card-subtitle>Referencia rápida de permisos por rol</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content class="space-y-6">
+      <section>
+        <h3 class="font-semibold text-jac-text mb-2">ADMIN</h3>
+        <p class="text-jac-text-secondary text-sm">
+          Configuración general de la junta. Crea y edita usuarios, asigna roles, configura requisitos (obligación activa/exenta).
+          No realiza operaciones diarias como registrar pagos o validar cartas.
+        </p>
+      </section>
+      <section>
+        <h3 class="font-semibold text-jac-text mb-2">SECRETARIA</h3>
+        <p class="text-jac-text-secondary text-sm">
+          Gestión de cartas laborales: valida solicitudes, aprueba o rechaza. Edita datos básicos de usuarios.
+          Puede pagar online su propia deuda y carta. Ve y gestiona cartas de todos los afiliados.
+        </p>
+      </section>
+      <section>
+        <h3 class="font-semibold text-jac-text mb-2">TESORERA</h3>
+        <p class="text-jac-text-secondary text-sm">
+          Registra pagos en efectivo y transferencia (cuota junta y cartas). Gestiona historial laboral y documentos.
+          Configura tarifas. Puede crear enlaces de pago online para otros usuarios. Ve el dashboard contable.
+        </p>
+      </section>
+      <section>
+        <h3 class="font-semibold text-jac-text mb-2">FISCAL</h3>
+        <p class="text-jac-text-secondary text-sm">
+          Control y vigilancia: solo lectura. Ve pagos, auditorías, usuarios, cartas, requisitos, tarifas y documentos.
+          No puede modificar datos.
+        </p>
+      </section>
+      <section>
+        <h3 class="font-semibold text-jac-text mb-2">RECEPTOR_AGUA (modificador)</h3>
+        <p class="text-jac-text-secondary text-sm">
+          Cambia el estado (AL_DÍA / MORA) de los requisitos que tiene asignados (ej. servicio de agua).
+          Solo los requisitos donde está designado como modificador.
+        </p>
+      </section>
+      <section>
+        <h3 class="font-semibold text-jac-text mb-2">AFILIADO</h3>
+        <p class="text-jac-text-secondary text-sm">
+          Autogestión: consulta su deuda, paga online, solicita cartas, sube documentos propios.
+          Ve solo su información.
+        </p>
+      </section>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <div mat-card-avatar class="flex items-center justify-center w-10 h-10 rounded-full bg-jac-surface-raised">
+        <mat-icon>description</mat-icon>
+      </div>
+      <mat-card-title>Documentos legales</mat-card-title>
+      <mat-card-subtitle>Términos, privacidad y cancelación</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
-      <p class="text-jac-text-muted">
-        Aquí encontrarás guías, preguntas frecuentes y la opción de dejar quejas o reclamos.
+      <p class="text-jac-text-secondary text-sm mb-4">
+        Consulta los documentos legales de la plataforma:
       </p>
+      <div class="flex flex-wrap gap-2">
+        <a mat-stroked-button routerLink="/legal/terminos" target="_blank">Términos de servicio</a>
+        <a mat-stroked-button routerLink="/legal/privacidad" target="_blank">Política de privacidad</a>
+        <a mat-stroked-button routerLink="/legal/cancelacion" target="_blank">Política de cancelación</a>
+      </div>
     </mat-card-content>
   </mat-card>
 </div>

@@ -29,6 +29,8 @@ export interface AuthUser {
   requisitoTipoId?: string | null;
   /** PA-8: true cuando platform admin está viendo como junta (solo lectura). */
   impersonando?: boolean;
+  /** true = debe cambiar contraseña en primer login (y registrar email). */
+  requiereCambioPassword?: boolean;
 }
 
 export interface LoginRequest {
@@ -241,6 +243,54 @@ export class AuthService {
         tap((res) => this.handleAuthSuccess(res.data)),
         map((res) => res.data)
       );
+  }
+
+  /** Actualiza requiereCambioPassword en el usuario almacenado (tras cambiar contraseña). */
+  marcarPasswordCambiada(): void {
+    const u = this.userSignal();
+    if (u) {
+      const updated = { ...u, requiereCambioPassword: false };
+      sessionStorage.setItem(STORAGE_USER, JSON.stringify(updated));
+      this.userSignal.set(updated);
+    }
+  }
+
+  /** Cambiar contraseña (autenticado). */
+  cambiarPassword(dto: {
+    passwordActual: string;
+    passwordNueva: string;
+    email?: string;
+  }): Observable<{ requiereCambioPassword: boolean }> {
+    return this.http
+      .patch<{ data: { requiereCambioPassword: boolean } }>(
+        `${environment.apiUrl}/auth/cambiar-password`,
+        dto
+      )
+      .pipe(map((res) => res.data));
+  }
+
+  /** Solicitar código de recuperación al email. */
+  solicitarCodigoRecuperacion(email: string): Observable<{ enviado: boolean }> {
+    return this.http
+      .post<{ data: { enviado: boolean } }>(
+        `${environment.apiUrl}/auth/olvide-contrasena`,
+        { email }
+      )
+      .pipe(map((res) => res.data));
+  }
+
+  /** Verificar código y establecer nueva contraseña. */
+  verificarCodigoRecuperacion(dto: {
+    email: string;
+    codigo: string;
+    passwordNueva: string;
+  }): Observable<void> {
+    return this.http
+      .post<{ data: { ok: boolean } }>(
+        `${environment.apiUrl}/auth/olvide-contrasena/verificar`,
+        dto
+      )
+      .pipe(map(() => undefined));
   }
 
   private handleAuthSuccess(result: AuthResult): void {

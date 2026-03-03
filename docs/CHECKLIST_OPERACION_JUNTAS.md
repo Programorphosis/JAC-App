@@ -49,9 +49,11 @@ Este documento cubre la **operación interna de cada junta**: lo que hacen ADMIN
 | Requisitos | ✅ CRUD, modificador, corte día 1 | `flujoRequisitosAdicionales.md` |
 | Documentos | ✅ Subida S3, descarga, límites | `flujoDocumentos.md` |
 | Historial laboral | ✅ Crear, cerrar vigente | `definicionDomainServices.md` |
-| Reportes junta | ✅ Dashboard contable, filtros pagos | `ROL_TESORERA_FRONTEND.md` |
+| Reportes junta | ✅ Dashboard contable, métricas (usuarios, pagos, cartas) | `ROL_TESORERA_FRONTEND.md` |
 | Cron operativos | ✅ Requisitos, Wompi | `consecutivosYCronJobs.md` |
 | Rol FISCAL | ✅ Implementado (solo lectura) | `DISENO_ROL_FISCAL.md` |
+| Guía de roles | ✅ Ayuda → ¿Qué hace cada rol? | `ayuda.component`, `MATRIZ_PERMISOS_ROLES.md` |
+| Seed demo | ✅ 15 afiliados, tarifas, pagos, cartas | `prisma/seed-dev.ts`, `SETUP.md` |
 
 ---
 

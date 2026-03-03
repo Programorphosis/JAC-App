@@ -1,0 +1,115 @@
+<div class="recuperar-page">
+  <div class="recuperar-container">
+    <mat-card class="recuperar-card">
+      <mat-card-header>
+        <mat-card-title>Recuperar contraseña</mat-card-title>
+        <mat-card-subtitle>
+          @if (step === 1) {
+            Ingresa el correo electrónico que registraste al cambiar tu contraseña por primera vez.
+            Te enviaremos un código de 6 dígitos.
+          } @else {
+            Revisa tu correo. Ingresa el código de 6 dígitos y tu nueva contraseña.
+          }
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        @if (step === 1) {
+          <form [formGroup]="formPaso1" (ngSubmit)="onSubmitPaso1()" class="flex flex-col gap-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Correo electrónico</mat-label>
+              <mat-icon matPrefix>email</mat-icon>
+              <input matInput formControlName="email" type="email" placeholder="ejemplo@correo.com" />
+              @if (formPaso1.get('email')?.hasError('required')) {
+                <mat-error>Requerido</mat-error>
+              }
+              @if (formPaso1.get('email')?.hasError('email')) {
+                <mat-error>Correo no válido</mat-error>
+              }
+            </mat-form-field>
+
+            @if (error) {
+              <div class="form-error-banner" role="alert">
+                <mat-icon class="!text-base !w-5 !h-5 shrink-0">error_outline</mat-icon>
+                <span>{{ error }}</span>
+              </div>
+            }
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              class="w-full"
+              [disabled]="loading || formPaso1.invalid"
+            >
+              {{ loading ? 'Enviando...' : 'Enviar código' }}
+            </button>
+          </form>
+        } @else {
+          <form [formGroup]="formPaso2" (ngSubmit)="onSubmitPaso2()" class="flex flex-col gap-4">
+            <p class="text-sm text-gray-600">
+              Código enviado a <strong>{{ emailEnviado }}</strong>
+              <button type="button" mat-button color="primary" (click)="volverPaso1()">
+                Cambiar
+              </button>
+            </p>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Código de 6 dígitos</mat-label>
+              <mat-icon matPrefix>pin</mat-icon>
+              <input matInput formControlName="codigo" type="text" maxlength="6" placeholder="000000" />
+              @if (formPaso2.get('codigo')?.hasError('required')) {
+                <mat-error>Requerido</mat-error>
+              }
+              @if (formPaso2.get('codigo')?.hasError('minlength') || formPaso2.get('codigo')?.hasError('maxlength')) {
+                <mat-error>Debe tener 6 dígitos</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Nueva contraseña</mat-label>
+              <mat-icon matPrefix>lock_open</mat-icon>
+              <input matInput formControlName="passwordNueva" type="password" autocomplete="new-password" />
+              @if (formPaso2.get('passwordNueva')?.hasError('required')) {
+                <mat-error>Requerida</mat-error>
+              }
+              @if (formPaso2.get('passwordNueva')?.hasError('minlength')) {
+                <mat-error>Mínimo 6 caracteres</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Confirmar nueva contraseña</mat-label>
+              <mat-icon matPrefix>lock_open</mat-icon>
+              <input matInput formControlName="passwordNuevaConfirmar" type="password" autocomplete="new-password" />
+              @if (formPaso2.get('passwordNuevaConfirmar')?.hasError('mismatch')) {
+                <mat-error>Las contraseñas no coinciden</mat-error>
+              }
+            </mat-form-field>
+
+            @if (error) {
+              <div class="form-error-banner" role="alert">
+                <mat-icon class="!text-base !w-5 !h-5 shrink-0">error_outline</mat-icon>
+                <span>{{ error }}</span>
+              </div>
+            }
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              class="w-full"
+              [disabled]="loading || formPaso2.invalid"
+            >
+              {{ loading ? 'Verificando...' : 'Restablecer contraseña' }}
+            </button>
+          </form>
+        }
+
+        <div class="mt-4 text-center">
+          <a routerLink="/login" class="text-primary">Volver al inicio de sesión</a>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

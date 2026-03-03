@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
+import { requireCambioPasswordGuard } from './core/auth/require-cambio-password.guard';
 import { platformAdminGuard } from './core/auth/platform-admin.guard';
 import {
   pagosGuard,
@@ -16,6 +17,8 @@ import {
 
 export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/auth/login/login.component').then((m) => m.LoginComponent) },
+  { path: 'recuperar-contrasena', loadComponent: () => import('./features/auth/recuperar-contrasena/recuperar-contrasena.component').then((m) => m.RecuperarContrasenaComponent) },
+  { path: 'cambiar-password', canActivate: [authGuard], loadComponent: () => import('./features/auth/cambiar-password/cambiar-password.component').then((m) => m.CambiarPasswordComponent) },
   {
     path: 'legal',
     loadComponent: () => import('./features/legal/legal-layout/legal-layout.component').then((m) => m.LegalLayoutComponent),
@@ -30,7 +33,7 @@ export const routes: Routes = [
   { path: 'privacidad', redirectTo: 'legal/privacidad', pathMatch: 'full' },
   {
     path: '',
-    canActivate: [authGuard],
+    canActivate: [authGuard, requireCambioPasswordGuard],
     loadComponent: () => import('./core/layout/layout/layout.component').then((m) => m.LayoutComponent),
     children: [
       {

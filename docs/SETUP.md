@@ -66,6 +66,8 @@ DATABASE_URL=postgresql://jac_user:jac_password_dev@localhost:5432/jac_db_dev?sc
 
 Prisma lee `DATABASE_URL` automáticamente desde `apps/backend/.env`.
 
+**Email (recuperación de contraseña, facturas, etc.):** Ver `docs/GUIA_EMAIL_COMPLETA.md`. En local puedes usar MailHog (`docker compose -f docker-compose.mailhog.yml up -d`) para ver los correos en http://localhost:8025, o `EMAIL_TRANSPORT=disabled` para no enviar nada.
+
 ### Frontend
 
 **Stack:** Angular (ver `ARQUITECTURA_FRONTEND_ANGULAR.md`).
@@ -138,10 +140,15 @@ npm run dev:frontend
 
 ## 8. Credenciales de prueba (tras el seed)
 
+Ver **`docs/CREDENCIALES_DEMO.md`** para la tabla completa.
+
 | Rol | Documento | Contraseña |
 |-----|-----------|------------|
 | Admin Junta | 12345678 | DevAdmin123! |
 | Platform Admin | 00000000 | DevPlatform123! |
+| Secretaria (demo) | 1001014 | Demo123! |
+| Tesorera (demo) | 1001015 | Demo123! |
+| Afiliados demo | 1001001–1001013 | Demo123! |
 
 Login: `POST http://localhost:3000/api/auth/login`
 

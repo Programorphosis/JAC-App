@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   HttpCode,
   HttpStatus,
@@ -9,12 +10,19 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { CambiarPasswordDto } from './dto/cambiar-password.dto';
+import {
+  OlvideContrasenaDto,
+  VerificarCodigoRecuperacionDto,
+} from './dto/olvide-contrasena.dto';
 import { JwtUser } from './strategies/jwt.strategy';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
@@ -48,5 +56,32 @@ export class AuthController {
       data: result,
       meta: { timestamp: new Date().toISOString() },
     };
+  }
+
+  @Patch('cambiar-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard('jwt'))
+  async cambiarPassword(
+    @Request() req: { user: JwtUser },
+    @Body() body: CambiarPasswordDto,
+  ) {
+    const result = await this.auth.cambiarPassword(req.user.id, body);
+    return { data: result };
+  }
+
+  @Post('olvide-contrasena')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 3, ttl: 60_000 } }) // 3 por minuto (evitar abuso)
+  async olvideContrasena(@Body() body: OlvideContrasenaDto) {
+    const result = await this.auth.solicitarCodigoRecuperacion(body);
+    return { data: result };
+  }
+
+  @Post('olvide-contrasena/verificar')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  async verificarCodigoRecuperacion(@Body() body: VerificarCodigoRecuperacionDto) {
+    await this.auth.verificarCodigoYRecuperar(body);
+    return { data: { ok: true } };
   }
 }

@@ -237,9 +237,15 @@
             </a>
             @if (auth.can(auth.permissions.JUNTA_DATOS_EDITAR)) {
               @if (junta.suscripcion.cancelacionSolicitada) {
-                <div class="text-xs text-jac-warning bg-jac-warning-bg border border-jac-warning-border rounded px-3 py-2 flex items-center gap-1.5">
-                  <mat-icon class="!text-base !w-4 !h-4">schedule</mat-icon>
-                  Cancelación solicitada — acceso hasta {{ junta.suscripcion.fechaVencimiento | formatearFecha }}
+                <div class="flex flex-wrap items-center gap-2">
+                  <div class="text-xs text-jac-warning bg-jac-warning-bg border border-jac-warning-border rounded px-3 py-2 flex items-center gap-1.5">
+                    <mat-icon class="!text-base !w-4 !h-4">schedule</mat-icon>
+                    Cancelación solicitada — acceso hasta {{ junta.suscripcion.fechaVencimiento | formatearFecha }}
+                  </div>
+                  <button mat-raised-button color="primary" (click)="reactivarSuscripcion()" [disabled]="guardandoReactivacion">
+                    <mat-icon>refresh</mat-icon>
+                    {{ guardandoReactivacion ? 'Reactivando...' : 'Reactivar suscripción' }}
+                  </button>
                 </div>
               } @else {
                 <button mat-stroked-button color="warn" (click)="abrirCancelarSuscripcion()" [disabled]="cancelando">

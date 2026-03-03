@@ -1,0 +1,5 @@
+/* Anchos específicos para skeleton de cartas (4 columnas) */
+:host .skeleton-table .skeleton-row .skeleton-cell:nth-child(1) { width: 180px; }
+:host .skeleton-table .skeleton-row .skeleton-cell:nth-child(2) { width: 120px; }
+:host .skeleton-table .skeleton-row .skeleton-cell:nth-child(3) { width: 140px; }
+:host .skeleton-table .skeleton-row .skeleton-cell:nth-child(4) { width: 120px; }

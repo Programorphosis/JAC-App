@@ -31,7 +31,9 @@ import { LimitesService } from '../../infrastructure/limits/limites.service';
 import { BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UsuarioNoEncontradoError } from '../../domain/errors';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('cartas')
 @Controller('cartas')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
 export class CartasController {

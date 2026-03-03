@@ -5,12 +5,14 @@ import {
   Patch,
   Delete,
   Body,
+  Query,
   UseGuards,
   Request,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { AuthGuard } from '@nestjs/passport';
@@ -36,6 +38,7 @@ import type { MulterFile } from '../documentos/types';
  * PATCH /api/mi-junta/suscripcion – actualizar plan/overrides (solo TESORERA).
  * Requiere juntaId en JWT (usuarios de junta, no platform admin sin impersonar).
  */
+@ApiTags('mi-junta')
 @Controller('mi-junta')
 @UseGuards(AuthGuard('jwt'), JuntaGuard)
 export class MiJuntaController {
@@ -51,6 +54,28 @@ export class MiJuntaController {
   async consumo(@Request() req: { user: JwtUser }) {
     const juntaId = req.user.juntaId!;
     return this.miJunta.consumo(juntaId);
+  }
+
+  @Get('metricas')
+  async metricas(@Request() req: { user: JwtUser }) {
+    const juntaId = req.user.juntaId!;
+    return this.miJunta.metricas(juntaId);
+  }
+
+  /** GET /api/mi-junta/reporte-anual?anio=2025 – Reporte anual en CSV. TESORERA, ADMIN, SECRETARIA, FISCAL. */
+  @Get('reporte-anual')
+  @UseGuards(RolesGuard)
+  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.FISCAL)
+  async reporteAnual(
+    @Request() req: { user: JwtUser },
+    @Query('anio') anioParam?: string,
+  ) {
+    const juntaId = req.user.juntaId!;
+    const anio = anioParam ? parseInt(anioParam, 10) : new Date().getFullYear();
+    if (isNaN(anio) || anio < 2020 || anio > 2100) {
+      throw new BadRequestException('Año inválido. Use ?anio=2025');
+    }
+    return this.miJunta.reporteAnual(juntaId, anio);
   }
 
   /** POST /api/mi-junta/escudo – Sube escudo municipal (PNG). Solo ADMIN. */
@@ -150,5 +175,14 @@ export class MiJuntaController {
   ) {
     const juntaId = req.user.juntaId!;
     return this.miJunta.cancelarSuscripcion(juntaId, body.motivo, req.user.id);
+  }
+
+  /** POST /api/mi-junta/suscripcion/reactivar – Revoca la solicitud de cancelación. Solo ADMIN. */
+  @Post('suscripcion/reactivar')
+  @UseGuards(RolesGuard)
+  @Roles(RolNombre.ADMIN)
+  async reactivarSuscripcion(@Request() req: { user: JwtUser }) {
+    const juntaId = req.user.juntaId!;
+    return this.miJunta.reactivarSuscripcion(juntaId, req.user.id);
   }
 }

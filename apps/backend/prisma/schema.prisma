@@ -307,10 +307,12 @@ model Usuario {
   apellidos         String
   telefono          String?
   direccion         String?
+  email             String?  // para recuperación de contraseña; se pide al cambiar por primera vez
   lugarExpedicion   String?  // lugar de expedición del documento (ej. Bogotá, Villavicencio)
   activo            Boolean  @default(true)
   fechaCreacion     DateTime @default(now())
   passwordHash      String   // bcrypt hash; requerido para login
+  requiereCambioPassword Boolean @default(true) // true = debe cambiar en primer login
 
   // Libro de afiliados (físico) – usados en cartas
   fechaAfiliacion   DateTime?  // fecha en que se afilió a la junta
@@ -336,8 +338,10 @@ model Usuario {
   intencionesPagoFactura IntencionPagoFactura[] @relation("IntencionPagoFacturaIniciadaPor")
   facturasCreadas  Factura[]         @relation("FacturaCreadaPor")
   notasJunta       NotaJunta[]
+  codigosRecuperacion CodigoRecuperacion[]
 
   @@unique([juntaId, numeroDocumento])
+  @@index([email])
   @@index([juntaId])
 }
 
@@ -359,6 +363,23 @@ model UsuarioRol {
   rol       Rol     @relation(fields: [rolId], references: [id])
 
   @@id([usuarioId, rolId])
+}
+
+//////////////////////////////////////////////////////
+// CÓDIGO RECUPERACIÓN CONTRASEÑA
+//////////////////////////////////////////////////////
+
+model CodigoRecuperacion {
+  id        String   @id @default(uuid())
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  codigo    String   // 6 dígitos
+  expiraEn  DateTime
+  usado    Boolean  @default(false)
+  fechaCreacion DateTime @default(now())
+
+  @@index([usuarioId])
+  @@index([codigo, expiraEn])
 }
 
 //////////////////////////////////////////////////////

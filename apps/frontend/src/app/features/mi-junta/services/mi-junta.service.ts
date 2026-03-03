@@ -122,6 +122,24 @@ export class MiJuntaService {
     return this.http.get<MiJuntaResponse>(this.base);
   }
 
+  metricas(): Observable<{
+    totalUsuarios: number;
+    usuariosActivos: number;
+    totalPagos: number;
+    pagosEsteMes: number;
+    totalCartas: number;
+    cartasAprobadas: number;
+  }> {
+    return this.http.get<{
+      totalUsuarios: number;
+      usuariosActivos: number;
+      totalPagos: number;
+      pagosEsteMes: number;
+      totalCartas: number;
+      cartasAprobadas: number;
+    }>(`${this.base}/metricas`);
+  }
+
   consumo(): Observable<MiJuntaConsumo> {
     return this.http
       .get<{ data: MiJuntaConsumo }>(`${this.base}/consumo`)
@@ -132,6 +150,15 @@ export class MiJuntaService {
     return this.http.delete<{ ok: boolean; mensaje: string }>(`${this.base}/suscripcion`, {
       body: { motivo },
     });
+  }
+
+  reactivarSuscripcion(): Observable<{ ok: boolean; mensaje: string }> {
+    return this.http.post<{ ok: boolean; mensaje: string }>(`${this.base}/suscripcion/reactivar`, {});
+  }
+
+  reporteAnual(anio?: number): Observable<{ data: string; filename: string }> {
+    const options = anio != null ? { params: { anio: String(anio) } } : {};
+    return this.http.get<{ data: string; filename: string }>(`${this.base}/reporte-anual`, options);
   }
 
   actualizarDatos(body: {

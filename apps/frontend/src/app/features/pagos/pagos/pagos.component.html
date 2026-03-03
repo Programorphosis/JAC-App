@@ -227,7 +227,25 @@
                 </button>
               </div>
               @if (pagosLoading) {
-                <p>Cargando...</p>
+                <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0 skeleton-table">
+                  @for (i of [1,2,3,4,5]; track i) {
+                    <div class="skeleton-row">
+                      <div class="skeleton-cell"></div>
+                      <div class="skeleton-cell"></div>
+                      <div class="skeleton-cell"></div>
+                      <div class="skeleton-cell"></div>
+                      <div class="skeleton-cell"></div>
+                      <div class="skeleton-cell"></div>
+                      <div class="skeleton-cell"></div>
+                    </div>
+                  }
+                </div>
+              } @else if (pagos().length === 0) {
+                <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0 empty-state">
+                  <mat-icon>payments</mat-icon>
+                  <p>No hay pagos registrados</p>
+                  <p class="!text-sm !mt-1">Los pagos aparecerán aquí cuando se registren</p>
+                </div>
               } @else {
                 <div class="table-jac mat-elevation-z2 rounded overflow-hidden min-w-0">
                 <div class="table-responsive">

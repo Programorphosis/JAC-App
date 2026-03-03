@@ -46,6 +46,7 @@ export class MiJuntaComponent implements OnInit {
   junta: MiJuntaResponse | null = null;
   loading = false;
   estadisticas = signal<EstadisticasPagos | null>(null);
+  exportandoReporte = false;
 
   editandoContacto = false;
   guardandoContacto = false;
@@ -88,6 +89,28 @@ export class MiJuntaComponent implements OnInit {
 
   formatearMoneda(v: number): string {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(v);
+  }
+
+  descargarReporteAnual(): void {
+    this.exportandoReporte = true;
+    const anio = new Date().getFullYear();
+    this.miJuntaService.reporteAnual(anio).subscribe({
+      next: (res) => {
+        this.exportandoReporte = false;
+        const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = res.filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.snackBar.open('Reporte descargado', 'Cerrar', { duration: 2000 });
+      },
+      error: () => {
+        this.exportandoReporte = false;
+        this.snackBar.open('Error al exportar reporte', 'Cerrar', { duration: 3000 });
+      },
+    });
   }
 
   ubicacionTexto(): string {

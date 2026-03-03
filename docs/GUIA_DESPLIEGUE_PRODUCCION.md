@@ -2,6 +2,8 @@
 
 > Documento generado a partir de la sesión de revisión de arquitectura (Feb 2026).
 > Cubre: estado de readiness, arquitectura de backups, nginx interno y configuración del servidor.
+>
+> **Para un paso a paso detallado de Lightsail:** ver `PASO_A_PASO_LIGHTSAIL.md`
 
 ---
 
