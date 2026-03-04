@@ -60,8 +60,29 @@ async function bootstrap() {
   });
   const logger = isProd ? new ProdLogger() : new Logger('Bootstrap');
 
-  // Headers de seguridad HTTP
-  app.use(helmet());
+  // Headers de seguridad HTTP (CSP, HSTS, X-Content-Type-Options, etc.)
+  app.use(
+    helmet({
+      contentSecurityPolicy: isProd
+        ? {
+            directives: {
+              defaultSrc: ["'self'"],
+              scriptSrc: ["'self'"],
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              imgSrc: ["'self'", 'data:'],
+              connectSrc: ["'self'"],
+              fontSrc: ["'self'"],
+              objectSrc: ["'none'"],
+              frameAncestors: ["'none'"],
+              baseUri: ["'self'"],
+              formAction: ["'self'"],
+            },
+          }
+        : false, // Desactivar CSP en dev para Swagger UI
+      crossOriginEmbedderPolicy: isProd,
+      hsts: isProd ? { maxAge: 31536000, includeSubDomains: true } : false,
+    }),
+  );
 
   app.setGlobalPrefix('api');
   app.useGlobalPipes(

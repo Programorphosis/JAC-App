@@ -11,8 +11,9 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { DomainError } from '../../domain/errors/domain.errors';
+import { REQUEST_ID_HEADER } from '../middleware/request-id.middleware';
 
 @Catch()
 export class DomainExceptionFilter implements ExceptionFilter {
@@ -21,6 +22,8 @@ export class DomainExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+    const requestId = (request?.headers?.[REQUEST_ID_HEADER.toLowerCase()] as string) || undefined;
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Error interno del servidor';
@@ -42,6 +45,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
       statusCode: status,
       message: message || 'Error desconocido',
       error: this.getErrorLabel(status),
+      ...(requestId && { requestId }),
     };
     if (exception instanceof DomainError) {
       json.code = exception.code;

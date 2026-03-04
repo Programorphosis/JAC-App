@@ -1260,10 +1260,10 @@ Requiere verificar que tu app no escribe en el filesystem (lo cual es correcto �
 |---|------|---------|----------|--------|
 | 9 | Tests para servicios de dominio | 2.2 | 1sem | ✅ (49 tests, domain 100% coverage) |
 | 10 | Configurar Sentry | 7.2 | 1d | |
-| 11 | Agregar tests al CI | 3.2 | 1h | |
-| 12 | Request ID en logs | 4.5 | 1h | |
-| 13 | CSP con Helmet | 4.6 | 1h | |
-| 14 | README.md | 9.1 | 1h | |
+| 11 | Agregar tests al CI | 3.2 | 1h | ✅ |
+| 12 | Request ID en logs | 4.5 | 1h | ✅ |
+| 13 | CSP con Helmet | 4.6 | 1h | ✅ |
+| 14 | README.md | 9.1 | 1h | ✅ |
 
 ### Hacer en el primer mes
 

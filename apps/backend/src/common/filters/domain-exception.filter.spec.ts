@@ -12,13 +12,16 @@ import {
   TipoDocumentoNoPermitidoError,
 } from '../../domain/errors/domain.errors';
 
-function createMockHost() {
+function createMockHost(requestId?: string) {
   const json = jest.fn();
   const status = jest.fn().mockReturnValue({ json });
+  const headers: Record<string, string> = {};
+  if (requestId) headers['x-request-id'] = requestId;
   return {
     host: {
       switchToHttp: () => ({
         getResponse: () => ({ status }),
+        getRequest: () => ({ headers }),
       }),
     } as unknown as ArgumentsHost,
     json,
