@@ -238,9 +238,9 @@ model Junta {
   activo              Boolean   @default(true)
   fechaBaja           DateTime?
 
-  // PA-2: datos de contacto y región
-  telefono            String?
-  email               String?
+  // PA-2: datos de contacto y región (obligatorios para notificaciones)
+  telefono            String
+  email               String
   direccion           String?
   ciudad              String?
   departamento        String?
@@ -273,6 +273,7 @@ model Junta {
   intencionesPagoFactura IntencionPagoFactura[]
   notas           NotaJunta[]
   avisos          AvisoPlataforma[]
+  avisosJunta     AvisoJunta[]
 }
 
 //////////////////////////////////////////////////////
@@ -308,6 +309,7 @@ model Usuario {
   telefono          String?
   direccion         String?
   email             String?  // para recuperación de contraseña; se pide al cambiar por primera vez
+  emailVerificado   Boolean  @default(false)  // true = usuario confirmó acceso al correo
   lugarExpedicion   String?  // lugar de expedición del documento (ej. Bogotá, Villavicencio)
   activo            Boolean  @default(true)
   fechaCreacion     DateTime @default(now())
@@ -338,10 +340,12 @@ model Usuario {
   intencionesPagoFactura IntencionPagoFactura[] @relation("IntencionPagoFacturaIniciadaPor")
   facturasCreadas  Factura[]         @relation("FacturaCreadaPor")
   notasJunta       NotaJunta[]
+  avisosJuntaCreados AvisoJunta[]
   codigosRecuperacion CodigoRecuperacion[]
+  codigosVerificacionEmail CodigoVerificacionEmail[]
 
   @@unique([juntaId, numeroDocumento])
-  @@index([email])
+  @@unique([email])
   @@index([juntaId])
 }
 
@@ -380,6 +384,20 @@ model CodigoRecuperacion {
 
   @@index([usuarioId])
   @@index([codigo, expiraEn])
+}
+
+model CodigoVerificacionEmail {
+  id        String   @id @default(uuid())
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  email     String   // email que se está verificando
+  codigo    String   // 6 dígitos
+  expiraEn  DateTime
+  usado    Boolean  @default(false)
+  fechaCreacion DateTime @default(now())
+
+  @@index([usuarioId])
+  @@index([usuarioId, codigo])
 }
 
 //////////////////////////////////////////////////////
@@ -618,6 +636,29 @@ model Consecutivo {
 }
 
 //////////////////////////////////////////////////////
+// AVISOS JUNTA (comunicados admin/secretaria → afiliados)
+//////////////////////////////////////////////////////
+// Independiente de AvisoPlataforma. Creados por admin de junta.
+// Futuro: platform admin → microservicio; avisos junta → app principal.
+
+model AvisoJunta {
+  id                String   @id @default(uuid())
+  juntaId           String
+  junta             Junta    @relation(fields: [juntaId], references: [id], onDelete: Cascade)
+  titulo            String
+  contenido         String   @db.Text
+  fechaPublicacion  DateTime @default(now())
+  activo            Boolean  @default(true)
+  creadoPorId       String?
+  creadoPor         Usuario? @relation(fields: [creadoPorId], references: [id], onDelete: SetNull)
+  createdAt         DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([juntaId])
+  @@index([juntaId, activo])
+}
+
+//////////////////////////////////////////////////////
 // AVISOS PLATAFORMA (PA-9)
 //////////////////////////////////////////////////////
 
@@ -630,6 +671,8 @@ model AvisoPlataforma {
   alcance           AlcanceAviso  @default(TODAS_JUNTAS)
   juntaId           String?
   junta             Junta?        @relation(fields: [juntaId], references: [id], onDelete: SetNull)
+  /** true = solo ADMIN, SECRETARIA, TESORERA, FISCAL, RECEPTOR_AGUA. false = todos. Solo aplica si alcance es TODAS_JUNTAS o JUNTA_ESPECIFICA. */
+  soloOperativos    Boolean       @default(false)
   fechaCreacion     DateTime      @default(now())
 
   @@index([activo])

@@ -18,5 +18,11 @@ done
 echo "[Entrypoint] PostgreSQL listo. Ejecutando migraciones..."
 npx prisma migrate deploy
 
+# Seed solo en desarrollo (RUN_SEED_IF_EMPTY=true). El seed es idempotente (solo corre si BD vacía).
+if [ "$RUN_SEED_IF_EMPTY" = "true" ] && [ -f dist/prisma/seed-dev.js ]; then
+  echo "[Entrypoint] Ejecutando seed (si BD vacía)..."
+  node dist/prisma/seed-dev.js || true
+fi
+
 echo "[Entrypoint] Iniciando aplicación..."
 exec node dist/src/main

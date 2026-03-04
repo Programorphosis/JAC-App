@@ -17,6 +17,6 @@ export class PlatformAvisosPublicController {
   @Get()
   async listarActivos(@Req() req: Request) {
     const user = req.user as JwtUser;
-    return this.avisos.listarActivos(user.juntaId ?? null);
+    return this.avisos.listarActivos(user.juntaId ?? null, user);
   }
 }

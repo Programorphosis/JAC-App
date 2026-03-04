@@ -183,6 +183,8 @@ export class AuthService {
         return has('ADMIN');
       case PERMISSIONS.JUNTA_SUSCRIPCION_GESTIONAR:
         return has('TESORERA');
+      case PERMISSIONS.AVISOS_JUNTA_GESTIONAR:
+        return has('ADMIN') || has('SECRETARIA');
       default:
         return false;
     }
@@ -255,11 +257,22 @@ export class AuthService {
     }
   }
 
-  /** Cambiar contraseña (autenticado). */
+  /** Solicitar código de verificación al email (primer login, para agregar correo). */
+  solicitarVerificacionEmail(email: string): Observable<{ enviado: boolean }> {
+    return this.http
+      .post<{ data: { enviado: boolean } }>(
+        `${environment.apiUrl}/auth/solicitar-verificacion-email`,
+        { email }
+      )
+      .pipe(map((res) => res.data));
+  }
+
+  /** Cambiar contraseña (autenticado). passwordActual opcional cuando requiereCambioPassword. codigo obligatorio cuando requiereCambioPassword. */
   cambiarPassword(dto: {
-    passwordActual: string;
+    passwordActual?: string;
     passwordNueva: string;
     email?: string;
+    codigo?: string;
   }): Observable<{ requiereCambioPassword: boolean }> {
     return this.http
       .patch<{ data: { requiereCambioPassword: boolean } }>(

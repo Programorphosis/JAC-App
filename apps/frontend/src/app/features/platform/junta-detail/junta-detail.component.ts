@@ -132,13 +132,13 @@ export class JuntaDetailComponent implements OnInit {
         },
         error: () => {
           this.loading = false;
-          this.router.navigate(['/platform', 'juntas']);
+          this.router.navigate(['/app/platform', 'juntas']);
         },
       });
   }
 
   volver(): void {
-    this.router.navigate(['/platform', 'juntas']);
+    this.router.navigate(['/app/platform', 'juntas']);
   }
 
   /** PA-8: Platform admin no impersonando puede ver como junta. */
@@ -156,7 +156,7 @@ export class JuntaDetailComponent implements OnInit {
       .subscribe({
         next: () => {
           this.impersonando = false;
-          this.router.navigate(['/']);
+          this.router.navigate(['/app']);
         },
         error: () => {
           this.impersonando = false;

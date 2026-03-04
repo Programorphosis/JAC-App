@@ -12,7 +12,11 @@
     "db:migrate": "npm run prisma:migrate -w backend",
     "db:seed": "npm run db:seed -w backend",
     "db:studio": "npm run prisma:studio -w backend",
-    "db:reset": "npm run prisma:reset -w backend"
+    "db:reset": "npm run prisma:reset -w backend",
+    "docker:dev:up": "docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.local up -d --build",
+    "docker:dev:down": "docker compose -f docker-compose.yml -f docker-compose.dev.yml down",
+    "docker:prod:up": "docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d --build",
+    "docker:prod:down": "docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production down"
   },
   "dependencies": {
     "@nestjs/platform-express": "^11.0.1"

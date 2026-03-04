@@ -36,24 +36,24 @@
           </div>
           <mat-nav-list (click)="onNavItemClick()">
             @if (auth.isPlatformAdmin()) {
-              <a mat-list-item routerLink="/platform" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+              <a mat-list-item routerLink="/app/platform" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                 <mat-icon matListItemIcon>dashboard</mat-icon>
                 <span matListItemTitle>Inicio</span>
               </a>
-              <a mat-list-item routerLink="/platform/juntas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
+              <a mat-list-item routerLink="/app/platform/juntas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
                 <mat-icon matListItemIcon>business</mat-icon>
                 <span matListItemTitle>Juntas</span>
               </a>
-              <a mat-list-item routerLink="/platform/planes" routerLinkActive="active">
+              <a mat-list-item routerLink="/app/platform/planes" routerLinkActive="active">
                 <mat-icon matListItemIcon>subscriptions</mat-icon>
                 <span matListItemTitle>Planes</span>
               </a>
-              <a mat-list-item routerLink="/platform/auditoria" routerLinkActive="active">
+              <a mat-list-item routerLink="/app/platform/auditoria" routerLinkActive="active">
                 <mat-icon matListItemIcon>history</mat-icon>
                 <span matListItemTitle>Auditoría</span>
               </a>
             } @else {
-              <a mat-list-item routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+              <a mat-list-item routerLink="/app" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                 <mat-icon matListItemIcon>dashboard</mat-icon>
                 <span matListItemTitle>Inicio</span>
               </a>
@@ -65,63 +65,63 @@
                   </mat-panel-title>
                 </mat-expansion-panel-header>
                 <mat-nav-list (click)="onNavItemClick()">
-                  <a mat-list-item routerLink="/mi-junta" routerLinkActive="active" class="layout-nav-nested">
+                  <a mat-list-item routerLink="/app/mi-junta" routerLinkActive="active" class="layout-nav-nested">
                     <mat-icon matListItemIcon>info</mat-icon>
                     <span matListItemTitle>Información</span>
                   </a>
-                  <a mat-list-item *appCan="auth.permissions.JUNTA_SUSCRIPCION_GESTIONAR" routerLink="/plan-suscripcion" routerLinkActive="active" class="layout-nav-nested">
+                  <a mat-list-item *appCan="auth.permissions.JUNTA_SUSCRIPCION_GESTIONAR" routerLink="/app/plan-suscripcion" routerLinkActive="active" class="layout-nav-nested">
                     <mat-icon matListItemIcon>subscriptions</mat-icon>
                     <span matListItemTitle>Plan y suscripción</span>
                   </a>
-                  <a mat-list-item *appCan="auth.permissions.PAGOS_VER" routerLink="/facturas-plataforma" routerLinkActive="active" class="layout-nav-nested">
+                  <a mat-list-item *appCan="auth.permissions.PAGOS_VER" routerLink="/app/facturas-plataforma" routerLinkActive="active" class="layout-nav-nested">
                     <mat-icon matListItemIcon>receipt_long</mat-icon>
                     <span matListItemTitle>Facturas</span>
                   </a>
-                  <a mat-list-item *appCan="auth.permissions.REQUISITOS_VER" routerLink="/requisitos" routerLinkActive="active" class="layout-nav-nested">
+                  <a mat-list-item *appCan="auth.permissions.REQUISITOS_VER" routerLink="/app/requisitos" routerLinkActive="active" class="layout-nav-nested">
                     <mat-icon matListItemIcon>assignment</mat-icon>
                     <span matListItemTitle>Requisitos</span>
                   </a>
-                  <a mat-list-item *appCan="auth.permissions.TARIFAS_VER" routerLink="/tarifas" routerLinkActive="active" class="layout-nav-nested">
+                  <a mat-list-item *appCan="auth.permissions.TARIFAS_VER" routerLink="/app/tarifas" routerLinkActive="active" class="layout-nav-nested">
                     <mat-icon matListItemIcon>attach_money</mat-icon>
                     <span matListItemTitle>Tarifas</span>
                   </a>
-                  <a mat-list-item *appCan="auth.permissions.JUNTA_CONFIG_WOMPI" routerLink="/configuracion" routerLinkActive="active" class="layout-nav-nested">
+                  <a mat-list-item *appCan="auth.permissions.JUNTA_CONFIG_WOMPI" routerLink="/app/configuracion" routerLinkActive="active" class="layout-nav-nested">
                     <mat-icon matListItemIcon>settings</mat-icon>
                     <span matListItemTitle>Configuración</span>
                   </a>
                 </mat-nav-list>
               </mat-expansion-panel>
-              <a mat-list-item *appCan="auth.permissions.JUNTA_CONFIG_WOMPI" routerLink="/configuracion" routerLinkActive="active">
+              <a mat-list-item *appCan="auth.permissions.JUNTA_CONFIG_WOMPI" routerLink="/app/configuracion" routerLinkActive="active">
                 <mat-icon matListItemIcon>settings</mat-icon>
                 <span matListItemTitle>Configuración</span>
               </a>
-              <a mat-list-item *appCan="auth.permissions.USUARIOS_VER" routerLink="/usuarios" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+              <a mat-list-item *appCan="auth.permissions.USUARIOS_VER" routerLink="/app/usuarios" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                 <mat-icon matListItemIcon>people</mat-icon>
                 <span matListItemTitle>Usuarios</span>
               </a>
-              <a mat-list-item *appCan="auth.permissions.PAGOS_VER" routerLink="/pagos" routerLinkActive="active">
+              <a mat-list-item *appCan="auth.permissions.PAGOS_VER" routerLink="/app/pagos" routerLinkActive="active">
                 <mat-icon matListItemIcon>payment</mat-icon>
                 <span matListItemTitle>Pagos</span>
               </a>
               @if (auth.canVerCartas()) {
-                <a mat-list-item routerLink="/cartas" routerLinkActive="active">
+                <a mat-list-item routerLink="/app/cartas" routerLinkActive="active">
                   <mat-icon matListItemIcon>mail</mat-icon>
                   <span matListItemTitle>Cartas</span>
                 </a>
               }
-              <a mat-list-item *appCan="auth.permissions.AUDITORIAS_VER" routerLink="/auditorias" routerLinkActive="active">
+              <a mat-list-item *appCan="auth.permissions.AUDITORIAS_VER" routerLink="/app/auditorias" routerLinkActive="active">
                 <mat-icon matListItemIcon>history</mat-icon>
                 <span matListItemTitle>Auditorías</span>
               </a>
-              <a mat-list-item routerLink="/avisos" routerLinkActive="active">
+              <a mat-list-item routerLink="/app/avisos" routerLinkActive="active">
                 <mat-icon matListItemIcon>campaign</mat-icon>
                 <span matListItemTitle>Avisos</span>
               </a>
-              <a mat-list-item [routerLink]="['/usuarios', auth.currentUser()?.id]" routerLinkActive="active">
+              <a mat-list-item [routerLink]="['/app/usuarios', auth.currentUser()?.id]" routerLinkActive="active">
                 <mat-icon matListItemIcon>person</mat-icon>
                 <span matListItemTitle>Mi cuenta</span>
               </a>
-              <a mat-list-item routerLink="/ayuda" routerLinkActive="active">
+              <a mat-list-item routerLink="/app/ayuda" routerLinkActive="active">
                 <mat-icon matListItemIcon>help_outline</mat-icon>
                 <span matListItemTitle>Ayuda</span>
               </a>

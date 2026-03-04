@@ -71,6 +71,8 @@ Inicializar el sistema cuando está vacío: roles base, primera junta y **primer
        },
        "primeraJunta": {
          "nombre": "Junta de Acción Comunal Barrio X",
+         "email": "contacto@junta-barrio-x.local",
+         "telefono": "3001234567",
          "nit": "123456789",
          "montoCarta": 3000,
          "adminUser": {

@@ -83,7 +83,7 @@
           <p class="font-medium text-jac-warning">Configure las tarifas antes de consultar la deuda</p>
           <p class="text-sm text-jac-text-secondary mt-1">La junta no tiene tarifas configuradas. Configure las tarifas en Configuración → Tarifas.</p>
           @if (auth.can(auth.permissions.TARIFAS_VER) || auth.can(auth.permissions.TARIFAS_MODIFICAR)) {
-            <a mat-raised-button color="primary" routerLink="/tarifas" class="mt-4">
+            <a mat-raised-button color="primary" routerLink="/app/tarifas" class="mt-4">
               Ir a Tarifas
             </a>
           }

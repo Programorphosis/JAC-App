@@ -2,11 +2,12 @@
  * Seed de desarrollo – Credenciales conocidas + datos de demo.
  * Solo para desarrollo local. NUNCA usar en producción.
  *
- * Credenciales creadas:
- * - Platform Admin: CC 00000000 / DevPlatform123!
- * - Admin Junta: CC 12345678 / DevAdmin123!
+ * Credenciales creadas (contraseña = número de documento):
+ * - Platform Admin: CC 00000000 / 00000000
+ * - Admin Junta: CC 12345678 / 12345678
+ * - Afiliados: CC + doc / doc (ej. 1001001 / 1001001)
  *
- * Datos de demo (si no existen): 15 afiliados, tarifas, pagos, cartas, requisitos.
+ * Platform Admin: requiereCambioPassword: false. Resto: true.
  *
  * Uso: npm run db:seed  (desde apps/backend)
  */
@@ -21,7 +22,7 @@ const PLATFORM_ADMIN = {
   numeroDocumento: '00000000',
   nombres: 'Admin',
   apellidos: 'Plataforma',
-  password: 'DevPlatform123!',
+  /** Contraseña = número de documento */
 };
 
 const JUNTA_ADMIN = {
@@ -29,9 +30,9 @@ const JUNTA_ADMIN = {
   numeroDocumento: '12345678',
   nombres: 'Juan',
   apellidos: 'Pérez',
-  password: 'DevAdmin123!',
   telefono: '3001234567',
   direccion: 'Calle 10 #5-20',
+  /** Contraseña = número de documento */
 };
 
 /** Afiliados de demo para poblar la junta */
@@ -79,8 +80,8 @@ async function main() {
     });
   }
 
-  // Platform Admin
-  const platformHash = await bcrypt.hash(PLATFORM_ADMIN.password, 10);
+  // Platform Admin (contraseña = número de documento)
+  const platformHash = await bcrypt.hash(PLATFORM_ADMIN.numeroDocumento, 10);
   const rolPlatform = await prisma.rol.findUniqueOrThrow({
     where: { nombre: RolNombre.PLATFORM_ADMIN },
   });
@@ -105,13 +106,15 @@ async function main() {
   const juntaCreada = await prisma.junta.create({
     data: {
       nombre: 'Junta Barrio Centro (Dev)',
+      email: 'junta.barrio.centro@demo.local',
+      telefono: '+573001234567',
       nit: '900123456',
       montoCarta: 5000,
     },
   });
 
-  // Admin de la junta
-  const adminHash = await bcrypt.hash(JUNTA_ADMIN.password, 10);
+  // Admin de la junta (contraseña = número de documento)
+  const adminHash = await bcrypt.hash(JUNTA_ADMIN.numeroDocumento, 10);
   const rolAdmin = await prisma.rol.findUniqueOrThrow({
     where: { nombre: RolNombre.ADMIN },
   });
@@ -126,7 +129,7 @@ async function main() {
       telefono: JUNTA_ADMIN.telefono,
       direccion: JUNTA_ADMIN.direccion,
       passwordHash: adminHash,
-      requiereCambioPassword: false,
+      requiereCambioPassword: true,
     },
   });
 
@@ -162,29 +165,20 @@ async function main() {
     console.log('Datos de demo agregados a la junta.');
   }
 
-  // Asegurar que usuarios de demo no requieran cambio de contraseña (BD existentes)
-  await prisma.usuario.updateMany({
-    where: {
-      OR: [
-        { numeroDocumento: PLATFORM_ADMIN.numeroDocumento, juntaId: null },
-        { numeroDocumento: JUNTA_ADMIN.numeroDocumento },
-      ],
-    },
-    data: { requiereCambioPassword: false },
-  });
-
   console.log('');
   console.log('=== Seed de desarrollo completado ===');
   console.log('');
-  console.log('Credenciales para Postman:');
+  console.log('Credenciales (contraseña = número de documento):');
   console.log('');
   console.log('  Platform Admin (juntaId: platform):');
   console.log('    Documento:', PLATFORM_ADMIN.numeroDocumento);
-  console.log('    Password: ', PLATFORM_ADMIN.password);
+  console.log('    Password: ', PLATFORM_ADMIN.numeroDocumento);
   console.log('');
   console.log('  Admin Junta (primera junta):');
   console.log('    Documento:', JUNTA_ADMIN.numeroDocumento);
-  console.log('    Password: ', JUNTA_ADMIN.password);
+  console.log('    Password: ', JUNTA_ADMIN.numeroDocumento);
+  console.log('');
+  console.log('  Afiliados: documento = password (ej. 1001001 / 1001001)');
   console.log('');
 }
 
@@ -195,7 +189,6 @@ async function agregarDatosDemo(
   adminId: string,
 ) {
   const anio = new Date().getFullYear();
-  const passwordHash = await bcrypt.hash('Demo123!', 10);
   const rolAfiliado = await prisma.rol.findUniqueOrThrow({ where: { nombre: RolNombre.AFILIADO } });
   const rolSecretaria = await prisma.rol.findUniqueOrThrow({ where: { nombre: RolNombre.SECRETARIA } });
   const rolTesorera = await prisma.rol.findUniqueOrThrow({ where: { nombre: RolNombre.TESORERA } });
@@ -205,6 +198,7 @@ async function agregarDatosDemo(
 
   for (let i = 0; i < AFILIADOS_DEMO.length; i++) {
     const a = AFILIADOS_DEMO[i];
+    const passwordHash = await bcrypt.hash(a.doc, 10);
     const u = await prisma.usuario.create({
       data: {
         juntaId,
@@ -213,7 +207,7 @@ async function agregarDatosDemo(
         nombres: a.nombres,
         apellidos: a.apellidos,
         passwordHash,
-        requiereCambioPassword: false,
+        requiereCambioPassword: true,
         fechaAfiliacion: new Date(2024, 0, 1 + i),
         folio: 1,
         numeral: i + 1,

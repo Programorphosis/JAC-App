@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
-import { Observable, map } from 'rxjs';
+import { Observable, map, forkJoin, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import { AvisoModalComponent, AvisoModalData } from '../../shared/dialogs/aviso-modal/aviso-modal.component';
@@ -11,7 +11,7 @@ interface AvisoItem {
   titulo: string;
   contenido: string;
   fechaPublicacion: string;
-  activo: boolean;
+  activo?: boolean;
   alcance?: string;
 }
 
@@ -20,10 +20,12 @@ const STORAGE_KEY = 'jac_avisos_sesion_mostrados';
 /**
  * Muestra avisos en modal al abrir sesión (estilo evento de juego).
  * Una vez por sesión del navegador.
+ * Incluye: avisos plataforma + avisos junta (para usuarios de junta).
  */
 @Injectable({ providedIn: 'root' })
 export class AvisosSesionService {
   private readonly avisosBase = `${environment.apiUrl}/avisos`;
+  private readonly avisosJuntaBase = `${environment.apiUrl}/avisos-junta`;
   private readonly platformAvisosBase = `${environment.apiUrl}/platform/avisos`;
 
   constructor(
@@ -63,9 +65,19 @@ export class AvisosSesionService {
           map((r) => r.data.filter((a) => a.alcance === 'PLATAFORMA'))
         );
     }
-    return this.http
-      .get<{ data: AvisoItem[] }>(this.avisosBase)
-      .pipe(map((r) => r.data));
+    // Usuario de junta: plataforma + junta, ordenados por fecha
+    return forkJoin({
+      plataforma: this.http.get<{ data: AvisoItem[] }>(this.avisosBase).pipe(map((r) => r.data)),
+      junta: this.auth.currentUser()?.juntaId
+        ? this.http.get<{ data: AvisoItem[] }>(this.avisosJuntaBase).pipe(map((r) => r.data))
+        : of([]),
+    }).pipe(
+      map(({ plataforma, junta }) => {
+        const todos = [...plataforma, ...junta];
+        todos.sort((a, b) => new Date(b.fechaPublicacion).getTime() - new Date(a.fechaPublicacion).getTime());
+        return todos;
+      })
+    );
   }
 
   private mostrarSiguiente(

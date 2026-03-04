@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PlatformAvisosService, AlcanceAviso } from '../services/platform-avisos.service';
 import { PlatformJuntasService, JuntaListItem } from '../services/platform-juntas.service';
@@ -28,6 +29,7 @@ const ALCANCES: { value: AlcanceAviso; label: string }[] = [
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatCheckboxModule,
     ReactiveFormsModule,
   ],
   template: `
@@ -54,6 +56,11 @@ const ALCANCES: { value: AlcanceAviso; label: string }[] = [
               <mat-error>Debe seleccionar una junta</mat-error>
             }
           </mat-form-field>
+        }
+        @if (muestraSoloOperativos) {
+          <mat-checkbox formControlName="soloOperativos" class="block mb-2">
+            Solo visible para usuarios operativos (admin, secretaria, tesorera, fiscal)
+          </mat-checkbox>
         }
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Título</mat-label>
@@ -100,9 +107,15 @@ export class AvisoCrearDialogComponent implements OnInit {
     this.form = this.fb.group({
       alcance: ['TODAS_JUNTAS' as AlcanceAviso, Validators.required],
       juntaId: [null as string | null],
+      soloOperativos: [false],
       titulo: ['', Validators.required],
       contenido: ['', Validators.required],
     });
+  }
+
+  get muestraSoloOperativos(): boolean {
+    const a = this.form.get('alcance')?.value;
+    return a === 'TODAS_JUNTAS' || a === 'JUNTA_ESPECIFICA';
   }
 
   ngOnInit(): void {
@@ -129,6 +142,7 @@ export class AvisoCrearDialogComponent implements OnInit {
       contenido: v.contenido,
       alcance: v.alcance,
       ...(v.alcance === 'JUNTA_ESPECIFICA' && v.juntaId && { juntaId: v.juntaId }),
+      ...(this.muestraSoloOperativos && { soloOperativos: !!v.soloOperativos }),
     };
     this.guardando = true;
     this.avisos.crear(dto).subscribe({

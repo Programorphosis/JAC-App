@@ -1,0 +1,8 @@
+name: jac-app
+services:
+  caddy:
+    image: caddy:2-alpine
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    environment:
+      DOMAIN: "${DOMAIN}"

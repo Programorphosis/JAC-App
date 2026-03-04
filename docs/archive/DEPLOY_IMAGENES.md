@@ -256,11 +256,11 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml exec backend nod
 ```
 Platform Admin (juntaId: platform):
     Documento: 00000000
-    Password:  DevPlatform123!
+    Password:  00000000
 
   Admin Junta (primera junta):
     Documento: 12345678
-    Password:  DevAdmin123!
+    Password:  12345678
 
 
 - `exec` → ejecuta un comando dentro de un contenedor que ya está corriendo
@@ -271,9 +271,9 @@ Al terminar verás algo como:
 ```
 Datos de demo agregados a la junta.
 === Seed de desarrollo completado ===
-Credenciales para Postman:
-  Platform Admin: Documento 00000000, Password: DevPlatform123!
-  Admin Junta: Documento 12345678, Password: DevAdmin123!
+Credenciales (contraseña = documento):
+  Platform Admin: Documento 00000000, Password: 00000000
+  Admin Junta: Documento 12345678, Password: 12345678
 ```
 
 ---
@@ -297,6 +297,8 @@ Debe responder algo como: `{"status":"ok","database":"connected"}`.
 ---
 
 ### 4.11 — Actualizaciones (cuando cambies código)
+
+> **Guía rápida:** Ver `docs/PASO_A_PASO_DESPLIEGUE.md` para un checklist resumido.
 
 Cuando hagas cambios en el código y quieras desplegar la nueva versión:
 

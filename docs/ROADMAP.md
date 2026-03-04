@@ -39,7 +39,7 @@ El roadmap está ordenado por dependencias. No se debe avanzar de fase sin confi
 | Domain services (contratos) | ✔ | `definicionDomainServices.md` |
 | Seguridad (investigación) | ✔ | `investigacionImplementacionDeSeguridadDeLaApp.md` |
 | Chatmode desarrollo | ✔ | `chatModeCursor.md` |
-| Configuración infraestructura | ✔ | `configuracionInfraestructura.md` |
+| Configuración infraestructura | ✔ | `DESPLIEGUE.md` |
 | Convenciones API | ✔ | `convencionesAPI.md` |
 | Flujo documentos (upload) | ✔ | `flujoDocumentos.md` |
 | Consecutivos y cron jobs | ✔ | `consecutivosYCronJobs.md` |
@@ -72,7 +72,7 @@ El roadmap está ordenado por dependencias. No se debe avanzar de fase sin confi
 ### 0.5.3 Configuración Nginx (FUTURO)
 
 - [ ] **Nota:** Nginx no es necesario para desarrollo local (backend y frontend corren directamente)
-- [ ] Configuraciones de Nginx para staging/producción ya documentadas en `configuracionInfraestructura.md`
+- [ ] Configuraciones de Nginx para staging/producción ya documentadas en `DESPLIEGUE.md`
 - [ ] Se configurarán cuando se despliegue en VPS
 
 ### 0.5.4 Variables de Entorno
@@ -123,8 +123,8 @@ El roadmap está ordenado por dependencias. No se debe avanzar de fase sin confi
 **Criterio de cierre:** Monorepo estructurado, Docker funcionando en desarrollo local, base de datos PostgreSQL conectada, proyectos backend y frontend inicializados. Bootstrap crea platform admin y primera junta; endpoints de plataforma protegidos.
 
 **Referencias:**
-- `SETUP_DESARROLLO_LOCAL.md` - Guía rápida de setup para desarrollo
-- `configuracionInfraestructura.md` - Configuración completa (staging/producción para futuro)
+- `SETUP.md` - Guía rápida de setup para desarrollo
+- `DESPLIEGUE.md` - Configuración completa (staging/producción)
 
 ---
 
@@ -429,7 +429,7 @@ Fase 12 (Deploy)
 | Tema | Documento |
 |------|-----------|
 | Plan general | `plan.md` |
-| **Frontend Angular** | `ARQUITECTURA_FRONTEND_ANGULAR.md`, `PALETA_COLORES_JAC.md` |
+| **Frontend Angular** | `ARQUITECTURA_FRONTEND_ANGULAR.md` |
 | Multi-tenant y seguridad base | `00_ARQUITECTURA_RECTOR.md`, `00_ARQUITECTURA_RECTOR copy.md` |
 | Schema | `SCHEMA BASE v1.md` |
 | Deuda | `calculadoraDeDeuda.md` |
@@ -444,7 +444,7 @@ Fase 12 (Deploy)
 | **Análisis pilares arquitectura** | `ANALISIS_PILARES_ARQUITECTURA_SOLUCIONES.md` |
 | **Guía email completa** | `GUIA_EMAIL_COMPLETA.md` |
 | **Configuración SES** | `EMAIL_SES_SETUP.md` |
-| **Paso a paso Lightsail** | `PASO_A_PASO_LIGHTSAIL.md` |
+| **Paso a paso Lightsail** | `DESPLIEGUE.md` §3 |
 | **Validación checklist operación** | `VALIDACION_CHECKLIST_OPERACION.md` |
 | **Plan implementación operación** | `PLAN_IMPLEMENTACION_OPERACION.md` |
 | API | `convencionesAPI.md` |

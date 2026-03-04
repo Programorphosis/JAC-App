@@ -25,6 +25,7 @@ export const PERMISSIONS = {
   JUNTA_CONFIG_WOMPI: 'junta:configWompi',
   JUNTA_DATOS_EDITAR: 'junta:datos:editar',
   JUNTA_SUSCRIPCION_GESTIONAR: 'junta:suscripcion:gestionar',
+  AVISOS_JUNTA_GESTIONAR: 'avisosJunta:gestionar',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

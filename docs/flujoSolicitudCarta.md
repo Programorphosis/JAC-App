@@ -254,3 +254,25 @@ Después:
 ✔ Escalable
 
 Nunca al revés.
+
+---
+
+## 9️⃣ Anexo: Vigencia de carta y pago CARTA
+
+### Vigencia de la carta (Junta.vigenciaCartaMeses, Carta.vigenciaHasta)
+
+- **vigenciaCartaMeses** (default 3): meses de validez.
+- **vigenciaHasta**: se calcula al aprobar = fechaEmision + vigenciaCartaMeses.
+- No permitir solicitar nueva carta si existe APROBADA con vigenciaHasta >= hoy.
+- No permitir registrar pago CARTA si tiene carta vigente.
+- Validación QR: si vigenciaHasta < ahora → "Carta vencida".
+
+### Vigencia del pago CARTA (Pago.vigencia)
+
+| vigencia | Significado |
+|----------|-------------|
+| true | Vigente. Usuario puede solicitar carta. |
+| false | Consumido. Carta ya emitida con este pago. |
+| null | Inválido (legacy). |
+
+Al registrar pago CARTA: vigencia = true. Al aprobar carta: se consume el más reciente con vigencia = true → vigencia = false.

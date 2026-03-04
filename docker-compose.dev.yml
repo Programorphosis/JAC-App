@@ -1,0 +1,37 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Override DESARROLLO – JAC App
+#
+# Igual que producción: BD en contenedor con volumen. Seed se ejecuta al iniciar.
+#
+# USO:
+#   1. cp .env.local.example .env.local
+#   2. Editar .env.local (DB_PASSWORD, JWT_SECRET, etc.)
+#   3. docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.local up -d --build
+#
+# URLs: App http://localhost | MailHog http://localhost:8025
+# Credenciales demo: CC 12345678 / 12345678 (Admin Junta) | CC 00000000 / 00000000 (Platform)
+#
+# Detener: docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+# ──────────────────────────────────────────────────────────────────────────
+
+name: jac-app
+
+services:
+  # Postgres sin puerto expuesto (igual que prod). BD solo accesible desde red interna.
+  # Para Prisma Studio: docker compose exec backend npx prisma studio
+  # (luego acceder vía port-forward si hace falta)
+
+  backend:
+    env_file:
+      - .env.local
+    environment:
+      RUN_SEED_IF_EMPTY: "true"
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: jac-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - internal

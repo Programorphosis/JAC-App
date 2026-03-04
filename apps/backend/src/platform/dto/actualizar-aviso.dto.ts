@@ -28,4 +28,10 @@ export class ActualizarAvisoDto {
   @ValidateIf((o) => o.alcance === AlcanceAvisoDto.JUNTA_ESPECIFICA)
   @IsUUID('4', { message: 'Debe seleccionar una junta cuando el alcance es JUNTA_ESPECIFICA' })
   juntaId?: string | null;
+
+  /** true = solo operativos. Solo aplica si alcance es TODAS_JUNTAS o JUNTA_ESPECIFICA. */
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  soloOperativos?: boolean;
 }

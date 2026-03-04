@@ -11,7 +11,7 @@ export function requirePermission(permission: string): CanActivateFn {
     if (auth.can(permission)) {
       return true;
     }
-    router.navigate(['/']);
+    router.navigate(['/app']);
     return false;
   };
 }
@@ -24,7 +24,7 @@ export function requireAnyPermission(...permissions: string[]): CanActivateFn {
     if (permissions.some((p) => auth.can(p))) {
       return true;
     }
-    router.navigate(['/']);
+    router.navigate(['/app']);
     return false;
   };
 }

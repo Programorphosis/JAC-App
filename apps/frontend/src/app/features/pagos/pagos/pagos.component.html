@@ -99,7 +99,7 @@
               La junta no tiene tarifas configuradas. Configure las tarifas en Configuración → Tarifas para poder registrar pagos de cuota.
             </p>
             @if (auth.can(auth.permissions.TARIFAS_VER) || auth.can(auth.permissions.TARIFAS_MODIFICAR)) {
-              <a mat-stroked-button color="primary" routerLink="/tarifas" class="mt-3">
+              <a mat-stroked-button color="primary" routerLink="/app/tarifas" class="mt-3">
                 Ir a Tarifas
               </a>
             }

@@ -1,5 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Title, Meta } from '@angular/platform-browser';
 import { LegalNavService } from '../services/legal-nav.service';
 
 @Component({
@@ -11,6 +12,8 @@ import { LegalNavService } from '../services/legal-nav.service';
 })
 export class CancelacionComponent implements OnInit {
   private readonly nav = inject(LegalNavService);
+  private readonly title = inject(Title);
+  private readonly meta = inject(Meta);
 
   readonly sections = [
     { id: 'cancelacion', label: '1. Cancelación de la suscripción' },
@@ -23,6 +26,11 @@ export class CancelacionComponent implements OnInit {
   ];
 
   ngOnInit() {
+    this.title.setTitle('Cancelación y reembolsos – JAC App');
+    this.meta.updateTag({
+      name: 'description',
+      content: 'Política de cancelación de suscripción, reembolsos y exportación de datos de JAC App.',
+    });
     this.nav.setSections(this.sections);
   }
 }

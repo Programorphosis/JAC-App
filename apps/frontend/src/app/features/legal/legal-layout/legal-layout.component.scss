@@ -63,14 +63,32 @@
   padding: 1.5rem 2rem 3rem;
   max-width: 900px;
   margin: 0 auto;
+  position: relative;
+}
+
+.legal-nav-toggle {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 10;
+  background: var(--jac-surface) !important;
+  color: var(--jac-text-primary) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+  &.visible {
+    display: block;
+  }
 }
 
 @media (max-width: 960px) {
   .legal-sidenav {
-    width: 260px;
+    width: 280px;
+    max-width: 85vw;
   }
 
   .legal-content-area {
     padding: 1rem;
+    padding-top: 3.5rem; // espacio para el botón flotante
   }
 }

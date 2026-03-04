@@ -27,6 +27,8 @@ export interface BootstrapBody {
   platformAdmin: BootstrapPlatformAdmin;
   primeraJunta: {
     nombre: string;
+    email: string;
+    telefono: string;
     nit?: string;
     montoCarta?: number;
     adminUser: BootstrapAdminUser;
@@ -110,6 +112,8 @@ export class BootstrapService {
 
     const juntaResult = await this.juntaService.createJunta({
       nombre: body.primeraJunta.nombre,
+      email: body.primeraJunta.email,
+      telefono: body.primeraJunta.telefono,
       nit: body.primeraJunta.nit,
       montoCarta: body.primeraJunta.montoCarta,
       adminUser: body.primeraJunta.adminUser,

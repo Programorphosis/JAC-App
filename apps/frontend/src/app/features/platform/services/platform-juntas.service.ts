@@ -84,6 +84,8 @@ export interface CreateJuntaAdminUser {
 
 export interface CreateJuntaBody {
   nombre: string;
+  email: string;
+  telefono: string;
   nit?: string;
   montoCarta?: number;
   adminUser: CreateJuntaAdminUser;

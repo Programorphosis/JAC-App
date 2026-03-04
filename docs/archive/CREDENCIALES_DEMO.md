@@ -17,20 +17,22 @@ npm run db:seed                           # Solo seed (si la BD ya existe)
 
 ## Usuarios creados por el seed
 
+**Contraseña = número de documento** para todos. Platform Admin no requiere cambio; el resto sí.
+
 | Rol | Tipo doc | Documento | Contraseña |
 |-----|----------|-----------|------------|
-| **Platform Admin** | CC | 00000000 | DevPlatform123! |
-| **Admin Junta** | CC | 12345678 | DevAdmin123! |
-| **Secretaria** | CC | 1001014 | Demo123! |
-| **Tesorera** | CC | 1001015 | Demo123! |
-| **Afiliados** | CC | 1001001 – 1001013 | Demo123! |
+| **Platform Admin** | CC | 00000000 | 00000000 |
+| **Admin Junta** | CC | 12345678 | 12345678 |
+| **Secretaria** | CC | 1001014 | 1001014 |
+| **Tesorera** | CC | 1001015 | 1001015 |
+| **Afiliados** | CC | 1001001 – 1001013 | (mismo que documento) |
 
 ---
 
 ## Login
 
 - **URL:** `POST /api/auth/login`
-- **Body:** `{ "numeroDocumento": "12345678", "password": "DevAdmin123!" }`
+- **Body:** `{ "numeroDocumento": "12345678", "password": "12345678" }`
 - **Frontend:** http://localhost:4200 → Login
 
 ---

@@ -218,6 +218,35 @@ export class EmailService {
   }
 
   /**
+   * Código de verificación de correo (al agregar email por primera vez, ej. cambiar contraseña).
+   */
+  async enviarCodigoVerificacionEmail(opts: {
+    to: string;
+    codigo: string;
+    nombreUsuario: string;
+  }): Promise<void> {
+    await this.enviar({
+      to: opts.to,
+      subject: 'Verifica tu correo electrónico – JAC App',
+      html: this.wrapBase({
+        title: 'Verificación de correo',
+        body: `
+          <p>Hola ${opts.nombreUsuario},</p>
+          <p>Estás verificando tu correo electrónico en JAC App.</p>
+          <p>Tu código de verificación es:</p>
+          <p style="font-size:24px;font-weight:bold;letter-spacing:8px;color:#1565C0;margin:20px 0">
+            ${opts.codigo}
+          </p>
+          <p>Este código expira en 15 minutos. Si no solicitaste esta verificación, ignora este mensaje.</p>
+          <p style="color:#888;font-size:13px">
+            Por seguridad, no compartas este código con nadie.
+          </p>
+        `,
+      }),
+    });
+  }
+
+  /**
    * Código de recuperación de contraseña. Se envía al email indicado por el usuario.
    */
   async enviarCodigoRecuperacion(opts: {

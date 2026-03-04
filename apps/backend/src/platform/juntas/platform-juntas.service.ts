@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { normalizarTelefonoColombia } from '../../common/utils/validacion-telefono.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   JuntaService,
@@ -26,6 +27,8 @@ function generarPasswordTemporal(): string {
 
 export interface CreateJuntaPlatformDto {
   nombre: string;
+  email: string;
+  telefono: string;
   nit?: string;
   montoCarta?: number;
   adminUser: CreateJuntaAdminUser;
@@ -689,6 +692,8 @@ export class PlatformJuntasService {
     const passwordTemporal = generarPasswordTemporal();
     const result = await this.juntaService.createJunta({
       nombre: dto.nombre,
+      email: dto.email,
+      telefono: dto.telefono,
       nit: dto.nit,
       montoCarta: dto.montoCarta,
       adminUser: dto.adminUser,
@@ -725,6 +730,23 @@ export class PlatformJuntasService {
       throw new NotFoundException('Junta no encontrada');
     }
 
+    if (data.telefono !== undefined) {
+      const telNorm = data.telefono?.trim()
+        ? normalizarTelefonoColombia(data.telefono)
+        : null;
+      if (!telNorm) {
+        throw new BadRequestException(
+          'El teléfono debe ser un número colombiano válido (10 dígitos). Email y teléfono son obligatorios.',
+        );
+      }
+    }
+    if (data.email !== undefined) {
+      const emailVal = data.email?.trim();
+      if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+        throw new BadRequestException('El email no es válido. Email y teléfono son obligatorios.');
+      }
+    }
+
     const updateData: Record<string, unknown> = {
       ...(data.nombre !== undefined && { nombre: data.nombre }),
       ...(data.nit !== undefined && { nit: data.nit }),
@@ -732,8 +754,12 @@ export class PlatformJuntasService {
       ...(data.activo !== undefined && { activo: data.activo }),
       ...(data.activo === false && { fechaBaja: new Date() }),
       ...(data.activo === true && { fechaBaja: null }),
-      ...(data.telefono !== undefined && { telefono: data.telefono }),
-      ...(data.email !== undefined && { email: data.email }),
+      ...(data.telefono !== undefined && {
+        telefono: normalizarTelefonoColombia(data.telefono!)!,
+      }),
+      ...(data.email !== undefined && {
+        email: data.email!.trim().toLowerCase(),
+      }),
       ...(data.direccion !== undefined && { direccion: data.direccion }),
       ...(data.ciudad !== undefined && { ciudad: data.ciudad }),
       ...(data.departamento !== undefined && { departamento: data.departamento }),

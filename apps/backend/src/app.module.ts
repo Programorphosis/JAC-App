@@ -26,6 +26,7 @@ import { CartasModule } from './application/cartas/cartas.module';
 import { PublicModule } from './application/public/public.module';
 import { AuditoriasModule } from './application/auditorias/auditorias.module';
 import { MiJuntaModule } from './application/mi-junta/mi-junta.module';
+import { AvisosJuntaModule } from './application/avisos-junta/avisos-junta.module';
 import { WompiReconciliationModule } from './application/wompi-reconciliation/wompi-reconciliation.module';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 import { EncryptionModule } from './infrastructure/encryption/encryption.module';
@@ -64,6 +65,7 @@ import { EmailModule } from './infrastructure/email/email.module';
     PublicModule,
     AuditoriasModule,
     MiJuntaModule,
+    AvisosJuntaModule,
     WompiReconciliationModule,
   ],
   controllers: [AppController],

@@ -77,10 +77,10 @@ export class JuntasListComponent implements OnInit {
   }
 
   ver(id: string): void {
-    this.router.navigate(['/platform', 'juntas', id]);
+    this.router.navigate(['/app/platform', 'juntas', id]);
   }
 
   crear(): void {
-    this.router.navigate(['/platform', 'juntas', 'nueva']);
+    this.router.navigate(['/app/platform', 'juntas', 'nueva']);
   }
 }

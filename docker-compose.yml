@@ -1,13 +1,16 @@
 # ──────────────────────────────────────────────────────────────────────────
-# Stack de PRODUCCIÓN – JAC App
+# Base compartido – JAC App
 #
-# USO:
-#   cp .env.production.example .env.production
-#   # Editar .env.production con valores reales (especialmente DOMAIN)
-#   docker compose --env-file .env.production up -d --build
+# NO usar solo este archivo. Usar siempre con un override:
 #
-# Para ver logs en tiempo real:
-#   docker compose logs -f
+#   DESARROLLO:
+#     docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.local up -d --build
+#
+#   PRODUCCIÓN (build en servidor):
+#     docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d --build
+#
+#   PRODUCCIÓN (imágenes pre-construidas):
+#     docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d
 #
 # ── Arquitectura ──────────────────────────────────────────────────────────
 #
@@ -22,6 +25,9 @@
 #   postgres:5432  (PostgreSQL, solo red interna)
 # ──────────────────────────────────────────────────────────────────────────
 
+# Evita usar el nombre del directorio como proyecto (ej. "JAC App" con espacio → error)
+name: jac-app
+
 services:
 
   # ── Base de datos ──────────────────────────────────────────────────────
@@ -29,9 +35,9 @@ services:
     image: postgres:16-alpine
     container_name: jac-postgres
     environment:
-      POSTGRES_DB:       ${DB_NAME:-jac_db}
-      POSTGRES_USER:     ${DB_USER:-jac_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: "${DB_NAME:-jac_db}"
+      POSTGRES_USER: "${DB_USER:-jac_user}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
@@ -48,13 +54,13 @@ services:
     # ports: ["5432:5432"]
 
   # ── Backend NestJS ─────────────────────────────────────────────────────
+  # env_file se inyecta por el override (dev o prod). Base sin env_file evita
+  # errores cuando .env.production no existe (ej. en máquinas de desarrollo).
   backend:
     build:
       context: ./apps/backend
       dockerfile: Dockerfile
     container_name: jac-backend
-    env_file:
-      - .env.production
     environment:
       # Sobreescribir DATABASE_URL para apuntar al contenedor postgres.
       # connection_limit=5 → Prisma no abre más de 5 conexiones simultáneas.
@@ -102,15 +108,15 @@ services:
     image: caddy:2-alpine
     container_name: jac-caddy
     ports:
-      - "80:80"      # HTTP (Caddy redirige automáticamente a HTTPS)
-      - "443:443"    # HTTPS
-      - "443:443/udp" # HTTP/3 (QUIC)
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy-data:/data           # Certificados SSL (persistentes)
-      - caddy-config:/config       # Configuración interna de Caddy
+      - caddy-data:/data
+      - caddy-config:/config
     environment:
-      DOMAIN: ${DOMAIN}
+      DOMAIN: "${DOMAIN}"
     networks:
       - internal
     depends_on:

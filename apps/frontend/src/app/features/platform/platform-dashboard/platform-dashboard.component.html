@@ -63,7 +63,7 @@
           </mat-card-content>
         </mat-card>
         @if (data.juntasVencidas != null && data.juntasVencidas > 0) {
-          <a routerLink="/platform/juntas" [queryParams]="{ vencidas: 'true' }" class="block">
+          <a routerLink="/app/platform/juntas" [queryParams]="{ vencidas: 'true' }" class="block">
             <mat-card class="border border-jac-error-border h-full hover:shadow-md transition-shadow">
               <mat-card-content class="p-4">
                 <div class="flex items-center gap-3">
@@ -80,7 +80,7 @@
           </a>
         }
         @if (data.juntasCercanasALimite != null && data.juntasCercanasALimite > 0) {
-          <a routerLink="/platform/juntas" [queryParams]="{ alertas: 'true' }" class="block">
+          <a routerLink="/app/platform/juntas" [queryParams]="{ alertas: 'true' }" class="block">
             <mat-card class="border border-jac-warning-border h-full hover:shadow-md transition-shadow">
               <mat-card-content class="p-4">
                 <div class="flex items-center gap-3">
@@ -234,7 +234,7 @@
   <section>
     <h2 class="text-lg font-semibold text-jac-text mb-4">Accesos directos</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <a routerLink="/platform/juntas" class="block group">
+      <a routerLink="/app/platform/juntas" class="block group">
         <mat-card class="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border border-jac-border-subtle overflow-hidden">
           <mat-card-content class="p-4">
             <div class="flex items-start gap-3">
@@ -250,7 +250,7 @@
           </mat-card-content>
         </mat-card>
       </a>
-      <a routerLink="/platform/planes" class="block group">
+      <a routerLink="/app/platform/planes" class="block group">
         <mat-card class="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border border-jac-border-subtle overflow-hidden">
           <mat-card-content class="p-4">
             <div class="flex items-start gap-3">
@@ -266,7 +266,7 @@
           </mat-card-content>
         </mat-card>
       </a>
-      <a routerLink="/platform/juntas/nueva" class="block group">
+      <a routerLink="/app/platform/juntas/nueva" class="block group">
         <mat-card class="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border border-jac-border-subtle overflow-hidden">
           <mat-card-content class="p-4">
             <div class="flex items-start gap-3">

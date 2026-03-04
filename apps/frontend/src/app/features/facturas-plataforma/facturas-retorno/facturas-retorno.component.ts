@@ -69,6 +69,6 @@ export class FacturasRetornoComponent implements OnInit {
   }
 
   volver(): void {
-    this.router.navigate(['/facturas-plataforma']);
+    this.router.navigate(['/app/facturas-plataforma']);
   }
 }

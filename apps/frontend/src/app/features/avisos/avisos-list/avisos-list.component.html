@@ -1,34 +1,101 @@
 <div class="max-w-4xl mx-auto">
-  <header class="mb-8">
-    <h1 class="text-2xl sm:text-3xl font-bold text-jac-text mb-1">Avisos</h1>
-    <p class="text-jac-text-secondary">Comunicados de la plataforma y de su junta</p>
+  <header class="mb-8 flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-jac-text mb-1">Avisos</h1>
+      <p class="text-jac-text-secondary">Comunicados de la plataforma y de tu junta</p>
+    </div>
+    @if (puedeGestionarAvisosJunta) {
+      <button mat-raised-button color="primary" (click)="abrirCrear()">
+        <mat-icon>add</mat-icon>
+        Nuevo aviso
+      </button>
+    }
   </header>
 
   @if (loading) {
     <div class="flex justify-center py-16">
       <mat-spinner diameter="48"></mat-spinner>
     </div>
-  } @else if (avisos.length === 0) {
+  } @else if (avisosPlataforma.length === 0 && avisosJunta.length === 0) {
     <mat-card class="border border-jac-border-subtle">
       <mat-card-content class="py-12 text-center">
         <mat-icon class="!text-5xl !w-16 !h-16 mx-auto mb-3 text-jac-text-muted">campaign</mat-icon>
         <p class="text-jac-text-muted">No hay avisos activos en este momento.</p>
+        @if (puedeGestionarAvisosJunta) {
+          <p class="text-sm text-jac-text-muted mt-2">Crea un aviso para informar a los afiliados (reuniones, comunicados, etc.).</p>
+        }
       </mat-card-content>
     </mat-card>
   } @else {
-    <div class="space-y-4">
-      @for (a of avisos; track a.id) {
-        <mat-card class="border border-jac-border-subtle">
-          <mat-card-header class="pb-2">
-            <mat-card-title class="!text-base !font-medium">{{ a.titulo }}</mat-card-title>
-            <mat-card-subtitle class="!text-xs">
-              {{ a.fechaPublicacion | date:'medium' }}
-            </mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content class="pt-0">
-            <p class="text-sm text-jac-text-secondary whitespace-pre-wrap">{{ a.contenido }}</p>
-          </mat-card-content>
-        </mat-card>
+    <div class="space-y-8">
+      <!-- Avisos de la junta (creados por admin/secretaria) -->
+      @if (avisosJunta.length > 0) {
+        <section>
+          <h2 class="text-lg font-semibold text-jac-text mb-3 flex items-center gap-2">
+            <mat-icon class="!text-xl !w-5 !h-5">groups</mat-icon>
+            Avisos de tu junta
+          </h2>
+          <div class="space-y-4">
+            @for (a of avisosJunta; track a.id) {
+              <mat-card class="border border-jac-border-subtle">
+                <mat-card-header class="pb-2 flex justify-between items-start">
+                  <div>
+                    <mat-card-title class="!text-base !font-medium">{{ a.titulo }}</mat-card-title>
+                    <mat-card-subtitle class="!text-xs">
+                      {{ a.fechaPublicacion | date:'medium' }}
+                      @if (nombreCreador(a)) {
+                        · {{ nombreCreador(a) }}
+                      }
+                    </mat-card-subtitle>
+                  </div>
+                  @if (puedeGestionarAvisosJunta) {
+                    <button mat-icon-button [matMenuTriggerFor]="menuJunta">
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #menuJunta="matMenu">
+                      <button mat-menu-item (click)="abrirEditar(a)">
+                        <mat-icon>edit</mat-icon>
+                        <span>Editar</span>
+                      </button>
+                      <button mat-menu-item (click)="eliminar(a)">
+                        <mat-icon>delete</mat-icon>
+                        <span>Eliminar</span>
+                      </button>
+                    </mat-menu>
+                  }
+                </mat-card-header>
+                <mat-card-content class="pt-0">
+                  <p class="text-sm text-jac-text-secondary whitespace-pre-wrap">{{ a.contenido }}</p>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Avisos de la plataforma -->
+      @if (avisosPlataforma.length > 0) {
+        <section>
+          <h2 class="text-lg font-semibold text-jac-text mb-3 flex items-center gap-2">
+            <mat-icon class="!text-xl !w-5 !h-5">info</mat-icon>
+            Avisos de la plataforma
+          </h2>
+          <div class="space-y-4">
+            @for (a of avisosPlataforma; track a.id) {
+              <mat-card class="border border-jac-border-subtle">
+                <mat-card-header class="pb-2">
+                  <mat-card-title class="!text-base !font-medium">{{ a.titulo }}</mat-card-title>
+                  <mat-card-subtitle class="!text-xs">
+                    {{ a.fechaPublicacion | date:'medium' }}
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content class="pt-0">
+                  <p class="text-sm text-jac-text-secondary whitespace-pre-wrap">{{ a.contenido }}</p>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        </section>
       }
     </div>
   }

@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../../domain/services/audit.service';
+import { normalizarTelefonoColombia } from '../../common/utils/validacion-telefono.util';
 import * as bcrypt from 'bcrypt';
 import { RolNombre, EstadoSuscripcion, EstadoFactura, TipoFactura } from '@prisma/client';
 import {
@@ -22,6 +23,8 @@ export const TERMINOS_VERSION = '2026-02-25';
 
 export interface CreateJuntaParams {
   nombre: string;
+  email: string;
+  telefono: string;
   nit?: string;
   montoCarta?: number;
   adminUser: CreateJuntaAdminUser;
@@ -55,12 +58,22 @@ export class JuntaService {
     if (!params.aceptoTerminos) {
       throw new BadRequestException('Se requiere aceptar los términos de servicio para crear una junta');
     }
+    const emailNorm = params.email?.trim().toLowerCase();
+    if (!emailNorm || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm)) {
+      throw new BadRequestException('El email de la junta no es válido');
+    }
+    const telefonoNorm = normalizarTelefonoColombia(params.telefono);
+    if (!telefonoNorm) {
+      throw new BadRequestException('El teléfono de la junta debe ser un número colombiano válido (10 dígitos)');
+    }
     const passwordHash = await bcrypt.hash(params.passwordTemporal, 10);
 
     const result = await this.prisma.$transaction(async (tx) => {
       const junta = await tx.junta.create({
         data: {
           nombre: params.nombre,
+          email: emailNorm,
+          telefono: telefonoNorm,
           nit: params.nit ?? null,
           montoCarta: params.montoCarta ?? null,
           terminosAceptadosEn: new Date(),

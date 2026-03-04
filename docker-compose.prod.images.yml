@@ -1,0 +1,16 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Override PRODUCCIÓN – Imágenes pre-construidas
+#
+# Usar SOLO cuando las imágenes ya están en un registry (Docker Hub, ECR, etc.).
+# Requiere DOCKER_IMAGE_PREFIX en .env.production (ej. "tuusuario").
+#
+# Comando:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml --env-file .env.production up -d
+# ──────────────────────────────────────────────────────────────────────────
+
+services:
+  backend:
+    image: ${DOCKER_IMAGE_PREFIX}/jacapp-backend:latest
+
+  frontend:
+    image: ${DOCKER_IMAGE_PREFIX}/jacapp-frontend:latest

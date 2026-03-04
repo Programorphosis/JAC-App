@@ -1,8 +1,17 @@
-<div class="login-page">
-  <div class="login-container">
+<div class="login-page" @fadeIn>
+  <div class="login-bg"></div>
 
+  <header class="login-header">
+    <a routerLink="/" class="login-back">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Volver</span>
+    </a>
+    <a href="/#precios" class="login-prices-link">Ver precios</a>
+  </header>
+
+  <div class="login-container">
     <!-- Brand -->
-    <div class="login-brand">
+    <div class="login-brand" @fadeInUp>
       <div class="login-brand-icon">
         <mat-icon>account_balance</mat-icon>
       </div>
@@ -11,16 +20,16 @@
     </div>
 
     <!-- Card -->
-    <mat-card class="login-card">
+    <mat-card class="login-card" @fadeInUp>
       <mat-card-header class="login-card-header">
         <mat-card-title>Iniciar sesión</mat-card-title>
         <mat-card-subtitle>Ingresa tus credenciales para continuar</mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content class="login-card-content">
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
 
-          <mat-form-field appearance="outline" class="w-full">
+          <mat-form-field appearance="outline" class="login-field">
             <mat-label>Tipo de documento</mat-label>
             <mat-icon matPrefix>badge</mat-icon>
             <mat-select formControlName="tipoDocumento">
@@ -30,7 +39,7 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
+          <mat-form-field appearance="outline" class="login-field">
             <mat-label>Número de documento</mat-label>
             <mat-icon matPrefix>person</mat-icon>
             <input matInput formControlName="numeroDocumento" type="text" autocomplete="username" />
@@ -39,7 +48,7 @@
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
+          <mat-form-field appearance="outline" class="login-field">
             <mat-label>Contraseña</mat-label>
             <mat-icon matPrefix>lock</mat-icon>
             <input matInput formControlName="password" type="password" autocomplete="current-password" />
@@ -48,24 +57,23 @@
             }
           </mat-form-field>
 
-          <mat-checkbox formControlName="platformAdmin" class="text-sm">
-            Acceso Platform Admin
-          </mat-checkbox>
-
-          <a routerLink="/recuperar-contrasena" class="text-sm text-primary self-end">
-            Olvidé mi contraseña
-          </a>
+          <div class="login-options">
+            
+            <a routerLink="/recuperar-contrasena" class="login-forgot">
+              Olvidé mi contraseña
+            </a>
+          </div>
 
           @if (mensajeExito) {
             <div class="form-success-banner" role="status">
-              <mat-icon class="!text-base !w-5 !h-5 shrink-0">check_circle</mat-icon>
+              <mat-icon class="form-banner-icon">check_circle</mat-icon>
               <span>{{ mensajeExito }}</span>
             </div>
           }
 
           @if (error) {
             <div class="form-error-banner" role="alert">
-              <mat-icon class="!text-base !w-5 !h-5 shrink-0">error_outline</mat-icon>
+              <mat-icon class="form-banner-icon">error_outline</mat-icon>
               <span>{{ error }}</span>
             </div>
           }
@@ -82,15 +90,17 @@
             }
             {{ loading ? 'Verificando...' : 'Ingresar' }}
           </button>
-
         </form>
       </mat-card-content>
       <mat-card-footer class="login-footer">
-        <a routerLink="/legal/terminos" target="_blank">Términos de servicio</a>
-        <span>·</span>
-        <a routerLink="/legal/privacidad" target="_blank">Política de privacidad</a>
+        <a routerLink="/">Inicio</a>
+        <span class="login-footer-dot">·</span>
+        <a href="/#precios">Precios</a>
+        <span class="login-footer-dot">·</span>
+        <a routerLink="/legal/terminos">Términos</a>
+        <span class="login-footer-dot">·</span>
+        <a routerLink="/legal/privacidad">Privacidad</a>
       </mat-card-footer>
     </mat-card>
-
   </div>
 </div>

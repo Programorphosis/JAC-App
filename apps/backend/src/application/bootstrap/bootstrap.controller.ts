@@ -47,13 +47,15 @@ export class BootstrapController {
 
     if (
       !body.primeraJunta.nombre ||
+      !body.primeraJunta.email ||
+      !body.primeraJunta.telefono ||
       !body.primeraJunta.adminUser?.nombres ||
       !body.primeraJunta.adminUser?.apellidos ||
       !body.primeraJunta.adminUser?.tipoDocumento ||
       !body.primeraJunta.adminUser?.numeroDocumento
     ) {
       throw new BadRequestException(
-        'primeraJunta requiere: nombre, adminUser con nombres, apellidos, tipoDocumento, numeroDocumento',
+        'primeraJunta requiere: nombre, email, telefono, adminUser con nombres, apellidos, tipoDocumento, numeroDocumento',
       );
     }
 

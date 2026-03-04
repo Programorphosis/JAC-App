@@ -1,19 +1,33 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AlcanceAviso } from '@prisma/client';
+import { AlcanceAviso, RolNombre } from '@prisma/client';
 import { CrearAvisoDto, AlcanceAvisoDto } from '../dto/crear-aviso.dto';
 import { ActualizarAvisoDto } from '../dto/actualizar-aviso.dto';
+import type { JwtUser } from '../../auth/strategies/jwt.strategy';
+
+const ROLES_OPERATIVOS: RolNombre[] = [
+  'ADMIN',
+  'SECRETARIA',
+  'TESORERA',
+  'FISCAL',
+  'RECEPTOR_AGUA',
+];
 
 /**
  * PA-9: Avisos de plataforma para el dashboard.
  * Alcance: PLATAFORMA (solo admin), TODAS_JUNTAS (todas las juntas), JUNTA_ESPECIFICA (una junta).
+ * soloOperativos: si true, solo usuarios con rol operativo ven el aviso.
  */
 @Injectable()
 export class PlatformAvisosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Lista avisos activos visibles para una junta (dashboard de junta). */
-  async listarActivos(juntaId: string | null) {
+  private esUsuarioOperativo(roles: RolNombre[]): boolean {
+    return roles.some((r) => ROLES_OPERATIVOS.includes(r));
+  }
+
+  /** Lista avisos activos visibles para una junta (dashboard de junta). Filtra por soloOperativos si aplica. */
+  async listarActivos(juntaId: string | null, user?: JwtUser) {
     if (!juntaId) {
       return { data: [] };
     }
@@ -28,7 +42,12 @@ export class PlatformAvisosService {
       orderBy: { fechaPublicacion: 'desc' },
       take: 20,
     });
-    return { data: avisos };
+    const esOperativo = user ? this.esUsuarioOperativo(user.roles) : true;
+    const filtrados = avisos.filter((a) => {
+      if (!a.soloOperativos) return true;
+      return esOperativo;
+    });
+    return { data: filtrados };
   }
 
   /** Lista todos los avisos para administración (incluye inactivos y todos los alcances). */
@@ -57,6 +76,7 @@ export class PlatformAvisosService {
         contenido: dto.contenido,
         alcance,
         juntaId: alcance === 'JUNTA_ESPECIFICA' ? dto.juntaId : null,
+        soloOperativos: dto.soloOperativos ?? false,
       },
       include: { junta: { select: { id: true, nombre: true } } },
     });
@@ -95,6 +115,7 @@ export class PlatformAvisosService {
         ...(dto.activo !== undefined && { activo: dto.activo }),
         ...(dto.alcance !== undefined && { alcance: dto.alcance as AlcanceAviso }),
         ...((dto.alcance !== undefined || dto.juntaId !== undefined) ? { juntaId: juntaIdFinal } : {}),
+        ...(dto.soloOperativos !== undefined && { soloOperativos: dto.soloOperativos }),
       },
       include: { junta: { select: { id: true, nombre: true } } },
     });

@@ -10,7 +10,7 @@ export const platformAdminGuard: CanActivateFn = () => {
     return true;
   }
   if (auth.isAuthenticated()) {
-    router.navigate(['/']);
+    router.navigate(['/app']);
     return false;
   }
   router.navigate(['/login']);

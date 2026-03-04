@@ -52,7 +52,7 @@ export class FacturaPendienteModalComponent {
 
   irAVer(): void {
     this.dialogRef.close(true);
-    this.router.navigate(['/facturas-plataforma']);
+    this.router.navigate(['/app/facturas-plataforma']);
   }
 
   cerrar(): void {

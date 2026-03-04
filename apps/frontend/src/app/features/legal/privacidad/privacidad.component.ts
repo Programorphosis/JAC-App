@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { Title, Meta } from '@angular/platform-browser';
 import { LegalNavService } from '../services/legal-nav.service';
 
 @Component({
@@ -10,6 +11,8 @@ import { LegalNavService } from '../services/legal-nav.service';
 })
 export class PrivacidadComponent implements OnInit {
   private readonly nav = inject(LegalNavService);
+  private readonly title = inject(Title);
+  private readonly meta = inject(Meta);
 
   readonly sections = [
     { id: 'responsable', label: '1. Responsable del tratamiento' },
@@ -28,6 +31,11 @@ export class PrivacidadComponent implements OnInit {
   ];
 
   ngOnInit() {
+    this.title.setTitle('Política de privacidad – JAC App');
+    this.meta.updateTag({
+      name: 'description',
+      content: 'Política de privacidad y tratamiento de datos personales de JAC App.',
+    });
     this.nav.setSections(this.sections);
   }
 }

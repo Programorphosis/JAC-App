@@ -67,7 +67,7 @@ export class LayoutComponent implements OnInit {
       this.menuOpen = !this.isSmallScreen();
     });
     if (this.auth.isPlatformAdmin() && this.router.url === '/') {
-      this.router.navigate(['/platform']);
+      this.router.navigate(['/app/platform']);
     }
   }
 
@@ -75,23 +75,23 @@ export class LayoutComponent implements OnInit {
     // Mantener Mi JAC expandido cuando estamos en una ruta hija.
     const url = this.router.url;
     this.miJacExpanded =
-      url.startsWith('/mi-junta') ||
-      url.startsWith('/plan-suscripcion') ||
-      url.startsWith('/facturas-plataforma') ||
-      url.startsWith('/requisitos') ||
-      url.startsWith('/tarifas') ||
-      url.startsWith('/configuracion');
+      url.startsWith('/app/mi-junta') ||
+      url.startsWith('/app/plan-suscripcion') ||
+      url.startsWith('/app/facturas-plataforma') ||
+      url.startsWith('/app/requisitos') ||
+      url.startsWith('/app/tarifas') ||
+      url.startsWith('/app/configuracion');
     this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe((e) => {
         const u = e.url;
         this.miJacExpanded =
-          u.startsWith('/mi-junta') ||
-          u.startsWith('/plan-suscripcion') ||
-          u.startsWith('/facturas-plataforma') ||
-          u.startsWith('/requisitos') ||
-          u.startsWith('/tarifas') ||
-          u.startsWith('/configuracion');
+          u.startsWith('/app/mi-junta') ||
+          u.startsWith('/app/plan-suscripcion') ||
+          u.startsWith('/app/facturas-plataforma') ||
+          u.startsWith('/app/requisitos') ||
+          u.startsWith('/app/tarifas') ||
+          u.startsWith('/app/configuracion');
       });
     // Avisos al abrir sesión, luego facturas pendientes (modales independientes, orquestados aquí)
     setTimeout(() => {
@@ -118,7 +118,7 @@ export class LayoutComponent implements OnInit {
     this.auth.salirImpersonacion().subscribe({
       next: () => {
         this.saliendoImpersonacion = false;
-        this.router.navigate(['/platform']);
+        this.router.navigate(['/app/platform']);
       },
       error: (err) => {
         this.saliendoImpersonacion = false;

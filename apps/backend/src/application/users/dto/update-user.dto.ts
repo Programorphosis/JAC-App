@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsArray, IsIn, IsDateString, IsInt, Min } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsArray, IsIn, IsDateString, IsInt, Min, Matches, ValidateIf } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateUserDto {
@@ -12,6 +12,10 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
+  @ValidateIf((_, v) => v != null && v !== '')
+  @Matches(/^(\+?57)?[0-9]{10}$/, {
+    message: 'El teléfono debe ser un número colombiano válido (10 dígitos)',
+  })
   telefono?: string;
 
   @IsOptional()

@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   BadRequestException,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
@@ -410,35 +411,119 @@ export class AuthService {
   }
 
   /**
+   * Solicita código de verificación de email (primer login, al agregar correo).
+   * Requiere JWT. Valida unicidad del email antes de enviar.
+   */
+  async solicitarCodigoVerificacionEmail(
+    usuarioId: string,
+    dto: { email: string },
+  ): Promise<{ enviado: boolean }> {
+    const emailNorm = dto.email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailNorm)) {
+      throw new BadRequestException('El correo electrónico no es válido');
+    }
+
+    const existente = await this.prisma.usuario.findFirst({
+      where: { email: emailNorm, id: { not: usuarioId } },
+    });
+    if (existente) {
+      throw new ConflictException('Este correo ya está registrado por otro usuario');
+    }
+
+    const usuario = await this.prisma.usuario.findUniqueOrThrow({
+      where: { id: usuarioId },
+    });
+
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiraEn = new Date(Date.now() + 15 * 60 * 1000);
+
+    await this.prisma.codigoVerificacionEmail.create({
+      data: {
+        usuarioId,
+        email: emailNorm,
+        codigo,
+        expiraEn,
+      },
+    });
+
+    const nombreUsuario = `${usuario.nombres} ${usuario.apellidos}`.trim() || usuario.numeroDocumento;
+    await this.email.enviarCodigoVerificacionEmail({
+      to: emailNorm,
+      codigo,
+      nombreUsuario,
+    });
+
+    return { enviado: true };
+  }
+
+  /**
    * Cambia la contraseña del usuario autenticado.
-   * Si requiereCambioPassword=true, email es obligatorio (se guarda para futuras recuperaciones).
+   * Si requiereCambioPassword=true: debe incluir email + codigo (tras solicitar verificación).
+   * Si requiereCambioPassword=false: pide contraseña actual.
    */
   async cambiarPassword(
     usuarioId: string,
-    dto: { passwordActual: string; passwordNueva: string; email?: string },
+    dto: {
+      passwordActual?: string;
+      passwordNueva: string;
+      email?: string;
+      codigo?: string;
+    },
   ): Promise<{ requiereCambioPassword: boolean }> {
     const usuario = await this.prisma.usuario.findUniqueOrThrow({
       where: { id: usuarioId },
     });
 
-    const ok = await bcrypt.compare(dto.passwordActual, usuario.passwordHash);
-    if (!ok) {
-      throw new UnauthorizedException('Contraseña actual incorrecta');
+    if (!usuario.requiereCambioPassword) {
+      const actual = dto.passwordActual?.trim();
+      if (!actual || actual.length < 6) {
+        throw new BadRequestException('Debes indicar tu contraseña actual para cambiarla.');
+      }
+      const ok = await bcrypt.compare(actual, usuario.passwordHash);
+      if (!ok) {
+        throw new BadRequestException('Contraseña actual incorrecta');
+      }
     }
 
-    if (usuario.requiereCambioPassword && !dto.email?.trim()) {
-      throw new BadRequestException(
-        'Al cambiar la contraseña por primera vez debes indicar un correo electrónico para futuras recuperaciones.',
-      );
-    }
-
-    const emailRaw = dto.email?.trim();
-    const email = emailRaw ? emailRaw.toLowerCase() : null;
-    if (email) {
+    let emailNorm: string | null = null;
+    if (usuario.requiereCambioPassword) {
+      if (!dto.email?.trim() || !dto.codigo?.trim()) {
+        throw new BadRequestException(
+          'Debes solicitar un código de verificación a tu correo y luego ingresarlo junto con tu nueva contraseña.',
+        );
+      }
+      emailNorm = dto.email.trim().toLowerCase();
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
+      if (!emailRegex.test(emailNorm)) {
         throw new BadRequestException('El correo electrónico no es válido');
       }
+
+      const codigoRec = await this.prisma.codigoVerificacionEmail.findFirst({
+        where: {
+          usuarioId,
+          email: emailNorm,
+          codigo: dto.codigo.trim(),
+          usado: false,
+          expiraEn: { gt: new Date() },
+        },
+        orderBy: { fechaCreacion: 'desc' },
+      });
+      if (!codigoRec) {
+        throw new BadRequestException('Código inválido o expirado. Solicita uno nuevo.');
+      }
+
+      const existente = await this.prisma.usuario.findFirst({
+        where: { email: emailNorm, id: { not: usuarioId } },
+      });
+      if (existente) {
+        throw new ConflictException('Este correo ya está registrado por otro usuario');
+      }
+
+      await this.prisma.codigoVerificacionEmail.update({
+        where: { id: codigoRec.id },
+        data: { usado: true },
+      });
     }
 
     const passwordHash = await bcrypt.hash(dto.passwordNueva, 10);
@@ -448,7 +533,7 @@ export class AuthService {
       data: {
         passwordHash,
         requiereCambioPassword: false,
-        ...(email && { email }),
+        ...(emailNorm && { email: emailNorm, emailVerificado: true }),
       },
     });
 
@@ -458,7 +543,7 @@ export class AuthService {
         entidad: 'Auth',
         entidadId: usuarioId,
         accion: 'CAMBIO_PASSWORD',
-        metadata: { conEmail: !!email },
+        metadata: { conEmail: !!emailNorm },
         ejecutadoPorId: usuarioId,
       });
     }
@@ -473,7 +558,7 @@ export class AuthService {
   async solicitarCodigoRecuperacion(dto: { email: string }): Promise<{ enviado: boolean }> {
     const emailNorm = dto.email.trim().toLowerCase();
     const usuario = await this.prisma.usuario.findFirst({
-      where: { email: emailNorm, activo: true },
+      where: { email: emailNorm, activo: true, emailVerificado: true },
     });
 
     if (!usuario) {

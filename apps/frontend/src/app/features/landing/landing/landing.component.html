@@ -1,0 +1,190 @@
+<div class="landing">
+  <header class="landing-header">
+    <div class="landing-brand">
+      <mat-icon class="landing-brand-icon">account_balance</mat-icon>
+      <span class="landing-brand-name">JAC App</span>
+    </div>
+    <nav class="landing-nav">
+      <a href="#precios" class="landing-nav-link">Precios</a>
+      <a mat-stroked-button routerLink="/login" class="landing-login-btn">
+        <mat-icon>login</mat-icon>
+        Iniciar sesión
+      </a>
+    </nav>
+  </header>
+
+  <main class="landing-main">
+    <!-- Hero -->
+    <section class="landing-hero" @fadeInUp>
+      <div class="landing-hero-bg"></div>
+      <div class="landing-hero-content">
+        <span class="landing-hero-badge">Sistema para Juntas de Acción Comunal</span>
+        <h1 class="landing-hero-title">
+          Digitaliza la gestión de tu junta
+        </h1>
+        <p class="landing-hero-subtitle">
+          Pagos, cartas laborales, requisitos y auditoría en un solo lugar. 
+          Contabilidad clara, actas digitales y todo listo para inspecciones.
+        </p>
+        <div class="landing-hero-cta">
+          <a mat-raised-button color="primary" routerLink="/login" class="landing-cta-btn landing-cta-primary">
+            <mat-icon>login</mat-icon>
+            Acceder al sistema
+          </a>
+          <a mat-stroked-button href="#funcionalidades" class="landing-cta-secondary">
+            Conocer más
+          </a>
+          <a mat-stroked-button href="#precios" class="landing-cta-secondary">
+            Ver precios
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="landing-stats" appInView>
+      <div class="landing-stats-grid">
+        <div class="landing-stat">
+          <span class="landing-stat-value">100%</span>
+          <span class="landing-stat-label">Auditable</span>
+        </div>
+        <div class="landing-stat">
+          <span class="landing-stat-value">0</span>
+          <span class="landing-stat-label">Pagos parciales</span>
+        </div>
+        <div class="landing-stat">
+          <span class="landing-stat-value">24/7</span>
+          <span class="landing-stat-label">Disponible</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="funcionalidades" class="landing-features" appInView>
+      <h2 class="landing-section-title">Todo lo que tu junta necesita</h2>
+      <p class="landing-section-subtitle">
+        Herramientas diseñadas para la realidad de las JAC en Colombia.
+      </p>
+      <div class="landing-features-grid">
+        <div class="landing-feature-card" *ngFor="let f of features; let i = index">
+          <div class="landing-feature-icon-wrap">
+            <mat-icon class="landing-feature-icon">{{ f.icon }}</mat-icon>
+          </div>
+          <h3>{{ f.title }}</h3>
+          <p>{{ f.description }}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Precios -->
+    <section id="precios" class="landing-pricing" appInView>
+      <h2 class="landing-section-title">Planes para tu junta</h2>
+      <p class="landing-section-subtitle">
+        Elige el plan que mejor se adapte al tamaño de tu junta. Sin sorpresas.
+      </p>
+      @if (planesLoading()) {
+        <div class="landing-pricing-loading">
+          <mat-icon class="landing-pricing-spinner">hourglass_empty</mat-icon>
+          <span>Cargando planes...</span>
+        </div>
+      } @else {
+        <div class="landing-pricing-grid">
+          @for (p of planes(); track p.id) {
+            <div class="landing-plan-card" [class.landing-plan-featured]="p.precioMensual > 0">
+              @if (p.precioMensual > 0) {
+                <span class="landing-plan-badge">Más popular</span>
+              }
+              <h3 class="landing-plan-name">{{ p.nombre }}</h3>
+              <div class="landing-plan-price">
+                @if (p.precioMensual === 0) {
+                  <span class="landing-plan-price-value">Gratis</span>
+                  <span class="landing-plan-price-period">para empezar</span>
+                } @else {
+                  <span class="landing-plan-price-currency">$</span>
+                  <span class="landing-plan-price-value">{{ formatPrice(p.precioMensual) }}</span>
+                  <span class="landing-plan-price-period">/ mes</span>
+                }
+              </div>
+              @if (p.precioAnual > 0 && p.precioMensual > 0) {
+                <p class="landing-plan-annual">
+                  O ${{ formatPrice(p.precioAnual) }}/año (2 meses gratis)
+                </p>
+              }
+              @if (p.diasPrueba > 0) {
+                <p class="landing-plan-trial">{{ p.diasPrueba }} días de prueba</p>
+              }
+              <ul class="landing-plan-features">
+                <li>
+                  <mat-icon class="landing-plan-check">check_circle</mat-icon>
+                  {{ formatLimiteUsuarios(p) }}
+                </li>
+                <li>
+                  <mat-icon class="landing-plan-check">check_circle</mat-icon>
+                  {{ formatLimiteStorage(p) }}
+                </li>
+                <li>
+                  <mat-icon class="landing-plan-check">check_circle</mat-icon>
+                  {{ formatLimiteCartas(p) }}
+                </li>
+              </ul>
+              <a mat-raised-button color="primary" routerLink="/login" class="landing-plan-cta">
+                Empezar
+              </a>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Benefits -->
+    <section class="landing-benefits" appInView>
+      <h2 class="landing-section-title">¿Por qué JAC App?</h2>
+      <div class="landing-benefits-grid">
+        <div class="landing-benefit">
+          <mat-icon class="landing-benefit-icon">verified</mat-icon>
+          <h3>Defendible ante auditorías</h3>
+          <p>Registro inmutable de cada operación. Sin ediciones ni borrados en datos críticos.</p>
+        </div>
+        <div class="landing-benefit">
+          <mat-icon class="landing-benefit-icon">payments</mat-icon>
+          <h3>Pagos online con Wompi</h3>
+          <p>Cuotas y cartas se pagan con tarjeta, Nequi o PSE. Cada junta con sus propias credenciales.</p>
+        </div>
+        <div class="landing-benefit">
+          <mat-icon class="landing-benefit-icon">qr_code_2</mat-icon>
+          <h3>Cartas con QR verificable</h3>
+          <p>Cualquiera puede validar la autenticidad de una carta escaneando el código QR.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Local -->
+    <section class="landing-local" appInView>
+      <mat-icon class="landing-local-icon">location_on</mat-icon>
+      <p class="landing-local-text">
+        Para juntas en <strong>Puerto Gaitán</strong>, <strong>Meta</strong> y toda Colombia.
+      </p>
+    </section>
+
+    <!-- CTA Footer -->
+    <section class="landing-cta-footer" appInView>
+      <h2 class="landing-cta-footer-title">¿Listo para empezar?</h2>
+      <div class="landing-cta-footer-buttons">
+        <a mat-raised-button color="primary" routerLink="/login">
+          <mat-icon>login</mat-icon>
+          Iniciar sesión
+        </a>
+        <a mat-stroked-button routerLink="/legal/terminos">
+          Términos de servicio
+        </a>
+        <a mat-stroked-button routerLink="/legal/privacidad">
+          Política de privacidad
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="landing-footer">
+    <p>JAC App – Juntas de Acción Comunal</p>
+  </footer>
+</div>

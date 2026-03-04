@@ -3,6 +3,8 @@ import {
   IsOptional,
   IsNumber,
   ValidateNested,
+  IsEmail,
+  Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -48,6 +50,16 @@ export class BootstrapAdminUserDto {
 export class BootstrapPrimeraJuntaDto {
   @IsString()
   nombre!: string;
+
+  @IsString()
+  @IsEmail()
+  email!: string;
+
+  @IsString()
+  @Matches(/^(\+?57)?[0-9]{10}$/, {
+    message: 'El teléfono debe ser un número colombiano válido (10 dígitos)',
+  })
+  telefono!: string;
 
   @IsString()
   @IsOptional()

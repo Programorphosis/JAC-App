@@ -19,6 +19,7 @@ export function computePermissions(
 
   // ADMIN
   if (roles.includes(RolNombre.ADMIN)) {
+    set.add(PERMISSIONS.AVISOS_JUNTA_GESTIONAR);
     set.add(PERMISSIONS.JUNTA_CONFIG_WOMPI);
     set.add(PERMISSIONS.JUNTA_DATOS_EDITAR);
     set.add(PERMISSIONS.USUARIOS_VER);
@@ -36,6 +37,7 @@ export function computePermissions(
 
   // SECRETARIA
   if (roles.includes(RolNombre.SECRETARIA)) {
+    set.add(PERMISSIONS.AVISOS_JUNTA_GESTIONAR);
     set.add(PERMISSIONS.USUARIOS_VER);
     set.add(PERMISSIONS.USUARIOS_CREAR);
     set.add(PERMISSIONS.USUARIOS_EDITAR);

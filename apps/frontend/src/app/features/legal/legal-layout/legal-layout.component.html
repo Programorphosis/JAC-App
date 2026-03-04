@@ -1,17 +1,23 @@
 <div class="legal-layout">
   <mat-sidenav-container class="legal-sidenav-container">
-    <mat-sidenav #sidenav mode="side" opened class="legal-sidenav" [fixedInViewport]="true">
+    <mat-sidenav
+      #sidenav
+      [mode]="isMobile() ? 'over' : 'side'"
+      [opened]="!isMobile()"
+      class="legal-sidenav"
+      [fixedInViewport]="true"
+    >
       <mat-nav-list class="legal-nav-docs">
         <span class="legal-nav-label">Documentos</span>
-        <a mat-list-item routerLink="/legal/terminos" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <a mat-list-item routerLink="/legal/terminos" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeIfMobile(sidenav)">
           <mat-icon matListItemIcon>description</mat-icon>
           <span matListItemTitle>Términos de servicio</span>
         </a>
-        <a mat-list-item routerLink="/legal/privacidad" routerLinkActive="active">
+        <a mat-list-item routerLink="/legal/privacidad" routerLinkActive="active" (click)="closeIfMobile(sidenav)">
           <mat-icon matListItemIcon>privacy_tip</mat-icon>
           <span matListItemTitle>Política de privacidad</span>
         </a>
-        <a mat-list-item routerLink="/legal/cancelacion" routerLinkActive="active">
+        <a mat-list-item routerLink="/legal/cancelacion" routerLinkActive="active" (click)="closeIfMobile(sidenav)">
           <mat-icon matListItemIcon>cancel</mat-icon>
           <span matListItemTitle>Política de cancelación</span>
         </a>
@@ -20,7 +26,7 @@
         <mat-nav-list class="legal-nav-sections">
           <span class="legal-nav-label">En este documento</span>
           @for (s of nav.sections(); track s.id) {
-            <button mat-list-item (click)="scrollToSection(s.id)" class="legal-nav-section">
+            <button mat-list-item (click)="scrollToSection(s.id); closeIfMobile(sidenav)" class="legal-nav-section">
               <span matListItemTitle>{{ s.label }}</span>
             </button>
           }
@@ -28,6 +34,9 @@
       }
     </mat-sidenav>
     <mat-sidenav-content class="legal-content-area">
+      <button mat-icon-button class="legal-nav-toggle" (click)="sidenav.toggle()" [class.visible]="isMobile()" aria-label="Abrir menú">
+        <mat-icon>menu</mat-icon>
+      </button>
       <router-outlet></router-outlet>
     </mat-sidenav-content>
   </mat-sidenav-container>

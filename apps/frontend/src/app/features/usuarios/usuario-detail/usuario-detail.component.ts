@@ -98,9 +98,9 @@ export class UsuarioDetailComponent implements OnInit {
 
   volver(): void {
     if (this.usuario && this.usuario.id === this.auth.currentUser()?.id && !this.auth.can(this.auth.permissions.USUARIOS_VER)) {
-      this.router.navigate(['/']);
+      this.router.navigate(['/app']);
     } else {
-      this.router.navigate(['/usuarios']);
+      this.router.navigate(['/app/usuarios']);
     }
   }
 

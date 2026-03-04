@@ -23,14 +23,14 @@ export class UsuarioNuevoComponent {
   ) {}
 
   volver(): void {
-    this.router.navigate(['/usuarios']);
+    this.router.navigate(['/app/usuarios']);
   }
 
   onGuardar(body: CreateUserBody | UpdateUserBody): void {
     this.usuarios.crear(body as CreateUserBody).subscribe({
       next: (created) => {
         this.snackBar.open('Usuario creado', 'Cerrar', { duration: 2000 });
-        this.router.navigate(['/usuarios', created.id]);
+        this.router.navigate(['/app/usuarios', created.id]);
       },
       error: (err) => {
         this.snackBar.open(getApiErrorMessage(err) || 'Error al crear usuario', 'Cerrar', { duration: 5000 });

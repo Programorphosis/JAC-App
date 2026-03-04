@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { normalizarTelefonoColombia } from '../../common/utils/validacion-telefono.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EncryptionService } from '../../infrastructure/encryption/encryption.service';
 import { AuditService } from '../../domain/services/audit.service';
@@ -417,8 +418,24 @@ export class MiJuntaService {
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const data: Record<string, unknown> = {};
-    if (dto.telefono !== undefined) data.telefono = dto.telefono?.trim() || null;
-    if (dto.email !== undefined) data.email = dto.email?.trim() || null;
+    if (dto.telefono !== undefined) {
+      const telNorm = dto.telefono?.trim()
+        ? normalizarTelefonoColombia(dto.telefono)
+        : null;
+      if (!telNorm) {
+        throw new BadRequestException(
+          'El teléfono debe ser un número colombiano válido (10 dígitos). Email y teléfono son obligatorios.',
+        );
+      }
+      data.telefono = telNorm;
+    }
+    if (dto.email !== undefined) {
+      const emailVal = dto.email?.trim();
+      if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+        throw new BadRequestException('El email no es válido. Email y teléfono son obligatorios.');
+      }
+      data.email = emailVal.toLowerCase();
+    }
     if (dto.direccion !== undefined) data.direccion = dto.direccion?.trim() || null;
     if (dto.ciudad !== undefined) data.ciudad = dto.ciudad?.trim() || null;
     if (dto.departamento !== undefined) data.departamento = dto.departamento?.trim() || null;

@@ -144,11 +144,11 @@ Ver **`docs/CREDENCIALES_DEMO.md`** para la tabla completa.
 
 | Rol | Documento | Contraseña |
 |-----|-----------|------------|
-| Admin Junta | 12345678 | DevAdmin123! |
-| Platform Admin | 00000000 | DevPlatform123! |
-| Secretaria (demo) | 1001014 | Demo123! |
-| Tesorera (demo) | 1001015 | Demo123! |
-| Afiliados demo | 1001001–1001013 | Demo123! |
+| Admin Junta | 12345678 | 12345678 |
+| Platform Admin | 00000000 | 00000000 |
+| Secretaria (demo) | 1001014 | 1001014 |
+| Tesorera (demo) | 1001015 | 1001015 |
+| Afiliados demo | 1001001–1001013 | (documento = contraseña) |
 
 Login: `POST http://localhost:3000/api/auth/login`
 
@@ -178,13 +178,10 @@ cp .env.local.example .env.local
 #    (Los valores por defecto funcionan para pruebas rápidas.)
 
 # 3. Levantar el stack
-docker compose -f docker-compose.yml -f docker-compose.local.yml --env-file .env.local up -d --build
-
-# 4. Cargar datos de prueba (solo la primera vez)
-#    En apps/backend/.env pon DATABASE_URL=postgresql://jac_user:TU_DB_PASSWORD@localhost:5432/jac_db?schema=public
-#    (usa el mismo DB_PASSWORD que en .env.local)
-npm run db:seed
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.local up -d --build
 ```
+
+El seed se ejecuta automáticamente si la BD está vacía. Credenciales demo: CC 12345678 / 12345678.
 
 **URLs:**
 
@@ -196,10 +193,10 @@ npm run db:seed
 **Detener:**
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.local.yml down
+docker compose -f docker-compose.yml -f docker-compose.dev.yml down
 ```
 
-> **Nota:** Caddy sirve HTTP en localhost (sin SSL). Las migraciones se aplican automáticamente al iniciar el backend. El seed hay que ejecutarlo manualmente la primera vez.
+> **Nota:** Caddy sirve HTTP en localhost (sin SSL). Migraciones y seed se aplican automáticamente al iniciar el backend.
 
 ---
 

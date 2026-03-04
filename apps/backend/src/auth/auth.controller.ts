@@ -20,6 +20,7 @@ import {
   OlvideContrasenaDto,
   VerificarCodigoRecuperacionDto,
 } from './dto/olvide-contrasena.dto';
+import { SolicitarVerificacionEmailDto } from './dto/solicitar-verificacion-email.dto';
 import { JwtUser } from './strategies/jwt.strategy';
 
 @ApiTags('auth')
@@ -56,6 +57,18 @@ export class AuthController {
       data: result,
       meta: { timestamp: new Date().toISOString() },
     };
+  }
+
+  @Post('solicitar-verificacion-email')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard('jwt'))
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
+  async solicitarVerificacionEmail(
+    @Request() req: { user: JwtUser },
+    @Body() body: SolicitarVerificacionEmailDto,
+  ) {
+    const result = await this.auth.solicitarCodigoVerificacionEmail(req.user.id, body);
+    return { data: result };
   }
 
   @Patch('cambiar-password')

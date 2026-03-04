@@ -279,7 +279,7 @@ Alineadas al ROADMAP y a la disponibilidad del backend.
 
 **Decisión:** Tema custom con paleta de la marca JAC.
 
-- Paleta definida en `PALETA_COLORES_JAC.md`: azul naval (#1976d2) como primary, teal (#00838f) como accent.
+- Paleta: azul naval (#1976d2) como primary, teal (#00838f) como accent. (Detalle en `archive/PALETA_COLORES_JAC.md`.)
 - Seria y profesional; adecuada para sistema institucional y financiero.
 - Personalizable según identidad visual de cada junta.
 
@@ -300,7 +300,7 @@ Alineadas al ROADMAP y a la disponibilidad del backend.
 | Documento | Contenido |
 |-----------|------------|
 | `plan.md` | Principios rectores, stack |
-| `PALETA_COLORES_JAC.md` | Paleta custom (azul naval, teal) |
+| `archive/PALETA_COLORES_JAC.md` | Paleta custom (azul naval, teal) |
 | `00_ARQUITECTURA_RECTOR copy.md` | Multi-tenant, seguridad |
 | `convencionesAPI.md` | Contrato API |
 | `flujoBootstrapYOnboarding.md` | Panel Platform Admin |

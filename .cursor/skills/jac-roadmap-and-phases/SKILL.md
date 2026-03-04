@@ -1,6 +1,6 @@
 ---
 name: jac-roadmap-and-phases
-description: Guides development order and phase completion using the project roadmap. Use when the user asks about what to build next, phase order, dependencies between features, or criteria to consider a phase done. References ROADMAP.md, CHATMODE_PLAN_DESARROLLO.md.
+description: Guides development order and phase completion using the project roadmap. Use when the user asks about what to build next, phase order, dependencies between features, or criteria to consider a phase done. References ROADMAP.md, chatModeCursor.md.
 ---
 
 # Roadmap y fases JAC
@@ -10,7 +10,7 @@ description: Guides development order and phase completion using the project roa
 - Preguntas sobre orden de desarrollo ("¿qué sigue?", "¿qué hacer primero?").
 - Definir criterios de "listo" para una fase.
 - Resolver dependencias entre módulos (deuda → pagos → Wompi; requisitos; cartas).
-- Ajustar o revisar el plan sin implementar (usar en conjunto con CHATMODE_PLAN_DESARROLLO si es solo planificación).
+- Ajustar o revisar el plan sin implementar (usar en conjunto con chatModeCursor.md si es solo planificación).
 
 ## Orden de fases (resumen)
 
@@ -45,4 +45,4 @@ No avanzar de fase sin confirmación explícita cuando así esté definido en el
 ## Documentos de referencia
 
 - **ROADMAP.md** – Fases completas, entregables, matriz de dependencias, criterios por fase.
-- **CHATMODE_PLAN_DESARROLLO.md** – Cómo discutir y ajustar el plan (alcance, prioridades, preguntas útiles).
+- **chatModeCursor.md** – Reglas de implementación y planificación.

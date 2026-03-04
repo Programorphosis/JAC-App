@@ -62,7 +62,7 @@ export class DashboardComponent implements OnInit {
       icon: 'person',
       title: 'Mi cuenta',
       description: 'Ver tu perfil, deuda, historial laboral, requisitos, cartas y documentos.',
-      link: ['/usuarios', this.auth.currentUser()?.id ?? ''],
+      link: ['/app/usuarios', this.auth.currentUser()?.id ?? ''],
       color: 'primary',
     });
 
@@ -72,7 +72,7 @@ export class DashboardComponent implements OnInit {
         icon: 'analytics',
         title: 'Dashboard contable',
         description: 'Resumen de ingresos por método, tipo, mes y año. Efectivo, transferencia y online.',
-        link: ['/pagos'],
+        link: ['/app/pagos'],
         queryParams: {},
         color: 'accent',
       });
@@ -84,7 +84,7 @@ export class DashboardComponent implements OnInit {
         icon: 'payment',
         title: 'Registrar pagos',
         description: 'Registrar pagos en efectivo o transferencia. Cuota junta y cartas.',
-        link: ['/pagos'],
+        link: ['/app/pagos'],
         queryParams: { tab: 'registrar' },
         color: 'primary',
       });
@@ -97,7 +97,7 @@ export class DashboardComponent implements OnInit {
         icon: 'credit_card',
         title: 'Pagar mi deuda',
         description: `Tienes deuda de ${this.formatearMoneda(d.total)}. Paga online con tarjeta o PSE.`,
-        link: ['/usuarios', this.auth.currentUser()?.id ?? ''],
+        link: ['/app/usuarios', this.auth.currentUser()?.id ?? ''],
         queryParams: { tab: 'deuda' },
         color: 'accent',
       });
@@ -109,7 +109,7 @@ export class DashboardComponent implements OnInit {
         icon: 'people',
         title: 'Usuarios',
         description: 'Listado de usuarios de la junta. Crear, editar y gestionar.',
-        link: ['/usuarios'],
+        link: ['/app/usuarios'],
       });
       if (this.auth.can(p.USUARIOS_CREAR)) {
         list.push({
@@ -128,7 +128,7 @@ export class DashboardComponent implements OnInit {
         icon: 'mail',
         title: 'Cartas pendientes',
         description: 'Validar y aprobar solicitudes de cartas laborales.',
-        link: ['/cartas'],
+        link: ['/app/cartas'],
         color: 'primary',
       });
     }
@@ -139,7 +139,7 @@ export class DashboardComponent implements OnInit {
         icon: 'description',
         title: 'Solicitar carta',
         description: 'Tu estado está al día. Solicita tu carta laboral.',
-        link: ['/usuarios', this.auth.currentUser()?.id ?? ''],
+        link: ['/app/usuarios', this.auth.currentUser()?.id ?? ''],
         queryParams: { tab: 'cartas' },
         color: 'accent',
       });
@@ -151,7 +151,7 @@ export class DashboardComponent implements OnInit {
         icon: 'assignment',
         title: 'Requisitos',
         description: 'Tipos de requisitos (agua, basura). Configurar obligaciones y modificadores.',
-        link: ['/requisitos'],
+        link: ['/app/requisitos'],
       });
     }
 
@@ -161,7 +161,7 @@ export class DashboardComponent implements OnInit {
         icon: 'subscriptions',
         title: 'Plan y suscripción',
         description: 'Elegir plan, cambiar periodicidad, solicitar overrides y pagar facturas.',
-        link: ['/plan-suscripcion'],
+        link: ['/app/plan-suscripcion'],
         color: 'primary',
       });
     }
@@ -182,7 +182,7 @@ export class DashboardComponent implements OnInit {
         icon: 'history',
         title: 'Auditorías',
         description: 'Historial de acciones. Pagos, cartas, usuarios, documentos.',
-        link: ['/auditorias'],
+        link: ['/app/auditorias'],
       });
     }
 
@@ -265,7 +265,7 @@ export class DashboardComponent implements OnInit {
 
   linkMiCuentaCartas(): string[] {
     const id = this.auth.currentUser()?.id;
-    return id ? ['/usuarios', id] : ['/'];
+    return id ? ['/app/usuarios', id] : ['/app'];
   }
 
   esAfiliado(): boolean {

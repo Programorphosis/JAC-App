@@ -77,9 +77,9 @@ export class PagosRetornoComponent implements OnInit {
   volver(): void {
     const user = this.auth.currentUser();
     if (user && !this.auth.can(this.auth.permissions.PAGOS_GESTIONAR)) {
-      this.router.navigate(['/usuarios', user.id]);
+      this.router.navigate(['/app/usuarios', user.id]);
     } else {
-      this.router.navigate(['/pagos']);
+      this.router.navigate(['/app/pagos']);
     }
   }
 

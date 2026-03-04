@@ -157,7 +157,7 @@
             <a
               mat-stroked-button
               color="primary"
-              routerLink="/configuracion"
+              routerLink="/app/configuracion"
               class="mt-2 inline-flex items-center gap-2"
             >
               <mat-icon class="!text-lg !w-5 !h-5">settings</mat-icon>
@@ -268,12 +268,12 @@
             </div>
             <div class="flex gap-2 flex-wrap">
               @if (auth.can(auth.permissions.JUNTA_SUSCRIPCION_GESTIONAR)) {
-                <a mat-stroked-button color="primary" routerLink="/plan-suscripcion">
+                <a mat-stroked-button color="primary" routerLink="/app/plan-suscripcion">
                   Gestionar plan
                 </a>
               }
               @if (auth.can(auth.permissions.PAGOS_VER)) {
-                <a mat-stroked-button color="primary" routerLink="/facturas-plataforma">
+                <a mat-stroked-button color="primary" routerLink="/app/facturas-plataforma">
                   Ver facturas
                 </a>
               }

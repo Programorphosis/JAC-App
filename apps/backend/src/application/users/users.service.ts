@@ -2,10 +2,12 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../../domain/services/audit.service';
 import { LimitesService } from '../../infrastructure/limits/limites.service';
+import { normalizarTelefonoColombia } from '../../common/utils/validacion-telefono.util';
 import * as bcrypt from 'bcrypt';
 import { RolNombre } from '@prisma/client';
 import type { CreateUserDto } from './dto/create-user.dto';
@@ -182,6 +184,23 @@ export class UsersService {
 
     await this.validarRolesUnicosPorJunta(juntaId, roles);
 
+    const telefonoNorm = dto.telefono?.trim()
+      ? normalizarTelefonoColombia(dto.telefono)
+      : null;
+    if (dto.telefono?.trim() && !telefonoNorm) {
+      throw new BadRequestException(
+        'El teléfono debe ser un número colombiano válido (10 dígitos)',
+      );
+    }
+    if (telefonoNorm) {
+      const telExistente = await this.prisma.usuario.findFirst({
+        where: { juntaId, telefono: telefonoNorm },
+      });
+      if (telExistente) {
+        throw new ConflictException('Este teléfono ya está registrado en la junta');
+      }
+    }
+
     const estadoLaboralInicial = dto.estadoLaboralInicial ?? 'NO_TRABAJANDO';
 
     const usuario = await this.prisma.$transaction(async (tx) => {
@@ -192,7 +211,7 @@ export class UsersService {
           numeroDocumento: dto.numeroDocumento,
           nombres: dto.nombres,
           apellidos: dto.apellidos,
-          telefono: dto.telefono ?? null,
+          telefono: telefonoNorm,
           direccion: dto.direccion ?? null,
           lugarExpedicion: dto.lugarExpedicion ?? null,
           passwordHash,
@@ -288,13 +307,33 @@ export class UsersService {
       rolesAnteriores = rolesActualesDb.map((ur) => ur.rol.nombre);
     }
 
+    let telefonoNorm: string | null = null;
+    if (dto.telefono !== undefined) {
+      telefonoNorm = dto.telefono?.trim()
+        ? normalizarTelefonoColombia(dto.telefono)
+        : null;
+      if (dto.telefono?.trim() && !telefonoNorm) {
+        throw new BadRequestException(
+          'El teléfono debe ser un número colombiano válido (10 dígitos)',
+        );
+      }
+      if (telefonoNorm) {
+        const telExistente = await this.prisma.usuario.findFirst({
+          where: { juntaId, telefono: telefonoNorm, id: { not: id } },
+        });
+        if (telExistente) {
+          throw new ConflictException('Este teléfono ya está registrado en la junta');
+        }
+      }
+    }
+
     await this.prisma.$transaction(async (tx) => {
       await tx.usuario.update({
         where: { id },
         data: {
           ...(dto.nombres !== undefined && { nombres: dto.nombres }),
           ...(dto.apellidos !== undefined && { apellidos: dto.apellidos }),
-          ...(dto.telefono !== undefined && { telefono: dto.telefono }),
+          ...(dto.telefono !== undefined && { telefono: telefonoNorm }),
           ...(dto.direccion !== undefined && { direccion: dto.direccion }),
           ...(dto.lugarExpedicion !== undefined && { lugarExpedicion: dto.lugarExpedicion }),
           ...(dto.activo !== undefined && { activo: dto.activo }),

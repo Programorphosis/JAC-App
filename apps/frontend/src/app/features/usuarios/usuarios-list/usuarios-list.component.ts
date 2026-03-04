@@ -140,11 +140,11 @@ export class UsuariosListComponent implements OnInit, OnDestroy {
   }
 
   ver(id: string): void {
-    this.router.navigate(['/usuarios', id]);
+    this.router.navigate(['/app/usuarios', id]);
   }
 
   crear(): void {
-    this.router.navigate(['/usuarios', 'nuevo']);
+    this.router.navigate(['/app/usuarios', 'nuevo']);
   }
 
   documento(u: UsuarioListItem): string {

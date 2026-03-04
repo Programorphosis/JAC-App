@@ -16,6 +16,7 @@ import {
 } from './core/auth/permission.guard';
 
 export const routes: Routes = [
+  { path: '', loadComponent: () => import('./features/landing/landing/landing.component').then((m) => m.LandingComponent) },
   { path: 'login', loadComponent: () => import('./features/auth/login/login.component').then((m) => m.LoginComponent) },
   { path: 'recuperar-contrasena', loadComponent: () => import('./features/auth/recuperar-contrasena/recuperar-contrasena.component').then((m) => m.RecuperarContrasenaComponent) },
   { path: 'cambiar-password', canActivate: [authGuard], loadComponent: () => import('./features/auth/cambiar-password/cambiar-password.component').then((m) => m.CambiarPasswordComponent) },
@@ -32,7 +33,7 @@ export const routes: Routes = [
   { path: 'terminos', redirectTo: 'legal/terminos', pathMatch: 'full' },
   { path: 'privacidad', redirectTo: 'legal/privacidad', pathMatch: 'full' },
   {
-    path: '',
+    path: 'app',
     canActivate: [authGuard, requireCambioPasswordGuard],
     loadComponent: () => import('./core/layout/layout/layout.component').then((m) => m.LayoutComponent),
     children: [
@@ -174,3 +175,4 @@ export const routes: Routes = [
   },
   { path: '**', redirectTo: '' },
 ];
+

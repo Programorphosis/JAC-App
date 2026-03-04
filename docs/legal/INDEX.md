@@ -76,7 +76,7 @@ docs/legal/
 | `CHECKLIST_SAAS_PROFESIONAL.md` §7.4 | Retención de datos |
 | `plan.md` | Contexto legal del sistema |
 | `politicasInmutabilidad.md` | Coherencia con retención |
-| `POLITICA_ELIMINACION_USUARIOS.md` | Coherencia con privacidad y derechos |
+| `archive/POLITICA_ELIMINACION_USUARIOS.md` | Coherencia con privacidad y derechos |
 
 ---
 

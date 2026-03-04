@@ -114,7 +114,7 @@ Actualmente no hay Dockerfiles ni docker-compose. El desarrollo local depende de
 #### Referencias
 
 - `ROADMAP.md` Fase 0.5.2
-- `configuracionInfraestructura.md` (si existe)
+- `DESPLIEGUE.md`
 
 ---
 

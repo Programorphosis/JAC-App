@@ -48,7 +48,7 @@
         } @else {
           <form [formGroup]="formPaso2" (ngSubmit)="onSubmitPaso2()" class="flex flex-col gap-4">
             <p class="text-sm text-gray-600">
-              Código enviado a <strong>{{ emailEnviado }}</strong>
+              Código enviado a <strong>{{ emailEnmascarado }}</strong>
               <button type="button" mat-button color="primary" (click)="volverPaso1()">
                 Cambiar
               </button>

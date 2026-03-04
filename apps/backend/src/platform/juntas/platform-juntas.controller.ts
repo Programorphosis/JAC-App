@@ -11,7 +11,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { PlatformJuntasService } from './platform-juntas.service';
+import { PlatformJuntasService, CreateJuntaPlatformDto } from './platform-juntas.service';
 import { PlatformAdminGuard } from '../../auth/guards/platform-admin.guard';
 import { JwtUser } from '../../auth/strategies/jwt.strategy';
 import { CreateJuntaAdminUser } from '../../application/junta/junta.service';
@@ -181,16 +181,7 @@ export class PlatformJuntasController {
 
   @Post()
   async crear(
-    @Body()
-    body: {
-      nombre: string;
-      nit?: string;
-      montoCarta?: number;
-      adminUser: CreateJuntaAdminUser;
-      planId?: string;
-      diasPrueba?: number;
-      aceptoTerminos: boolean;
-    },
+    @Body() body: CreateJuntaPlatformDto,
     @Request() req: { user: JwtUser },
   ) {
     return this.juntas.crear(body, req.user.id);

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Title, Meta } from '@angular/platform-browser';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { trigger, transition, style, animate } from '@angular/animations';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -27,6 +29,20 @@ import { AuthService } from '../../../core/auth/auth.service';
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
+  animations: [
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('400ms ease-out', style({ opacity: 1 })),
+      ]),
+    ]),
+    trigger('fadeInUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('500ms 100ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+    ]),
+  ],
 })
 export class LoginComponent implements OnInit {
   form: FormGroup;
@@ -39,7 +55,9 @@ export class LoginComponent implements OnInit {
     private readonly fb: FormBuilder,
     private readonly auth: AuthService,
     private readonly router: Router,
-    private readonly route: ActivatedRoute
+    private readonly route: ActivatedRoute,
+    private readonly title: Title,
+    private readonly meta: Meta,
   ) {
     this.form = this.fb.group({
       tipoDocumento: ['CC', Validators.required],
@@ -50,13 +68,18 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.title.setTitle('Iniciar sesión – JAC App');
+    this.meta.updateTag({
+      name: 'description',
+      content: 'Accede al sistema JAC App para gestionar tu Junta de Acción Comunal.',
+    });
     this.mensajeExito = this.route.snapshot.queryParamMap.get('mensaje') ?? '';
     if (this.auth.isAuthenticated()) {
       const user = this.auth.currentUser();
       if (user?.requiereCambioPassword) {
         this.router.navigate(['/cambiar-password']);
       } else {
-        this.router.navigate([this.auth.isPlatformAdmin() ? '/platform' : '/']);
+        this.router.navigate([this.auth.isPlatformAdmin() ? '/app/platform' : '/app']);
       }
     }
   }
@@ -81,9 +104,9 @@ export class LoginComponent implements OnInit {
           if (user?.requiereCambioPassword) {
             this.router.navigate(['/cambiar-password']);
           } else if (this.auth.isPlatformAdmin()) {
-            this.router.navigate(['/platform']);
+            this.router.navigate(['/app/platform']);
           } else {
-            this.router.navigate(['/']);
+            this.router.navigate(['/app']);
           }
         },
         error: (err) => {

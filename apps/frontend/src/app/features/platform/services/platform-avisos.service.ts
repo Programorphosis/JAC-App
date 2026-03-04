@@ -14,6 +14,7 @@ export interface AvisoPlataforma {
   alcance: AlcanceAviso;
   juntaId: string | null;
   junta?: { id: string; nombre: string } | null;
+  soloOperativos?: boolean;
 }
 
 /**
@@ -40,6 +41,7 @@ export class PlatformAvisosService {
     contenido: string;
     alcance?: AlcanceAviso;
     juntaId?: string;
+    soloOperativos?: boolean;
   }): Observable<AvisoPlataforma> {
     return this.http
       .post<{ data: AvisoPlataforma }>(this.base, dto)
@@ -54,6 +56,7 @@ export class PlatformAvisosService {
       activo?: boolean;
       alcance?: AlcanceAviso;
       juntaId?: string | null;
+      soloOperativos?: boolean;
     }
   ): Observable<AvisoPlataforma> {
     return this.http

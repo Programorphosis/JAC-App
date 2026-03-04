@@ -75,8 +75,8 @@ export class JuntaFormComponent implements OnInit {
       montoCarta: [null as number | null],
       planId: [''],
       diasPrueba: [null as number | null],
-      telefono: [''],
-      email: [''],
+      telefono: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
       direccion: [''],
       ciudad: [''],
       departamento: [''],
@@ -146,6 +146,8 @@ export class JuntaFormComponent implements OnInit {
     } else {
       this.guardar.emit({
         nombre: v.nombre,
+        email: v.email,
+        telefono: v.telefono,
         nit: v.nit || undefined,
         montoCarta: v.montoCarta ?? undefined,
         planId: v.planId || undefined,

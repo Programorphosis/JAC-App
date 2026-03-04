@@ -1,5 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Title, Meta } from '@angular/platform-browser';
 import { LegalNavService } from '../services/legal-nav.service';
 
 @Component({
@@ -11,6 +12,8 @@ import { LegalNavService } from '../services/legal-nav.service';
 })
 export class TerminosComponent implements OnInit {
   private readonly nav = inject(LegalNavService);
+  private readonly title = inject(Title);
+  private readonly meta = inject(Meta);
 
   readonly sections = [
     { id: 'alcance', label: '1. Alcance del servicio' },
@@ -28,6 +31,11 @@ export class TerminosComponent implements OnInit {
   ];
 
   ngOnInit() {
+    this.title.setTitle('Términos y condiciones – JAC App');
+    this.meta.updateTag({
+      name: 'description',
+      content: 'Términos y condiciones de uso del servicio JAC App para Juntas de Acción Comunal.',
+    });
     this.nav.setSections(this.sections);
   }
 }

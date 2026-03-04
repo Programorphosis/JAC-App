@@ -98,6 +98,34 @@ export class PublicController {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
+   * GET /public/planes
+   * Lista planes activos para la landing. Sin autenticación.
+   */
+  @Get('planes')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  async listarPlanes() {
+    const planes = await this.prisma.plan.findMany({
+      where: { activo: true },
+      select: {
+        id: true,
+        nombre: true,
+        descripcion: true,
+        precioMensual: true,
+        precioAnual: true,
+        limiteUsuarios: true,
+        limiteStorageMb: true,
+        limiteCartasMes: true,
+        permiteUsuariosIlimitados: true,
+        permiteStorageIlimitado: true,
+        permiteCartasIlimitadas: true,
+        diasPrueba: true,
+      },
+      orderBy: { precioMensual: 'asc' },
+    });
+    return { data: planes };
+  }
+
+  /**
    * GET /public/validar-carta/:qrToken
    * Verificación pública de carta por QR. Sin autenticación.
    * Devuelve HTML si el navegador lo solicita (Accept: text/html), JSON en caso contrario.
