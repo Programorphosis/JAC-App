@@ -196,6 +196,7 @@ export class UsersService {
           direccion: dto.direccion ?? null,
           lugarExpedicion: dto.lugarExpedicion ?? null,
           passwordHash,
+          requiereCambioPassword: true,
           fechaAfiliacion: dto.fechaAfiliacion ? new Date(dto.fechaAfiliacion) : null,
           folio: dto.folio ?? null,
           numeral: dto.numeral ?? null,

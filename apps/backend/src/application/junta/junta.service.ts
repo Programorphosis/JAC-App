@@ -82,6 +82,7 @@ export class JuntaService {
           telefono: params.adminUser.telefono ?? null,
           direccion: params.adminUser.direccion ?? null,
           passwordHash,
+          requiereCambioPassword: true,
         },
       });
 

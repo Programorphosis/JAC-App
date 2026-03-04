@@ -167,56 +167,7 @@ chmod 600 .env.production
 
 ---
 
-### 4.5 — Verificar que existe `docker-compose.prod.yml`
-
-Este archivo es necesario para usar las imágenes pre-construidas. Comprueba que está en el servidor:
-
-```bash
-ls -la docker-compose.prod.yml
-```
-
-Si sale `No such file or directory`, el archivo no está. **Opciones para obtenerlo:**
-
-**Opción A — Actualizar con git (si el proyecto está en GitHub):**
-
-```bash
-git pull
-```
-
-Si ya hiciste commit y push de `docker-compose.prod.yml`, con esto debería aparecer.
-
-**Opción B — Copiarlo desde tu PC con SCP**
-
-En tu PC (PowerShell, otra ventana):
-
-```powershell
-scp -i "C:\ruta\a\tu-clave.pem" "C:\Users\gdmp9\Desktop\JAC App\docker-compose.prod.yml" ubuntu@TU_IP_LIGHTSAIL:/home/ubuntu/JAC-App/
-```
-
-Sustituye la ruta de la clave y la IP. Si tu carpeta es `jac-app`, cambia el final a `/home/ubuntu/jac-app/`.
-
-**Opción C — Crearlo manualmente en el servidor**
-
-```bash
-nano docker-compose.prod.yml
-```
-
-Pega exactamente este contenido:
-
-```yaml
-services:
-  backend:
-    image: ${DOCKER_IMAGE_PREFIX}/jacapp-backend:latest
-
-  frontend:
-    image: ${DOCKER_IMAGE_PREFIX}/jacapp-frontend:latest
-```
-
-Guarda con `Ctrl+O`, Enter, y sal con `Ctrl+X`.
-
----
-
-### 4.6 — Hacer login en Docker Hub (solo la primera vez)
+### 4.5 — Hacer login en Docker Hub (solo la primera vez)
 
 Las imágenes están en Docker Hub. El servidor necesita permiso para descargarlas.
 
@@ -232,7 +183,7 @@ Si todo va bien verás: `Login Succeeded`.
 
 ---
 
-### 4.7 — Descargar las imágenes (pull)
+### 4.6 — Descargar las imágenes (pull)
 
 Esto descarga las imágenes que construiste en tu PC desde Docker Hub al servidor. **No compila nada.**
 
@@ -258,7 +209,7 @@ Puede tardar 1–3 minutos según la conexión.
 
 ---
 
-### 4.8 — Levantar los contenedores (up)
+### 4.7 — Levantar los contenedores (up)
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d
@@ -278,10 +229,10 @@ Verás algo como:
 
 ---
 
-### 4.9 — Comprobar que todo está corriendo
+### 4.8 — Comprobar que todo está corriendo
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production ps
 ```
 
 Debes ver todos los contenedores con estado `Up` o `running`. Si alguno dice `Exit` o `Restarting`, algo falló.
@@ -289,20 +240,28 @@ Debes ver todos los contenedores con estado `Up` o `running`. Si alguno dice `Ex
 Para ver logs del backend:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml logs backend
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production logs backend
 ```
 
 `Ctrl+C` para salir de los logs.
 
 ---
 
-### 4.10 — Ejecutar el seed (solo la primera vez)
+### 4.9 — Ejecutar el seed (solo la primera vez)
 
 El seed crea usuarios de prueba, una junta demo, tarifas, etc. **Solo se hace una vez** al desplegar por primera vez.
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml exec backend node dist/prisma/seed-dev.js
 ```
+Platform Admin (juntaId: platform):
+    Documento: 00000000
+    Password:  DevPlatform123!
+
+  Admin Junta (primera junta):
+    Documento: 12345678
+    Password:  DevAdmin123!
+
 
 - `exec` → ejecuta un comando dentro de un contenedor que ya está corriendo
 - `backend` → el contenedor del backend
@@ -319,7 +278,7 @@ Credenciales para Postman:
 
 ---
 
-### 4.11 — Probar que la app responde
+### 4.10 — Probar que la app responde
 
 Desde tu PC, abre el navegador y entra a:
 
@@ -337,7 +296,7 @@ Debe responder algo como: `{"status":"ok","database":"connected"}`.
 
 ---
 
-### 4.12 — Actualizaciones (cuando cambies código)
+### 4.11 — Actualizaciones (cuando cambies código)
 
 Cuando hagas cambios en el código y quieras desplegar la nueva versión:
 
@@ -345,7 +304,7 @@ Cuando hagas cambios en el código y quieras desplegar la nueva versión:
 
 ```powershell
 cd "c:\Users\gdmp9\Desktop\JAC App"
-$env:DOCKER_IMAGE_PREFIX = "gdmp9"
+$env:DOCKER_IMAGE_PREFIX = "programorphosis92"
 .\scripts\build-and-push.ps1
 ```
 
@@ -366,7 +325,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.
 
 ---
 
-### 4.13 — Si algo falla
+### 4.12 — Si algo falla
 
 **Error "no such image" o "pull access denied":**
 - Comprueba que `DOCKER_IMAGE_PREFIX` en `.env.production` sea correcto.

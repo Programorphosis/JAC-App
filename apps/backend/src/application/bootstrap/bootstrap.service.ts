@@ -97,6 +97,7 @@ export class BootstrapService {
         nombres: body.platformAdmin.nombres,
         apellidos: body.platformAdmin.apellidos,
         passwordHash: passwordHashPlatform,
+        requiereCambioPassword: false,
       },
     });
 

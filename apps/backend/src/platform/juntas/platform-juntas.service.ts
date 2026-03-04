@@ -814,7 +814,7 @@ export class PlatformJuntasService {
 
     await this.prisma.usuario.update({
       where: { id: admin.id },
-      data: { passwordHash },
+      data: { passwordHash, requiereCambioPassword: true },
     });
 
     await this.audit.registerEvent({
