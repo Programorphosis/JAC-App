@@ -1243,16 +1243,16 @@ Requiere verificar que tu app no escribe en el filesystem (lo cual es correcto �
 
 ### Hacer AHORA (antes de cualquier usuario real)
 
-| # | Ítem | Sección | Esfuerzo |
-|---|------|---------|----------|
-| 1 | Corregir `WOMPI_ENVIRONMENT` duplicado | 1.1 | 5min |
-| 2 | Reemplazar claves Wompi sandbox por producción | 1.2 | 5min |
-| 3 | Secretos distintos por entorno | 1.3 | 15min |
-| 4 | Rate limit en bootstrap | 4.1 | 15min |
-| 5 | Rate limit en refresh | 4.2 | 15min |
-| 6 | DTO para refresh token | 4.3 | 15min |
-| 7 | Validar juntaId en LoginDto | 4.4 | 15min |
-| 8 | ErrorHandler global en Angular | 5.1 | 1h |
+| # | Ítem | Sección | Esfuerzo | Estado |
+|---|------|---------|----------|--------|
+| 1 | Corregir `WOMPI_ENVIRONMENT` duplicado | 1.1 | 5min | ✅ |
+| 2 | Reemplazar claves Wompi sandbox por producción | 1.2 | 5min | ⏳ (sandbox intencional para pruebas de flujo) |
+| 3 | Secretos distintos por entorno | 1.3 | 15min | ✅ |
+| 4 | Rate limit en bootstrap | 4.1 | 15min | ✅ |
+| 5 | Rate limit en refresh | 4.2 | 15min | ✅ |
+| 6 | DTO para refresh token | 4.3 | 15min | ✅ |
+| 7 | Validar juntaId en LoginDto | 4.4 | 15min | ✅ |
+| 8 | ErrorHandler global en Angular | 5.1 | 1h | ✅ |
 
 ### Hacer en la primera semana
 

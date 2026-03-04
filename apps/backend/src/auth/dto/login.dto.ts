@@ -11,5 +11,6 @@ export class LoginDto {
   password!: string;
 
   @IsOptional()
+  @IsString()
   juntaId?: string | null;
 }

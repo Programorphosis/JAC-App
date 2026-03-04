@@ -8,6 +8,7 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { BootstrapService } from './bootstrap.service';
 import { BootstrapBodyDto } from './dto/bootstrap-body.dto';
 
@@ -17,6 +18,7 @@ export class BootstrapController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   async ejecutar(
     @Body() body: BootstrapBodyDto,
     @Headers('x-bootstrap-token') token: string,

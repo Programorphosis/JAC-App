@@ -6,7 +6,6 @@ import {
   Body,
   HttpCode,
   HttpStatus,
-  BadRequestException,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -15,6 +14,7 @@ import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { CambiarPasswordDto } from './dto/cambiar-password.dto';
 import {
   OlvideContrasenaDto,
@@ -48,10 +48,8 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refresh(@Body() body: { refreshToken: string }) {
-    if (!body.refreshToken) {
-      throw new BadRequestException('refreshToken requerido');
-    }
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  async refresh(@Body() body: RefreshTokenDto) {
     const result = await this.auth.validateRefreshToken(body.refreshToken);
     return {
       data: result,
