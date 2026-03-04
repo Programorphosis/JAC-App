@@ -15,7 +15,9 @@ node_modules/
 # Build outputs
 dist/
 build/
-*.log
+
+# Test coverage
+coverage/
 
 # Docker
 .docker/
