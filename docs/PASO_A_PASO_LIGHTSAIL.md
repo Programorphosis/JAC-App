@@ -10,6 +10,7 @@ Guía detallada para crear la instancia, configurar el servidor y arrancar el pr
 - [ ] Dominio `jacapp.online` (ya lo tienes en Hostinger)
 - [ ] Repositorio Git del proyecto (local o GitHub)
 - [ ] `.env.production` preparado con los valores necesarios
+- [ ] **Recomendado:** Build en local y deploy con imágenes (ver `docs/DEPLOY_IMAGENES.md`) — evita build pesado en servidor 2GB
 
 ---
 
@@ -220,14 +221,36 @@ chmod 600 .env.production
 
 ## Parte 7: Levantar la aplicación
 
-### Paso 7.1 — Construir y arrancar
+Hay dos formas de desplegar:
+
+### Opción A — Con imágenes pre-construidas (recomendado para 2GB)
+
+**En tu PC (antes):** construye y sube las imágenes a Docker Hub. Ver `docs/DEPLOY_IMAGENES.md`.
+
+```powershell
+# En tu PC Windows
+$env:DOCKER_IMAGE_PREFIX = "tuusuario"  # tu usuario de Docker Hub
+.\scripts\build-and-push.ps1
+```
+
+**En el servidor:** añade `DOCKER_IMAGE_PREFIX=tuusuario` a `.env.production`, luego:
 
 ```bash
-cd ~/jac-app
+cd ~/JAC-App
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production pull
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d
+```
+
+Tarda 1–2 minutos (solo descarga imágenes, no compila).
+
+### Opción B — Build en el servidor
+
+```bash
+cd ~/JAC-App
 docker compose --env-file .env.production up -d --build
 ```
 
-La primera vez puede tardar 5–10 minutos (descarga imágenes, compila backend y frontend).
+La primera vez puede tardar 15–25 minutos (compila backend y frontend). Requiere 2GB+ RAM; con 1GB puede fallar.
 
 ### Paso 7.2 — Verificar que los contenedores están corriendo
 

@@ -1,0 +1,20 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Stack PRODUCCIÓN — Usa imágenes pre-construidas (sin build en servidor)
+#
+# Requiere: backend y frontend ya construidos y subidos a un registry.
+# Variable: DOCKER_IMAGE_PREFIX (ej. "tuusuario" para Docker Hub)
+#
+# FLUJO:
+#   1. En local: ./scripts/build-and-push.sh  (o ver docs/DEPLOY_IMAGENES.md)
+#   2. En servidor: docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production pull
+#   3. En servidor: docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d
+#
+# Postgres y Caddy siguen usando imágenes oficiales (no se construyen).
+# ──────────────────────────────────────────────────────────────────────────
+
+services:
+  backend:
+    image: ${DOCKER_IMAGE_PREFIX}/jacapp-backend:latest
+
+  frontend:
+    image: ${DOCKER_IMAGE_PREFIX}/jacapp-frontend:latest
