@@ -1267,26 +1267,26 @@ Requiere verificar que tu app no escribe en el filesystem (lo cual es correcto �
 
 ### Hacer en el primer mes
 
-| # | Ítem | Sección | Esfuerzo |
-|---|------|---------|----------|
-| 15 | Nginx no-root | 6.1 | 30min |
-| 16 | `no-new-privileges` en Docker | 6.2 | 15min |
-| 17 | Límites de recursos Docker | 6.3 | 15min |
-| 18 | Healthcheck Caddy | 6.4 | 15min |
-| 19 | Timeout en entrypoint | 6.5 | 15min |
-| 20 | `noImplicitAny: true` | 8.1 | 3d |
-| 21 | Tests webhook Wompi | 2.3 | 3d |
-| 22 | Coverage threshold | 2.4 | 30min |
-| 23 | Guard en `usuarios/:id` | 5.2 | 30min |
-| 24 | Race condition interceptor JWT | 5.3 | 1h |
-| 25 | Alertas Uptime Kuma | 7.3 | 1h |
-| 26 | `npm audit` en CI | 3.3 | 30min |
-| 27 | Health check extendido (S3, SES) | 4.7 | 1h |
-| 28 | `strictBindCallApply` + `noFallthroughCasesInSwitch` | 8.2 | 1h |
-| 29 | Fijar tags de imágenes | 6.6 | 5min |
-| 30 | Docker build en CI | 3.4 | 1h |
-| 31 | Tests frontend | 2.5 | 3d |
-| 32 | `withFetch()` en Angular | 5.4 | 5min |
+| # | Ítem | Sección | Esfuerzo | Estado |
+|---|------|---------|----------|--------|
+| 15 | Nginx no-root | 6.1 | 30min | ✅ |
+| 16 | `no-new-privileges` en Docker | 6.2 | 15min | ✅ |
+| 17 | Límites de recursos Docker | 6.3 | 15min | ✅ |
+| 18 | Healthcheck Caddy | 6.4 | 15min | ✅ |
+| 19 | Timeout en entrypoint | 6.5 | 15min | ✅ |
+| 20 | `noImplicitAny: true` | 8.1 | 3d | |
+| 21 | Tests webhook Wompi | 2.3 | 3d | |
+| 22 | Coverage threshold | 2.4 | 30min | ✅ |
+| 23 | Guard en `usuarios/:id` | 5.2 | 30min | |
+| 24 | Race condition interceptor JWT | 5.3 | 1h | |
+| 25 | Alertas Uptime Kuma | 7.3 | 1h | |
+| 26 | `npm audit` en CI | 3.3 | 30min | ✅ |
+| 27 | Health check extendido (S3, SES) | 4.7 | 1h | |
+| 28 | `strictBindCallApply` + `noFallthroughCasesInSwitch` | 8.2 | 1h | |
+| 29 | Fijar tags de imágenes | 6.6 | 5min | ✅ |
+| 30 | Docker build en CI | 3.4 | 1h | |
+| 31 | Tests frontend | 2.5 | 3d | |
+| 32 | `withFetch()` en Angular | 5.4 | 5min | ✅ |
 
 ### Futuro (cuando haya usuarios reales)
 

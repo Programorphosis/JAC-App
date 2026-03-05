@@ -3,7 +3,9 @@ set -e
 
 echo "[Entrypoint] Verificando conexión a PostgreSQL..."
 
-# Espera activa sin herramientas externas — usa Node.js directamente
+TIMEOUT=60
+ELAPSED=0
+
 until node -e "
   const net = require('net');
   const url = new URL(process.env.DATABASE_URL.split('?')[0]);
@@ -11,7 +13,12 @@ until node -e "
   client.on('connect', () => { client.end(); process.exit(0); });
   client.on('error', () => process.exit(1));
 " 2>/dev/null; do
-  echo "[Entrypoint] PostgreSQL no disponible todavía, reintentando en 2s..."
+  ELAPSED=$((ELAPSED + 2))
+  if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+    echo "[Entrypoint] ERROR: PostgreSQL no disponible después de ${TIMEOUT}s. Abortando."
+    exit 1
+  fi
+  echo "[Entrypoint] PostgreSQL no disponible todavía (${ELAPSED}s/${TIMEOUT}s), reintentando..."
   sleep 2
 done
 

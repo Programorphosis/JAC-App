@@ -1,7 +1,7 @@
 # ──────────────────────────────────────────────
 # Etapa 1: build
 # ──────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:20.18-alpine AS builder
 
 WORKDIR /app
 
@@ -19,7 +19,7 @@ RUN npm run build
 # ──────────────────────────────────────────────
 # Etapa 2: producción (imagen mínima)
 # ──────────────────────────────────────────────
-FROM node:20-alpine AS runner
+FROM node:20.18-alpine AS runner
 
 # Usuario no-root para seguridad
 RUN addgroup --system --gid 1001 nodejs \

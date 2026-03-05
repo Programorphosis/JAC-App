@@ -1,7 +1,7 @@
 # ──────────────────────────────────────────────
 # Etapa 1: build Angular
 # ──────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:20.18-alpine AS builder
 
 WORKDIR /app
 
@@ -14,16 +14,21 @@ COPY . .
 RUN npm run build -- --configuration production
 
 # ──────────────────────────────────────────────
-# Etapa 2: nginx (imagen mínima ~25 MB)
+# Etapa 2: nginx no-root (imagen mínima ~25 MB)
 # ──────────────────────────────────────────────
 FROM nginx:1.27-alpine AS runner
 
-# Angular 17+ application builder → dist/frontend/browser/
 COPY --from=builder /app/dist/frontend/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Eliminar config default de nginx
-RUN rm -f /etc/nginx/conf.d/default.conf.bak
+RUN rm -f /etc/nginx/conf.d/default.conf.bak \
+ && chown -R nginx:nginx /usr/share/nginx/html \
+ && chown -R nginx:nginx /var/cache/nginx \
+ && chown -R nginx:nginx /var/log/nginx \
+ && touch /var/run/nginx.pid \
+ && chown nginx:nginx /var/run/nginx.pid
+
+USER nginx
 
 EXPOSE 80
 
