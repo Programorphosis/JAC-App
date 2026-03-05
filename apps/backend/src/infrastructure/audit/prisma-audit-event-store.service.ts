@@ -12,7 +12,9 @@ type PrismaClientLike = Pick<PrismaService, 'auditoria'>;
  */
 @Injectable()
 export class PrismaAuditEventStore implements IAuditEventStore {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaClientLike) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaClientLike,
+  ) {}
 
   async registerEvent(params: RegisterAuditEventParams): Promise<void> {
     await this.prisma.auditoria.create({

@@ -10,8 +10,14 @@ export class TarifasService {
     private readonly audit: AuditService,
   ) {}
 
-  async listar(juntaId: string, estadoLaboral?: 'TRABAJANDO' | 'NO_TRABAJANDO') {
-    const where: { juntaId: string; estadoLaboral?: 'TRABAJANDO' | 'NO_TRABAJANDO' } = {
+  async listar(
+    juntaId: string,
+    estadoLaboral?: 'TRABAJANDO' | 'NO_TRABAJANDO',
+  ) {
+    const where: {
+      juntaId: string;
+      estadoLaboral?: 'TRABAJANDO' | 'NO_TRABAJANDO';
+    } = {
       juntaId,
     };
 
@@ -30,14 +36,17 @@ export class TarifasService {
   async crear(dto: CreateTarifaDto, juntaId: string, creadoPorId: string) {
     // Capturar tarifa anterior vigente para incluirla en la auditoría (trazabilidad del cambio)
     const tarifaAnterior = await this.prisma.tarifa.findFirst({
-      where: { juntaId, estadoLaboral: dto.estadoLaboral as 'TRABAJANDO' | 'NO_TRABAJANDO' },
+      where: {
+        juntaId,
+        estadoLaboral: dto.estadoLaboral,
+      },
       orderBy: { fechaVigencia: 'desc' },
     });
 
     const tarifa = await this.prisma.tarifa.create({
       data: {
         juntaId,
-        estadoLaboral: dto.estadoLaboral as 'TRABAJANDO' | 'NO_TRABAJANDO',
+        estadoLaboral: dto.estadoLaboral,
         valorMensual: dto.valorMensual,
         fechaVigencia: new Date(dto.fechaVigencia),
       },

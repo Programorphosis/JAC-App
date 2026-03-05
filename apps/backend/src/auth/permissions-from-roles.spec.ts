@@ -77,7 +77,11 @@ describe('computePermissions', () => {
   });
 
   it('múltiples roles combina permisos sin duplicados', () => {
-    const perms = computePermissions([RolNombre.ADMIN, RolNombre.SECRETARIA], false, 'j1');
+    const perms = computePermissions(
+      [RolNombre.ADMIN, RolNombre.SECRETARIA],
+      false,
+      'j1',
+    );
     const uniquePerms = [...new Set(perms)];
     expect(perms.length).toBe(uniquePerms.length);
     expect(perms).toContain(PERMISSIONS.CARTAS_VALIDAR);

@@ -11,12 +11,20 @@ import { AppModule } from './app.module';
  * En desarrollo se usa el Logger por defecto de NestJS (salida legible).
  */
 class ProdLogger implements LoggerService {
-  private write(level: string, message: unknown, context?: string, trace?: string) {
+  private write(
+    level: string,
+    message: unknown,
+    context?: string,
+    trace?: string,
+  ) {
     const entry = JSON.stringify({
       ts: new Date().toISOString(),
       level,
       ctx: context,
-      msg: typeof message === 'object' ? JSON.stringify(message) : String(message),
+      msg:
+        typeof message === 'object'
+          ? JSON.stringify(message)
+          : String(message as string | number),
       ...(trace && { trace }),
     });
     if (level === 'error' || level === 'warn') {
@@ -26,12 +34,24 @@ class ProdLogger implements LoggerService {
     }
   }
 
-  log(message: unknown, context?: string)           { this.write('info',    message, context); }
-  error(message: unknown, trace?: string, ctx?: string) { this.write('error', message, ctx, trace); }
-  warn(message: unknown, context?: string)          { this.write('warn',    message, context); }
-  debug(message: unknown, context?: string)         { this.write('debug',   message, context); }
-  verbose(message: unknown, context?: string)       { this.write('verbose', message, context); }
-  fatal(message: unknown, context?: string)         { this.write('fatal',   message, context); }
+  log(message: unknown, context?: string) {
+    this.write('info', message, context);
+  }
+  error(message: unknown, trace?: string, ctx?: string) {
+    this.write('error', message, ctx, trace);
+  }
+  warn(message: unknown, context?: string) {
+    this.write('warn', message, context);
+  }
+  debug(message: unknown, context?: string) {
+    this.write('debug', message, context);
+  }
+  verbose(message: unknown, context?: string) {
+    this.write('verbose', message, context);
+  }
+  fatal(message: unknown, context?: string) {
+    this.write('fatal', message, context);
+  }
 }
 
 const REQUIRED_ENV_VARS = [
@@ -45,7 +65,7 @@ function validateEnv(): void {
   const missing = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
   if (missing.length > 0) {
     const msg = `[Bootstrap] Variables de entorno requeridas no configuradas: ${missing.join(', ')}. La aplicación no puede iniciar.`;
-    // eslint-disable-next-line no-console
+
     console.error(msg);
     process.exit(1);
   }
@@ -99,7 +119,8 @@ async function bootstrap() {
 
   // Swagger — documentación de API (solo en desarrollo o si SWAGGER_ENABLED=true)
   const swaggerEnabled =
-    process.env.NODE_ENV !== 'production' || process.env.SWAGGER_ENABLED === 'true';
+    process.env.NODE_ENV !== 'production' ||
+    process.env.SWAGGER_ENABLED === 'true';
   if (swaggerEnabled) {
     const config = new DocumentBuilder()
       .setTitle('JAC App API')
@@ -116,4 +137,4 @@ async function bootstrap() {
   await app.listen(port);
   logger.log(`Aplicación iniciada en el puerto ${port}`);
 }
-bootstrap();
+void bootstrap();

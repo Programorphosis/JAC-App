@@ -1,5 +1,8 @@
 import { LetterService } from './letter.service';
-import type { ILetterEmissionContext, CartaParaEmitir } from '../ports/letter-emission-context.port';
+import type {
+  ILetterEmissionContext,
+  CartaParaEmitir,
+} from '../ports/letter-emission-context.port';
 
 const CARTA_PENDIENTE: CartaParaEmitir = {
   id: 'carta-1',
@@ -23,7 +26,10 @@ function createMockContext(
     updateCartaAprobada: jest.fn().mockResolvedValue(undefined),
     consumePagoCarta: jest.fn().mockResolvedValue(undefined),
     registerAudit: jest.fn().mockResolvedValue(undefined),
-    generateCartaPdf: jest.fn().mockResolvedValue({ rutaPdf: 's3://cartas/carta-1.pdf', hashDocumento: 'abc123' }),
+    generateCartaPdf: jest.fn().mockResolvedValue({
+      rutaPdf: 's3://cartas/carta-1.pdf',
+      hashDocumento: 'abc123',
+    }),
     ...overrides,
   } as jest.Mocked<ILetterEmissionContext>;
 }
@@ -31,7 +37,11 @@ function createMockContext(
 describe('LetterService', () => {
   let service: LetterService;
 
-  const PARAMS = { cartaId: 'carta-1', juntaId: 'junta-1', emitidaPorId: 'admin-1' };
+  const PARAMS = {
+    cartaId: 'carta-1',
+    juntaId: 'junta-1',
+    emitidaPorId: 'admin-1',
+  };
 
   beforeEach(() => {
     service = new LetterService();
@@ -77,7 +87,9 @@ describe('LetterService', () => {
       getCarta: jest.fn().mockResolvedValue(null),
     });
 
-    await expect(service.emitLetter(PARAMS, ctx)).rejects.toThrow('Carta no encontrada');
+    await expect(service.emitLetter(PARAMS, ctx)).rejects.toThrow(
+      'Carta no encontrada',
+    );
   });
 
   // ──────────────────────────────────────────────
@@ -85,10 +97,14 @@ describe('LetterService', () => {
   // ──────────────────────────────────────────────
   it('lanza error si la carta no está en estado PENDIENTE', async () => {
     const ctx = createMockContext({
-      getCarta: jest.fn().mockResolvedValue({ ...CARTA_PENDIENTE, estado: 'APROBADA' }),
+      getCarta: jest
+        .fn()
+        .mockResolvedValue({ ...CARTA_PENDIENTE, estado: 'APROBADA' }),
     });
 
-    await expect(service.emitLetter(PARAMS, ctx)).rejects.toThrow('no está en estado PENDIENTE');
+    await expect(service.emitLetter(PARAMS, ctx)).rejects.toThrow(
+      'no está en estado PENDIENTE',
+    );
   });
 
   // ──────────────────────────────────────────────
@@ -96,10 +112,14 @@ describe('LetterService', () => {
   // ──────────────────────────────────────────────
   it('lanza error si el usuario tiene deuda pendiente', async () => {
     const ctx = createMockContext({
-      calculateDebt: jest.fn().mockResolvedValue({ total: 50_000, detalle: [] }),
+      calculateDebt: jest
+        .fn()
+        .mockResolvedValue({ total: 50_000, detalle: [] }),
     });
 
-    await expect(service.emitLetter(PARAMS, ctx)).rejects.toThrow('Deuda pendiente');
+    await expect(service.emitLetter(PARAMS, ctx)).rejects.toThrow(
+      'Deuda pendiente',
+    );
     expect(ctx.updateCartaAprobada).not.toHaveBeenCalled();
   });
 
@@ -111,7 +131,9 @@ describe('LetterService', () => {
       hasPagoCarta: jest.fn().mockResolvedValue(false),
     });
 
-    await expect(service.emitLetter(PARAMS, ctx)).rejects.toThrow('pago tipo CARTA');
+    await expect(service.emitLetter(PARAMS, ctx)).rejects.toThrow(
+      'pago tipo CARTA',
+    );
   });
 
   // ──────────────────────────────────────────────
@@ -120,11 +142,18 @@ describe('LetterService', () => {
   it('lanza error si un requisito obligatorio está en MORA', async () => {
     const ctx = createMockContext({
       getRequisitosParaCarta: jest.fn().mockResolvedValue([
-        { requisitoTipoId: 'req-1', nombre: 'Agua', obligacionActiva: true, estado: 'MORA' },
+        {
+          requisitoTipoId: 'req-1',
+          nombre: 'Agua',
+          obligacionActiva: true,
+          estado: 'MORA',
+        },
       ]),
     });
 
-    await expect(service.emitLetter(PARAMS, ctx)).rejects.toThrow(/Agua.*AL_DIA/);
+    await expect(service.emitLetter(PARAMS, ctx)).rejects.toThrow(
+      /Agua.*AL_DIA/,
+    );
   });
 
   // ──────────────────────────────────────────────
@@ -133,7 +162,12 @@ describe('LetterService', () => {
   it('permite emitir carta si el requisito en MORA no es obligatorio', async () => {
     const ctx = createMockContext({
       getRequisitosParaCarta: jest.fn().mockResolvedValue([
-        { requisitoTipoId: 'req-1', nombre: 'Agua', obligacionActiva: false, estado: 'MORA' },
+        {
+          requisitoTipoId: 'req-1',
+          nombre: 'Agua',
+          obligacionActiva: false,
+          estado: 'MORA',
+        },
       ]),
     });
 

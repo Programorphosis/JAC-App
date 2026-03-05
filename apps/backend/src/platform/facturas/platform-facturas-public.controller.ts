@@ -146,7 +146,10 @@ export class PlatformFacturasPublicController {
   ) {
     const user = req.user as JwtUser;
     if (!user.juntaId) {
-      return { data: [], meta: { page: 1, limit: 20, total: 0, totalPages: 0 } };
+      return {
+        data: [],
+        meta: { page: 1, limit: 20, total: 0, totalPages: 0 },
+      };
     }
     const p = page ? parseInt(page, 10) : 1;
     const l = limit ? parseInt(limit, 10) : 20;

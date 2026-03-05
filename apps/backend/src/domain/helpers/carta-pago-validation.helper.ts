@@ -25,8 +25,17 @@ export interface CartaPagoValidationInput {
  * Valida que se pueda registrar un pago CARTA para el usuario.
  * Lanza DomainError si alguna precondición no se cumple.
  */
-export function validateCartaPagoPreconditions(input: CartaPagoValidationInput): void {
-  const { junta, usuario, cartaPendiente, tienePagoVigente, cartaVigente, usuarioId } = input;
+export function validateCartaPagoPreconditions(
+  input: CartaPagoValidationInput,
+): void {
+  const {
+    junta,
+    usuario,
+    cartaPendiente,
+    tienePagoVigente,
+    cartaVigente,
+    usuarioId,
+  } = input;
 
   if (!usuario) {
     throw new UsuarioNoEncontradoError(usuarioId);

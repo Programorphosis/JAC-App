@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AlcanceAviso, RolNombre } from '@prisma/client';
 import { CrearAvisoDto, AlcanceAvisoDto } from '../dto/crear-aviso.dto';
@@ -63,12 +67,17 @@ export class PlatformAvisosService {
   }
 
   async crear(dto: CrearAvisoDto) {
-    const alcance = (dto.alcance ?? AlcanceAvisoDto.TODAS_JUNTAS) as AlcanceAviso;
+    const alcance = (dto.alcance ??
+      AlcanceAvisoDto.TODAS_JUNTAS) as AlcanceAviso;
     if (alcance === 'JUNTA_ESPECIFICA' && !dto.juntaId) {
-      throw new BadRequestException('Debe seleccionar una junta cuando el alcance es JUNTA_ESPECIFICA');
+      throw new BadRequestException(
+        'Debe seleccionar una junta cuando el alcance es JUNTA_ESPECIFICA',
+      );
     }
     if (alcance !== 'JUNTA_ESPECIFICA' && dto.juntaId) {
-      throw new BadRequestException('juntaId solo aplica cuando el alcance es JUNTA_ESPECIFICA');
+      throw new BadRequestException(
+        'juntaId solo aplica cuando el alcance es JUNTA_ESPECIFICA',
+      );
     }
     const aviso = await this.prisma.avisoPlataforma.create({
       data: {
@@ -90,17 +99,30 @@ export class PlatformAvisosService {
     if (!existente) throw new NotFoundException('Aviso no encontrado');
 
     const alcance = dto.alcance as AlcanceAviso | undefined;
-    if (alcance === 'JUNTA_ESPECIFICA' && dto.juntaId === undefined && !existente.juntaId) {
-      throw new BadRequestException('Debe seleccionar una junta cuando el alcance es JUNTA_ESPECIFICA');
+    if (
+      alcance === 'JUNTA_ESPECIFICA' &&
+      dto.juntaId === undefined &&
+      !existente.juntaId
+    ) {
+      throw new BadRequestException(
+        'Debe seleccionar una junta cuando el alcance es JUNTA_ESPECIFICA',
+      );
     }
-    if (alcance !== undefined && alcance !== 'JUNTA_ESPECIFICA' && dto.juntaId !== undefined && dto.juntaId !== null) {
-      throw new BadRequestException('juntaId solo aplica cuando el alcance es JUNTA_ESPECIFICA');
+    if (
+      alcance !== undefined &&
+      alcance !== 'JUNTA_ESPECIFICA' &&
+      dto.juntaId !== undefined &&
+      dto.juntaId !== null
+    ) {
+      throw new BadRequestException(
+        'juntaId solo aplica cuando el alcance es JUNTA_ESPECIFICA',
+      );
     }
 
-    const alcanceFinal = alcance ?? existente.alcance;
+    const _alcanceFinal = alcance ?? existente.alcance;
     const juntaIdFinal =
       dto.alcance !== undefined
-        ? dto.alcance === 'JUNTA_ESPECIFICA'
+        ? dto.alcance === AlcanceAvisoDto.JUNTA_ESPECIFICA
           ? (dto.juntaId ?? existente.juntaId)
           : null
         : dto.juntaId !== undefined
@@ -113,9 +135,15 @@ export class PlatformAvisosService {
         ...(dto.titulo !== undefined && { titulo: dto.titulo }),
         ...(dto.contenido !== undefined && { contenido: dto.contenido }),
         ...(dto.activo !== undefined && { activo: dto.activo }),
-        ...(dto.alcance !== undefined && { alcance: dto.alcance as AlcanceAviso }),
-        ...((dto.alcance !== undefined || dto.juntaId !== undefined) ? { juntaId: juntaIdFinal } : {}),
-        ...(dto.soloOperativos !== undefined && { soloOperativos: dto.soloOperativos }),
+        ...(dto.alcance !== undefined && {
+          alcance: dto.alcance as AlcanceAviso,
+        }),
+        ...(dto.alcance !== undefined || dto.juntaId !== undefined
+          ? { juntaId: juntaIdFinal }
+          : {}),
+        ...(dto.soloOperativos !== undefined && {
+          soloOperativos: dto.soloOperativos,
+        }),
       },
       include: { junta: { select: { id: true, nombre: true } } },
     });

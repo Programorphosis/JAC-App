@@ -123,16 +123,18 @@ export class WompiService {
       const data = json.data as Record<string, unknown> | undefined;
       if (!data) return null;
 
-      const transactions = data.transactions as Array<{
-        id: string;
-        status: string;
-        amount_in_cents: number;
-        reference?: string;
-        payment_link_id?: string;
-      }> | undefined;
+      const transactions = data.transactions as
+        | Array<{
+            id: string;
+            status: string;
+            amount_in_cents: number;
+            reference?: string;
+            payment_link_id?: string;
+          }>
+        | undefined;
 
       return {
-        id: String(data.id ?? paymentLinkId),
+        id: String((data.id as string) ?? paymentLinkId),
         transactions: Array.isArray(transactions) ? transactions : undefined,
       };
     } catch {
@@ -159,14 +161,11 @@ export class WompiService {
     const baseUrl = getBaseUrl(creds.environment);
 
     try {
-      const res = await fetch(
-        `${baseUrl}/transactions/${transactionId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${creds.privateKey}`,
-          },
+      const res = await fetch(`${baseUrl}/transactions/${transactionId}`, {
+        headers: {
+          Authorization: `Bearer ${creds.privateKey}`,
         },
-      );
+      });
 
       if (!res.ok) return null;
 

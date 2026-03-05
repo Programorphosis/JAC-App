@@ -1,7 +1,13 @@
 import { IsNumber, IsString, IsOptional, IsIn, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
-const METODOS_VALIDOS = ['EFECTIVO', 'TRANSFERENCIA', 'ONLINE', 'CHEQUE', 'OTRO'] as const;
+const METODOS_VALIDOS = [
+  'EFECTIVO',
+  'TRANSFERENCIA',
+  'ONLINE',
+  'CHEQUE',
+  'OTRO',
+] as const;
 
 export class RegistrarPagoFacturaDto {
   @Type(() => Number)

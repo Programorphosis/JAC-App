@@ -77,7 +77,9 @@ export class RequisitosService {
       where: { id },
       data: {
         ...(dto.nombre !== undefined && { nombre: dto.nombre }),
-        ...(dto.modificadorId !== undefined && { modificadorId: dto.modificadorId ?? null }),
+        ...(dto.modificadorId !== undefined && {
+          modificadorId: dto.modificadorId ?? null,
+        }),
         ...(dto.tieneCorteAutomatico !== undefined && {
           tieneCorteAutomatico: dto.tieneCorteAutomatico,
         }),
@@ -97,7 +99,11 @@ export class RequisitosService {
     return updated;
   }
 
-  async eliminarRequisitoTipo(id: string, juntaId: string, eliminadoPorId: string) {
+  async eliminarRequisitoTipo(
+    id: string,
+    juntaId: string,
+    eliminadoPorId: string,
+  ) {
     const existente = await this.prisma.requisitoTipo.findFirst({
       where: { id, juntaId },
     });
@@ -163,7 +169,10 @@ export class RequisitosService {
       nuevoEstado: estado,
       cambiadoPorId: user.id,
     });
-    return { data: { ok: true }, meta: { timestamp: new Date().toISOString() } };
+    return {
+      data: { ok: true },
+      meta: { timestamp: new Date().toISOString() },
+    };
   }
 
   async actualizarObligacion(
@@ -199,6 +208,9 @@ export class RequisitosService {
       obligacionActiva,
       cambiadoPorId: user.id,
     });
-    return { data: { ok: true }, meta: { timestamp: new Date().toISOString() } };
+    return {
+      data: { ok: true },
+      meta: { timestamp: new Date().toISOString() },
+    };
   }
 }

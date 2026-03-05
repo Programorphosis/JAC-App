@@ -39,7 +39,9 @@ export class AuditoriasService {
         { accion: { contains: term, mode: 'insensitive' } },
         { entidad: { contains: term, mode: 'insensitive' } },
         { ejecutadoPor: { nombres: { contains: term, mode: 'insensitive' } } },
-        { ejecutadoPor: { apellidos: { contains: term, mode: 'insensitive' } } },
+        {
+          ejecutadoPor: { apellidos: { contains: term, mode: 'insensitive' } },
+        },
       ];
     }
 

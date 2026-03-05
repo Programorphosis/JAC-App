@@ -51,7 +51,11 @@ describe('DomainExceptionFilter', () => {
   it('debe manejar HttpException con mensaje array', () => {
     const { host, json } = createMockHost();
     const ex = new HttpException(
-      { message: ['campo1 requerido', 'campo2 inválido'], error: 'Bad Request', statusCode: 400 },
+      {
+        message: ['campo1 requerido', 'campo2 inválido'],
+        error: 'Bad Request',
+        statusCode: 400,
+      },
       HttpStatus.BAD_REQUEST,
     );
 
@@ -67,7 +71,9 @@ describe('DomainExceptionFilter', () => {
     filter.catch(new DeudaCeroError('u1'), host);
 
     expect(status).toHaveBeenCalledWith(HttpStatus.UNPROCESSABLE_ENTITY);
-    expect(json).toHaveBeenCalledWith(expect.objectContaining({ code: 'DEUDA_CERO' }));
+    expect(json).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'DEUDA_CERO' }),
+    );
   });
 
   it('debe mapear PagoDuplicadoError a 409', () => {
@@ -124,7 +130,10 @@ describe('DomainExceptionFilter', () => {
 
     expect(status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
     expect(json).toHaveBeenCalledWith(
-      expect.objectContaining({ statusCode: 500, error: 'Internal Server Error' }),
+      expect.objectContaining({
+        statusCode: 500,
+        error: 'Internal Server Error',
+      }),
     );
   });
 

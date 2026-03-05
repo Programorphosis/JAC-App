@@ -102,7 +102,8 @@ describe('PagosService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    ({ service, prisma, paymentRunner, debtService, wompi, encryption } = createMocks());
+    ({ service, prisma, paymentRunner, debtService, wompi, encryption } =
+      createMocks());
     process.env.WOMPI_REDIRECT_URL = 'https://app.test/pagos/retorno';
   });
 
@@ -329,7 +330,10 @@ describe('PagosService', () => {
     };
 
     function setupCartaHappyPath() {
-      prisma.usuario.findFirst.mockResolvedValue({ activo: true, id: USUARIO_ID });
+      prisma.usuario.findFirst.mockResolvedValue({
+        activo: true,
+        id: USUARIO_ID,
+      });
       prisma.junta.findUnique.mockResolvedValue({
         montoCarta: 15000,
         wompiPrivateKey: 'enc-private',
@@ -378,13 +382,16 @@ describe('PagosService', () => {
     it('debe lanzar UsuarioInactivoError si el usuario está inactivo', async () => {
       prisma.usuario.findFirst.mockResolvedValue({ activo: false });
 
-      await expect(service.crearIntencionPagoCartaOnline(params)).rejects.toThrow(
-        UsuarioInactivoError,
-      );
+      await expect(
+        service.crearIntencionPagoCartaOnline(params),
+      ).rejects.toThrow(UsuarioInactivoError);
     });
 
     it('debe propagar PagoCartaPendienteError si validateCartaPagoPreconditions la lanza', async () => {
-      prisma.usuario.findFirst.mockResolvedValue({ activo: true, id: USUARIO_ID });
+      prisma.usuario.findFirst.mockResolvedValue({
+        activo: true,
+        id: USUARIO_ID,
+      });
       prisma.junta.findUnique.mockResolvedValue({ montoCarta: 15000 });
       prisma.carta.findFirst.mockResolvedValue(null);
       prisma.pago.findFirst.mockResolvedValue(null);
@@ -392,13 +399,16 @@ describe('PagosService', () => {
         throw new PagoCartaPendienteError(USUARIO_ID);
       });
 
-      await expect(service.crearIntencionPagoCartaOnline(params)).rejects.toThrow(
-        PagoCartaPendienteError,
-      );
+      await expect(
+        service.crearIntencionPagoCartaOnline(params),
+      ).rejects.toThrow(PagoCartaPendienteError);
     });
 
     it('debe propagar MontoCartaNoConfiguradoError si la junta no tiene montoCarta', async () => {
-      prisma.usuario.findFirst.mockResolvedValue({ activo: true, id: USUARIO_ID });
+      prisma.usuario.findFirst.mockResolvedValue({
+        activo: true,
+        id: USUARIO_ID,
+      });
       prisma.junta.findUnique.mockResolvedValue({ montoCarta: null });
       prisma.carta.findFirst.mockResolvedValue(null);
       prisma.pago.findFirst.mockResolvedValue(null);
@@ -406,13 +416,16 @@ describe('PagosService', () => {
         throw new MontoCartaNoConfiguradoError(JUNTA_ID);
       });
 
-      await expect(service.crearIntencionPagoCartaOnline(params)).rejects.toThrow(
-        MontoCartaNoConfiguradoError,
-      );
+      await expect(
+        service.crearIntencionPagoCartaOnline(params),
+      ).rejects.toThrow(MontoCartaNoConfiguradoError);
     });
 
     it('debe propagar CartaVigenteError si el usuario tiene carta vigente', async () => {
-      prisma.usuario.findFirst.mockResolvedValue({ activo: true, id: USUARIO_ID });
+      prisma.usuario.findFirst.mockResolvedValue({
+        activo: true,
+        id: USUARIO_ID,
+      });
       prisma.junta.findUnique.mockResolvedValue({ montoCarta: 15000 });
       prisma.carta.findFirst.mockResolvedValue(null);
       prisma.pago.findFirst.mockResolvedValue(null);
@@ -420,9 +433,9 @@ describe('PagosService', () => {
         throw new CartaVigenteError(USUARIO_ID);
       });
 
-      await expect(service.crearIntencionPagoCartaOnline(params)).rejects.toThrow(
-        CartaVigenteError,
-      );
+      await expect(
+        service.crearIntencionPagoCartaOnline(params),
+      ).rejects.toThrow(CartaVigenteError);
     });
   });
 
@@ -588,7 +601,10 @@ describe('PagosService', () => {
         consecutivo: 5,
       });
 
-      const result = await service.consultarYRegistrarSiAprobado('tx-approved', JUNTA_ID);
+      const result = await service.consultarYRegistrarSiAprobado(
+        'tx-approved',
+        JUNTA_ID,
+      );
 
       expect(result.registrado).toBe(true);
       expect(result.codigo).toBe('REGISTRADO_AHORA');
@@ -617,7 +633,10 @@ describe('PagosService', () => {
         new PagoDuplicadoError('tx-dup'),
       );
 
-      const result = await service.consultarYRegistrarSiAprobado('tx-dup', JUNTA_ID);
+      const result = await service.consultarYRegistrarSiAprobado(
+        'tx-dup',
+        JUNTA_ID,
+      );
 
       expect(result.registrado).toBe(true);
       expect(result.codigo).toBe('YA_REGISTRADO');
@@ -627,7 +646,10 @@ describe('PagosService', () => {
       setupWompiCredentials();
       wompi.obtenerTransaccion.mockResolvedValue(null);
 
-      const result = await service.consultarYRegistrarSiAprobado('tx-ghost', JUNTA_ID);
+      const result = await service.consultarYRegistrarSiAprobado(
+        'tx-ghost',
+        JUNTA_ID,
+      );
 
       expect(result.registrado).toBe(false);
       expect(result.codigo).toBe('TRANSACCION_NO_ENCONTRADA');
@@ -641,7 +663,10 @@ describe('PagosService', () => {
         amount_in_cents: 5000000,
       });
 
-      const result = await service.consultarYRegistrarSiAprobado('tx-pending', JUNTA_ID);
+      const result = await service.consultarYRegistrarSiAprobado(
+        'tx-pending',
+        JUNTA_ID,
+      );
 
       expect(result.registrado).toBe(false);
       expect(result.codigo).toBe('TRANSACCION_PENDIENTE');
@@ -656,7 +681,10 @@ describe('PagosService', () => {
         amount_in_cents: 5000000,
       });
 
-      const result = await service.consultarYRegistrarSiAprobado('tx-declined', JUNTA_ID);
+      const result = await service.consultarYRegistrarSiAprobado(
+        'tx-declined',
+        JUNTA_ID,
+      );
 
       expect(result.registrado).toBe(false);
       expect(result.codigo).toBe('TRANSACCION_RECHAZADA');
@@ -673,7 +701,10 @@ describe('PagosService', () => {
       });
       prisma.intencionPago.findUnique.mockResolvedValue(null);
 
-      const result = await service.consultarYRegistrarSiAprobado('tx-no-intencion', JUNTA_ID);
+      const result = await service.consultarYRegistrarSiAprobado(
+        'tx-no-intencion',
+        JUNTA_ID,
+      );
 
       expect(result.registrado).toBe(false);
       expect(result.codigo).toBe('INTENCION_NO_ENCONTRADA');
@@ -696,7 +727,10 @@ describe('PagosService', () => {
       });
       prisma.usuario.findFirst.mockResolvedValue({ activo: false });
 
-      const result = await service.consultarYRegistrarSiAprobado('tx-inactivo', JUNTA_ID);
+      const result = await service.consultarYRegistrarSiAprobado(
+        'tx-inactivo',
+        JUNTA_ID,
+      );
 
       expect(result.registrado).toBe(false);
       expect(result.codigo).toBe('USUARIO_INACTIVO');
@@ -742,7 +776,10 @@ describe('PagosService', () => {
       const callArgs = prisma.pago.findMany.mock.calls[0][0];
       expect(callArgs.where.juntaId).toBe(JUNTA_ID);
       expect(callArgs.where.tipo).toBe('JUNTA');
-      expect(callArgs.where.fechaPago).toEqual({ gte: fechaDesde, lte: fechaHasta });
+      expect(callArgs.where.fechaPago).toEqual({
+        gte: fechaDesde,
+        lte: fechaHasta,
+      });
       expect(callArgs.where.OR).toBeDefined();
       expect(callArgs.where.OR.length).toBeGreaterThan(0);
       expect(callArgs.skip).toBe(10);

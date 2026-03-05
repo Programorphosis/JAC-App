@@ -48,18 +48,21 @@ export class UsersController {
     if (activo === 'true') opts.activo = true;
     if (activo === 'false') opts.activo = false;
     if (rol?.trim()) opts.rol = rol.trim();
-    const validSortBy = ['apellidos', 'nombres', 'numeroDocumento', 'fechaCreacion'];
-    if (sortBy && validSortBy.includes(sortBy)) opts.sortBy = sortBy as typeof opts.sortBy;
+    const validSortBy = [
+      'apellidos',
+      'nombres',
+      'numeroDocumento',
+      'fechaCreacion',
+    ];
+    if (sortBy && validSortBy.includes(sortBy))
+      opts.sortBy = sortBy as typeof opts.sortBy;
     if (sortOrder === 'asc' || sortOrder === 'desc') opts.sortOrder = sortOrder;
     return this.users.listar(juntaId, p, l, opts);
   }
 
   @Get(':id')
   @UseGuards(UsuarioPropioOAdminGuard)
-  async obtener(
-    @Param('id') id: string,
-    @Request() req: { user: JwtUser },
-  ) {
+  async obtener(@Param('id') id: string, @Request() req: { user: JwtUser }) {
     const juntaId = req.user.juntaId!;
     return this.users.obtener(id, juntaId);
   }
@@ -67,10 +70,7 @@ export class UsersController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA)
-  async crear(
-    @Body() dto: CreateUserDto,
-    @Request() req: { user: JwtUser },
-  ) {
+  async crear(@Body() dto: CreateUserDto, @Request() req: { user: JwtUser }) {
     const juntaId = req.user.juntaId!;
     return this.users.crear(dto, juntaId, req.user.id);
   }

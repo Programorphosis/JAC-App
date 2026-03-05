@@ -52,12 +52,15 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('Usuario no encontrado o inactivo');
     }
 
-    const requisitoTipoIds = usuario.requisitosComoModificador?.map((r) => r.id) ?? [];
+    const requisitoTipoIds =
+      usuario.requisitosComoModificador?.map((r) => r.id) ?? [];
     const esModificador = requisitoTipoIds.length > 0;
 
     // PA-8: En impersonación, usar juntaId del payload (junta vista) en lugar del usuario
     const juntaId =
-      payload.impersonando && payload.juntaId ? payload.juntaId : usuario.juntaId;
+      payload.impersonando && payload.juntaId
+        ? payload.juntaId
+        : usuario.juntaId;
 
     return {
       id: usuario.id,

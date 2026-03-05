@@ -30,7 +30,9 @@ export class PlatformAuditoriaService {
         take: limit,
         orderBy: { fecha: 'desc' },
         include: {
-          ejecutadoPor: { select: { id: true, nombres: true, apellidos: true } },
+          ejecutadoPor: {
+            select: { id: true, nombres: true, apellidos: true },
+          },
           junta: { select: { id: true, nombre: true } },
         },
       }),

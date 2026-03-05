@@ -1295,5 +1295,6 @@ Requiere verificar que tu app no escribe en el filesystem (lo cual es correcto �
 | 33 | Prometheus + Grafana | 7.4 | 2d | |
 | 34 | CSRF Protection | 10.1 | 1d | |
 | 35 | SW dataGroups | 10.2 | 1h | ✅ |
-| 36 | Pre-commit hooks (Husky) | 10.3 | 1h | ✅ |
+| 36 | Pre-commit hooks (Husky) | 10.3 | 1h | ✅ (lint-staged + jest) |
 | 37 | Read-only filesystem | 10.4 | 30min | ✅ |
+| 38 | Corregir 375 errores de lint | 8.3 | 2h | ✅ (0 errores, ESLint config tests) |

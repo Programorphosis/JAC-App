@@ -28,7 +28,13 @@ export class HistorialLaboralController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL, RolNombre.AFILIADO)
+  @Roles(
+    RolNombre.ADMIN,
+    RolNombre.SECRETARIA,
+    RolNombre.TESORERA,
+    RolNombre.FISCAL,
+    RolNombre.AFILIADO,
+  )
   async listar(
     @Param('usuarioId') usuarioId: string,
     @Request() req: { user: JwtUser },
@@ -36,7 +42,10 @@ export class HistorialLaboralController {
     const user = req.user;
     const juntaId = user.juntaId!;
 
-    if (!this.permissions.puedeVerHistorialDeOtro(user) && usuarioId !== user.id) {
+    if (
+      !this.permissions.puedeVerHistorialDeOtro(user) &&
+      usuarioId !== user.id
+    ) {
       throw new ForbiddenException('Solo puede consultar su propio historial');
     }
 

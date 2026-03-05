@@ -18,7 +18,9 @@ export class PlatformOperacionesService {
 
   /** Lista notas de una junta. */
   async listarNotas(juntaId: string, page = 1, limit = 50) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const skip = (page - 1) * limit;
@@ -48,17 +50,17 @@ export class PlatformOperacionesService {
   }
 
   /** Crea una nota para la junta. */
-  async crearNota(
-    juntaId: string,
-    contenido: string,
-    ejecutadoPorId: string,
-  ) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+  async crearNota(juntaId: string, contenido: string, ejecutadoPorId: string) {
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const contenidoTrim = contenido?.trim();
     if (!contenidoTrim) {
-      throw new BadRequestException('El contenido de la nota no puede estar vacío');
+      throw new BadRequestException(
+        'El contenido de la nota no puede estar vacío',
+      );
     }
 
     const nota = await this.prisma.notaJunta.create({
@@ -94,59 +96,62 @@ export class PlatformOperacionesService {
     });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
-    const [
-      usuarios,
-      tarifas,
-      pagos,
-      cartas,
-      requisitosTipo,
-      facturas,
-      notas,
-    ] = await Promise.all([
-      this.prisma.usuario.findMany({
-        where: { juntaId },
-        select: {
-          id: true,
-          tipoDocumento: true,
-          numeroDocumento: true,
-          nombres: true,
-          apellidos: true,
-          telefono: true,
-          activo: true,
-          fechaCreacion: true,
-        },
-      }),
-      this.prisma.tarifa.findMany({
-        where: { juntaId },
-        orderBy: { fechaVigencia: 'desc' },
-      }),
-      this.prisma.pago.findMany({
-        where: { juntaId },
-        include: { usuario: { select: { nombres: true, apellidos: true, numeroDocumento: true } } },
-        orderBy: { fechaPago: 'desc' },
-        take: 1000,
-      }),
-      this.prisma.carta.findMany({
-        where: { juntaId },
-        include: { usuario: { select: { nombres: true, apellidos: true, numeroDocumento: true } } },
-        orderBy: { fechaSolicitud: 'desc' },
-        take: 500,
-      }),
-      this.prisma.requisitoTipo.findMany({
-        where: { juntaId },
-        include: { _count: { select: { estados: true } } },
-      }),
-      this.prisma.factura.findMany({
-        where: { juntaId },
-        include: { pagos: true },
-        orderBy: { fechaEmision: 'desc' },
-      }),
-      this.prisma.notaJunta.findMany({
-        where: { juntaId },
-        include: { creadoPor: { select: { nombres: true, apellidos: true } } },
-        orderBy: { fechaCreacion: 'desc' },
-      }),
-    ]);
+    const [usuarios, tarifas, pagos, cartas, requisitosTipo, facturas, notas] =
+      await Promise.all([
+        this.prisma.usuario.findMany({
+          where: { juntaId },
+          select: {
+            id: true,
+            tipoDocumento: true,
+            numeroDocumento: true,
+            nombres: true,
+            apellidos: true,
+            telefono: true,
+            activo: true,
+            fechaCreacion: true,
+          },
+        }),
+        this.prisma.tarifa.findMany({
+          where: { juntaId },
+          orderBy: { fechaVigencia: 'desc' },
+        }),
+        this.prisma.pago.findMany({
+          where: { juntaId },
+          include: {
+            usuario: {
+              select: { nombres: true, apellidos: true, numeroDocumento: true },
+            },
+          },
+          orderBy: { fechaPago: 'desc' },
+          take: 1000,
+        }),
+        this.prisma.carta.findMany({
+          where: { juntaId },
+          include: {
+            usuario: {
+              select: { nombres: true, apellidos: true, numeroDocumento: true },
+            },
+          },
+          orderBy: { fechaSolicitud: 'desc' },
+          take: 500,
+        }),
+        this.prisma.requisitoTipo.findMany({
+          where: { juntaId },
+          include: { _count: { select: { estados: true } } },
+        }),
+        this.prisma.factura.findMany({
+          where: { juntaId },
+          include: { pagos: true },
+          orderBy: { fechaEmision: 'desc' },
+        }),
+        this.prisma.notaJunta.findMany({
+          where: { juntaId },
+          include: {
+            creadoPor: { select: { nombres: true, apellidos: true } },
+          },
+          orderBy: { fechaCreacion: 'desc' },
+        }),
+      ]);
 
     const payload = {
       exportadoEn: new Date().toISOString(),
@@ -195,17 +200,26 @@ export class PlatformOperacionesService {
     return { data: payload };
   }
 
-  private exportarCsv(payload: Record<string, unknown>): { data: string; filename: string } {
+  private exportarCsv(payload: Record<string, unknown>): {
+    data: string;
+    filename: string;
+  } {
     const lines: string[] = [];
     lines.push('Sección,Campo,Valor');
-    lines.push(`Junta,nombre,"${(payload.junta as Record<string, unknown>)?.nombre ?? ''}"`);
-    lines.push(`Junta,nit,"${(payload.junta as Record<string, unknown>)?.nit ?? ''}"`);
-    lines.push(`Junta,activo,"${(payload.junta as Record<string, unknown>)?.activo ?? ''}"`);
-    lines.push(`Resumen,totalUsuarios,${(payload.resumen as Record<string, unknown>)?.totalUsuarios ?? 0}`);
-    lines.push(`Resumen,totalPagos,${(payload.resumen as Record<string, unknown>)?.totalPagos ?? 0}`);
-    lines.push(`Resumen,totalCartas,${(payload.resumen as Record<string, unknown>)?.totalCartas ?? 0}`);
+    const junta = payload.junta as
+      | Record<string, string | number | boolean>
+      | undefined;
+    const resumen = payload.resumen as Record<string, number> | undefined;
+    lines.push(`Junta,nombre,"${String(junta?.nombre ?? '')}"`);
+    lines.push(`Junta,nit,"${String(junta?.nit ?? '')}"`);
+    lines.push(`Junta,activo,"${String(junta?.activo ?? '')}"`);
+    lines.push(`Resumen,totalUsuarios,${String(resumen?.totalUsuarios ?? 0)}`);
+    lines.push(`Resumen,totalPagos,${String(resumen?.totalPagos ?? 0)}`);
+    lines.push(`Resumen,totalCartas,${String(resumen?.totalCartas ?? 0)}`);
 
-    const usuarios = payload.usuarios as Array<Record<string, unknown>>;
+    const usuarios = payload.usuarios as
+      | Array<Record<string, string | number | boolean | null>>
+      | undefined;
     if (usuarios?.length) {
       lines.push('');
       lines.push('Usuarios');
@@ -215,12 +229,17 @@ export class PlatformOperacionesService {
         const nom = String(u.nombres ?? '').replace(/"/g, '""');
         const ape = String(u.apellidos ?? '').replace(/"/g, '""');
         const act = u.activo ? 'Sí' : 'No';
-        const fc = u.fechaCreacion ? new Date(u.fechaCreacion as string).toISOString() : '';
+        const fc = u.fechaCreacion
+          ? new Date(u.fechaCreacion as string).toISOString()
+          : '';
         lines.push(`"${doc}","${nom}","${ape}","${act}","${fc}"`);
       }
     }
 
-    const nombreJunta = String((payload.junta as Record<string, unknown>)?.nombre ?? 'junta').replace(/[^a-zA-Z0-9]/g, '_');
+    const nombreJunta = String(junta?.nombre ?? 'junta').replace(
+      /[^a-zA-Z0-9]/g,
+      '_',
+    );
     const fecha = new Date().toISOString().slice(0, 10);
     const filename = `export_${nombreJunta}_${fecha}.csv`;
 

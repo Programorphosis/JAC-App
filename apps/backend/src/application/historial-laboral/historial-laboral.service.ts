@@ -97,7 +97,7 @@ export class HistorialLaboralService {
       return tx.historialLaboral.create({
         data: {
           usuarioId,
-          estado: dto.estado as 'TRABAJANDO' | 'NO_TRABAJANDO',
+          estado: dto.estado,
           fechaInicio: fechaInicioNueva,
           fechaFin: fechaFinNueva,
           creadoPorId,

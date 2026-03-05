@@ -35,8 +35,10 @@ export interface EstadoGeneralResult {
 export class EstadoGeneralService {
   constructor(
     private readonly debtService: DebtService,
-    @Inject(REQUISITO_REPOSITORY) private readonly requisitoRepo: IRequisitoRepository,
-    @Inject(ESTADO_GENERAL_DATA_PROVIDER) private readonly dataProvider: IEstadoGeneralDataProvider,
+    @Inject(REQUISITO_REPOSITORY)
+    private readonly requisitoRepo: IRequisitoRepository,
+    @Inject(ESTADO_GENERAL_DATA_PROVIDER)
+    private readonly dataProvider: IEstadoGeneralDataProvider,
   ) {}
 
   async getEstadoGeneral(
@@ -62,9 +64,15 @@ export class EstadoGeneralService {
       deuda_junta = 0;
     }
 
-    const requisitos = await this.requisitoRepo.getRequisitosParaCarta(usuarioId, juntaId);
+    const requisitos = await this.requisitoRepo.getRequisitosParaCarta(
+      usuarioId,
+      juntaId,
+    );
 
-    const pagoCartaCount = await this.dataProvider.countPagoCartaVigente(usuarioId, juntaId);
+    const pagoCartaCount = await this.dataProvider.countPagoCartaVigente(
+      usuarioId,
+      juntaId,
+    );
     const pago_carta = pagoCartaCount > 0;
 
     const esAdmin = actor?.roles?.includes(RolNombre.ADMIN) ?? false;

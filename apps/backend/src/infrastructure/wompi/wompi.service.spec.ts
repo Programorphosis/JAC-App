@@ -75,8 +75,7 @@ describe('WompiService', () => {
     it('should send correct headers with Bearer token', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () =>
-          Promise.resolve({ data: { id: 'pl-123' } }),
+        json: () => Promise.resolve({ data: { id: 'pl-123' } }),
       });
 
       await service.crearPaymentLink(params, credencialesSandbox);
@@ -95,8 +94,7 @@ describe('WompiService', () => {
     it('should send correct body format (snake_case)', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () =>
-          Promise.resolve({ data: { id: 'pl-123' } }),
+        json: () => Promise.resolve({ data: { id: 'pl-123' } }),
       });
 
       await service.crearPaymentLink(params, credencialesSandbox);
@@ -117,11 +115,13 @@ describe('WompiService', () => {
     it('should return the link id from response', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () =>
-          Promise.resolve({ data: { id: 'pl-link-789' } }),
+        json: () => Promise.resolve({ data: { id: 'pl-link-789' } }),
       });
 
-      const result = await service.crearPaymentLink(params, credencialesSandbox);
+      const result = await service.crearPaymentLink(
+        params,
+        credencialesSandbox,
+      );
 
       expect(result).toEqual({ id: 'pl-link-789' });
     });
@@ -144,8 +144,7 @@ describe('WompiService', () => {
 
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () =>
-          Promise.resolve({ data: { id: 'pl-env-123' } }),
+        json: () => Promise.resolve({ data: { id: 'pl-env-123' } }),
       });
 
       await service.crearPaymentLink(params);

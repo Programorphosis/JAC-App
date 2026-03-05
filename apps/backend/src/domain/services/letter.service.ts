@@ -40,7 +40,10 @@ export class LetterService {
       throw new RequisitosCartaNoCumplidosError('No existe pago tipo CARTA');
     }
 
-    const requisitos = await ctx.getRequisitosParaCarta(carta.usuarioId, juntaId);
+    const requisitos = await ctx.getRequisitosParaCarta(
+      carta.usuarioId,
+      juntaId,
+    );
     for (const req of requisitos) {
       if (req.obligacionActiva && req.estado !== 'AL_DIA') {
         throw new RequisitosCartaNoCumplidosError(
@@ -57,7 +60,12 @@ export class LetterService {
     let rutaPdf: string | null = null;
     let hashDocumento: string | null = null;
 
-    if (ctx.generateCartaPdf && carta.usuarioNombres && carta.usuarioApellidos && carta.usuarioDocumento) {
+    if (
+      ctx.generateCartaPdf &&
+      carta.usuarioNombres &&
+      carta.usuarioApellidos &&
+      carta.usuarioDocumento
+    ) {
       const pdfResult = await ctx.generateCartaPdf({
         juntaId,
         usuarioId: carta.usuarioId,

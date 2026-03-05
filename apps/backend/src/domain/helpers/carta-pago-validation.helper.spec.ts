@@ -1,6 +1,11 @@
-import { validateCartaPagoPreconditions, type CartaPagoValidationInput } from './carta-pago-validation.helper';
+import {
+  validateCartaPagoPreconditions,
+  type CartaPagoValidationInput,
+} from './carta-pago-validation.helper';
 
-function baseInput(overrides: Partial<CartaPagoValidationInput> = {}): CartaPagoValidationInput {
+function baseInput(
+  overrides: Partial<CartaPagoValidationInput> = {},
+): CartaPagoValidationInput {
   return {
     junta: { montoCarta: 15_000 },
     usuario: { id: 'usr-1' },
@@ -26,7 +31,9 @@ describe('validateCartaPagoPreconditions', () => {
 
   it('lanza error si la junta no tiene montoCarta', () => {
     expect(() =>
-      validateCartaPagoPreconditions(baseInput({ junta: { montoCarta: null } })),
+      validateCartaPagoPreconditions(
+        baseInput({ junta: { montoCarta: null } }),
+      ),
     ).toThrow('monto de carta');
   });
 
@@ -50,7 +57,9 @@ describe('validateCartaPagoPreconditions', () => {
 
   it('lanza error si hay carta pendiente', () => {
     expect(() =>
-      validateCartaPagoPreconditions(baseInput({ cartaPendiente: { id: 'carta-pending' } })),
+      validateCartaPagoPreconditions(
+        baseInput({ cartaPendiente: { id: 'carta-pending' } }),
+      ),
     ).toThrow('pago de carta pendiente');
   });
 
@@ -62,7 +71,9 @@ describe('validateCartaPagoPreconditions', () => {
 
   it('lanza error si hay carta vigente', () => {
     expect(() =>
-      validateCartaPagoPreconditions(baseInput({ cartaVigente: { id: 'carta-vigente' } })),
+      validateCartaPagoPreconditions(
+        baseInput({ cartaVigente: { id: 'carta-vigente' } }),
+      ),
     ).toThrow('carta vigente');
   });
 

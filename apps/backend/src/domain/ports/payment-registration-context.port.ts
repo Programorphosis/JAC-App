@@ -21,6 +21,8 @@ export interface IPaymentRegistrationContext {
   calculateDebt(usuarioId: string, juntaId: string): Promise<DebtResult>;
   createJuntaPayment(data: CreateJuntaPaymentData): Promise<{ pagoId: string }>;
   registerAudit(params: RegisterAuditEventParams): Promise<void>;
-  findPagoByReferenciaExterna(referenciaExterna: string): Promise<{ id: string } | null>;
+  findPagoByReferenciaExterna(
+    referenciaExterna: string,
+  ): Promise<{ id: string } | null>;
   getNextConsecutivoPagoJunta(juntaId: string): Promise<number>;
 }

@@ -47,13 +47,16 @@ export class PlatformOperacionesController {
     @Res() res: Response,
     @Query('format') format?: string,
   ) {
-    const fmt = (format === 'csv' ? 'csv' : 'json') as 'json' | 'csv';
+    const fmt = format === 'csv' ? 'csv' : 'json';
     const result = await this.operaciones.exportar(juntaId, fmt);
 
     if (fmt === 'csv') {
       const { data, filename } = result as { data: string; filename: string };
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${filename}"`,
+      );
       return res.send(data);
     }
 

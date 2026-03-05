@@ -19,7 +19,9 @@ type PrismaClientLike = Pick<
 
 @Injectable()
 export class PrismaRequisitoRepository implements IRequisitoRepository {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaClientLike) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaClientLike,
+  ) {}
 
   async getEstadoRequisito(
     usuarioId: string,
@@ -128,7 +130,9 @@ export class PrismaRequisitoRepository implements IRequisitoRepository {
         usuarioId: data.usuarioId,
         requisitoTipoId: data.requisitoTipoId,
         tipoCambio: data.tipoCambio as TipoCambioRequisito,
-        estadoAnterior: data.estadoAnterior as PrismaEstadoRequisitoTipo | undefined,
+        estadoAnterior: data.estadoAnterior as
+          | PrismaEstadoRequisitoTipo
+          | undefined,
         estadoNuevo: data.estadoNuevo as PrismaEstadoRequisitoTipo | undefined,
         obligacionAnterior: data.obligacionAnterior,
         obligacionNueva: data.obligacionNueva,
@@ -138,10 +142,12 @@ export class PrismaRequisitoRepository implements IRequisitoRepository {
     });
   }
 
-  async getRequisitosYUsuariosParaCorte(
-    juntaId?: string,
-  ): Promise<
-    Array<{ requisitoTipoId: string; juntaId: string; usuarios: UsuarioParaCorte[] }>
+  async getRequisitosYUsuariosParaCorte(juntaId?: string): Promise<
+    Array<{
+      requisitoTipoId: string;
+      juntaId: string;
+      usuarios: UsuarioParaCorte[];
+    }>
   > {
     const requisitos = await this.prisma.requisitoTipo.findMany({
       where: {

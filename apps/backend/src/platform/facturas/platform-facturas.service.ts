@@ -23,7 +23,9 @@ import { LimitesService } from '../../infrastructure/limits/limites.service';
 import { EmailService } from '../../infrastructure/email/email.service';
 
 /** DTO interno con facturaId añadido por el controller. */
-export type RegistrarPagoFacturaDtoConId = RegistrarPagoFacturaDto & { facturaId: string };
+export type RegistrarPagoFacturaDtoConId = RegistrarPagoFacturaDto & {
+  facturaId: string;
+};
 
 /**
  * Servicio de facturación plataforma (PA-6).
@@ -47,7 +49,9 @@ export class PlatformFacturasService {
     limit = 20,
     estado?: EstadoFactura,
   ) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const skip = (page - 1) * limit;
@@ -60,9 +64,13 @@ export class PlatformFacturasService {
         take: limit,
         orderBy: { fechaEmision: 'desc' },
         include: {
-          suscripcion: { select: { id: true, plan: { select: { nombre: true } } } },
+          suscripcion: {
+            select: { id: true, plan: { select: { nombre: true } } },
+          },
           creadoPor: { select: { nombres: true, apellidos: true } },
-          pagos: { select: { id: true, monto: true, fecha: true, metodo: true } },
+          pagos: {
+            select: { id: true, monto: true, fecha: true, metodo: true },
+          },
           _count: { select: { pagos: true } },
         },
       }),
@@ -82,7 +90,9 @@ export class PlatformFacturasService {
 
   /** Lista facturas pendientes de pago (PENDIENTE, VENCIDA, PARCIAL) para la junta. */
   async listarFacturasPendientes(juntaId: string, limit = 10) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) return { data: [] };
 
     const facturas = await this.prisma.factura.findMany({
@@ -99,7 +109,9 @@ export class PlatformFacturasService {
       take: limit,
       orderBy: { fechaVencimiento: 'asc' },
       include: {
-        suscripcion: { select: { id: true, plan: { select: { nombre: true } } } },
+        suscripcion: {
+          select: { id: true, plan: { select: { nombre: true } } },
+        },
         pagos: { select: { id: true, monto: true } },
       },
     });
@@ -113,7 +125,9 @@ export class PlatformFacturasService {
     dto: CrearFacturaDto,
     ejecutadoPorId: string,
   ) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     if (dto.monto <= 0) {
@@ -133,11 +147,15 @@ export class PlatformFacturasService {
         estado: EstadoFactura.PENDIENTE,
         tipo: dto.tipo ?? TipoFactura.MANUAL,
         referenciaExterna: dto.referenciaExterna ?? null,
-        metadata: (dto.metadata ?? undefined) as Prisma.InputJsonValue | undefined,
+        metadata: (dto.metadata ?? undefined) as
+          | Prisma.InputJsonValue
+          | undefined,
         creadoPorId: ejecutadoPorId,
       },
       include: {
-        suscripcion: { select: { id: true, plan: { select: { nombre: true } } } },
+        suscripcion: {
+          select: { id: true, plan: { select: { nombre: true } } },
+        },
         creadoPor: { select: { nombres: true, apellidos: true } },
       },
     });
@@ -170,7 +188,9 @@ export class PlatformFacturasService {
 
   /** Historial de pagos de facturas (pagos al proveedor) de una junta. */
   async listarPagosPlataforma(juntaId: string, page = 1, limit = 20) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const skip = (page - 1) * limit;
@@ -245,7 +265,10 @@ export class PlatformFacturasService {
     const baseRedirect =
       process.env.WOMPI_REDIRECT_URL_FACTURAS ||
       (process.env.WOMPI_REDIRECT_URL
-        ? process.env.WOMPI_REDIRECT_URL.replace('/pagos/retorno', '/facturas-plataforma/retorno')
+        ? process.env.WOMPI_REDIRECT_URL.replace(
+            '/pagos/retorno',
+            '/facturas-plataforma/retorno',
+          )
         : 'http://localhost:4200/facturas-plataforma/retorno');
     const redirectUrl = `${baseRedirect}?factura_id=${facturaId}`;
 
@@ -297,17 +320,24 @@ export class PlatformFacturasService {
       where: { juntaId },
       include: { plan: true },
     });
-    if (existente && (existente.estado === EstadoSuscripcion.ACTIVA || existente.estado === EstadoSuscripcion.PRUEBA)) {
+    if (
+      existente &&
+      (existente.estado === EstadoSuscripcion.ACTIVA ||
+        existente.estado === EstadoSuscripcion.PRUEBA)
+    ) {
       throw new BadRequestException('La junta ya tiene una suscripción activa');
     }
 
     const plan = await this.prisma.plan.findUnique({ where: { id: planId } });
     if (!plan) throw new NotFoundException('Plan no encontrado');
-    if (!plan.activo) throw new BadRequestException('El plan no está disponible');
+    if (!plan.activo)
+      throw new BadRequestException('El plan no está disponible');
 
     const monto = periodo === 'mensual' ? plan.precioMensual : plan.precioAnual;
     if (monto <= 0) {
-      throw new BadRequestException('El plan no tiene precio configurado para el periodo elegido');
+      throw new BadRequestException(
+        'El plan no tiene precio configurado para el periodo elegido',
+      );
     }
 
     const fechaInicio = new Date();
@@ -347,7 +377,10 @@ export class PlatformFacturasService {
     const baseRedirect =
       process.env.WOMPI_REDIRECT_URL_FACTURAS ||
       (process.env.WOMPI_REDIRECT_URL
-        ? process.env.WOMPI_REDIRECT_URL.replace('/pagos/retorno', '/facturas-plataforma/retorno')
+        ? process.env.WOMPI_REDIRECT_URL.replace(
+            '/pagos/retorno',
+            '/facturas-plataforma/retorno',
+          )
         : 'http://localhost:4200/facturas-plataforma/retorno');
     const redirectUrl = `${baseRedirect}?factura_id=${factura.id}`;
 
@@ -413,7 +446,9 @@ export class PlatformFacturasService {
       params.overrideLimiteStorageMb != null ||
       params.overrideLimiteCartasMes != null;
     if (!tieneOverrides) {
-      throw new BadRequestException('Debe indicar al menos un límite a aumentar');
+      throw new BadRequestException(
+        'Debe indicar al menos un límite a aumentar',
+      );
     }
 
     const monto = this.calcularMontoOverrides(suscripcion, params);
@@ -454,7 +489,10 @@ export class PlatformFacturasService {
     const baseRedirect =
       process.env.WOMPI_REDIRECT_URL_FACTURAS ||
       (process.env.WOMPI_REDIRECT_URL
-        ? process.env.WOMPI_REDIRECT_URL.replace('/pagos/retorno', '/facturas-plataforma/retorno')
+        ? process.env.WOMPI_REDIRECT_URL.replace(
+            '/pagos/retorno',
+            '/facturas-plataforma/retorno',
+          )
         : 'http://localhost:4200/facturas-plataforma/retorno');
     const redirectUrl = `${baseRedirect}?factura_id=${factura.id}`;
 
@@ -510,14 +548,19 @@ export class PlatformFacturasService {
 
     const plan = await this.prisma.plan.findUnique({ where: { id: planId } });
     if (!plan) throw new NotFoundException('Plan no encontrado');
-    if (!plan.activo) throw new BadRequestException('El plan no está disponible');
+    if (!plan.activo)
+      throw new BadRequestException('El plan no está disponible');
     if (plan.precioMensual < suscripcion.plan.precioMensual) {
-      throw new BadRequestException('Solo se permite upgrade a plan superior. Use cambiar plan para downgrade.');
+      throw new BadRequestException(
+        'Solo se permite upgrade a plan superior. Use cambiar plan para downgrade.',
+      );
     }
 
     const monto = periodo === 'mensual' ? plan.precioMensual : plan.precioAnual;
     if (monto <= 0) {
-      throw new BadRequestException('El plan no tiene precio configurado para el periodo elegido');
+      throw new BadRequestException(
+        'El plan no tiene precio configurado para el periodo elegido',
+      );
     }
 
     const fechaVencimiento = new Date();
@@ -551,7 +594,10 @@ export class PlatformFacturasService {
     const baseRedirect =
       process.env.WOMPI_REDIRECT_URL_FACTURAS ||
       (process.env.WOMPI_REDIRECT_URL
-        ? process.env.WOMPI_REDIRECT_URL.replace('/pagos/retorno', '/facturas-plataforma/retorno')
+        ? process.env.WOMPI_REDIRECT_URL.replace(
+            '/pagos/retorno',
+            '/facturas-plataforma/retorno',
+          )
         : 'http://localhost:4200/facturas-plataforma/retorno');
     const redirectUrl = `${baseRedirect}?factura_id=${factura.id}`;
 
@@ -632,7 +678,10 @@ export class PlatformFacturasService {
       plan.precioPorUsuarioAdicional != null &&
       limiteBaseUsuarios !== Infinity
     ) {
-      const delta = Math.max(0, params.overrideLimiteUsuarios - limiteBaseUsuarios);
+      const delta = Math.max(
+        0,
+        params.overrideLimiteUsuarios - limiteBaseUsuarios,
+      );
       total += delta * plan.precioPorUsuarioAdicional;
     }
     if (
@@ -640,7 +689,10 @@ export class PlatformFacturasService {
       plan.precioPorMbAdicional != null &&
       limiteBaseStorage !== Infinity
     ) {
-      const delta = Math.max(0, params.overrideLimiteStorageMb - limiteBaseStorage);
+      const delta = Math.max(
+        0,
+        params.overrideLimiteStorageMb - limiteBaseStorage,
+      );
       total += delta * plan.precioPorMbAdicional;
     }
     if (
@@ -648,7 +700,10 @@ export class PlatformFacturasService {
       plan.precioPorCartaAdicional != null &&
       limiteBaseCartas !== Infinity
     ) {
-      const delta = Math.max(0, params.overrideLimiteCartasMes - limiteBaseCartas);
+      const delta = Math.max(
+        0,
+        params.overrideLimiteCartasMes - limiteBaseCartas,
+      );
       total += delta * plan.precioPorCartaAdicional;
     }
 
@@ -678,11 +733,15 @@ export class PlatformFacturasService {
     });
 
     if (!intencion || intencion.montoCents !== amountInCents) {
-      throw new BadRequestException('Intención de pago no encontrada o monto no coincide');
+      throw new BadRequestException(
+        'Intención de pago no encontrada o monto no coincide',
+      );
     }
 
     const factura = intencion.factura;
-    const existePago = factura.pagos.some((p) => p.referenciaExterna === transactionId);
+    const existePago = factura.pagos.some(
+      (p) => p.referenciaExterna === transactionId,
+    );
     if (existePago) {
       return { yaRegistrado: true };
     }
@@ -789,11 +848,17 @@ export class PlatformFacturasService {
         motivoPersonalizacion?: string | null;
       } | null;
       if (meta) {
-        const updateData: Record<string, unknown> = { esPlanPersonalizado: true };
-        if (meta.overrideLimiteUsuarios !== undefined) updateData.overrideLimiteUsuarios = meta.overrideLimiteUsuarios;
-        if (meta.overrideLimiteStorageMb !== undefined) updateData.overrideLimiteStorageMb = meta.overrideLimiteStorageMb;
-        if (meta.overrideLimiteCartasMes !== undefined) updateData.overrideLimiteCartasMes = meta.overrideLimiteCartasMes;
-        if (meta.motivoPersonalizacion !== undefined) updateData.motivoPersonalizacion = meta.motivoPersonalizacion;
+        const updateData: Record<string, unknown> = {
+          esPlanPersonalizado: true,
+        };
+        if (meta.overrideLimiteUsuarios !== undefined)
+          updateData.overrideLimiteUsuarios = meta.overrideLimiteUsuarios;
+        if (meta.overrideLimiteStorageMb !== undefined)
+          updateData.overrideLimiteStorageMb = meta.overrideLimiteStorageMb;
+        if (meta.overrideLimiteCartasMes !== undefined)
+          updateData.overrideLimiteCartasMes = meta.overrideLimiteCartasMes;
+        if (meta.motivoPersonalizacion !== undefined)
+          updateData.motivoPersonalizacion = meta.motivoPersonalizacion;
         await this.prisma.suscripcion.update({
           where: { id: factura.suscripcionId },
           data: updateData,
@@ -808,7 +873,10 @@ export class PlatformFacturasService {
         });
       }
     } else if (factura.tipo === TipoFactura.UPGRADE && factura.suscripcionId) {
-      const meta = factura.metadata as { planId?: string; periodo?: 'mensual' | 'anual' } | null;
+      const meta = factura.metadata as {
+        planId?: string;
+        periodo?: 'mensual' | 'anual';
+      } | null;
       const planId = meta?.planId;
       if (planId) {
         const periodo = meta?.periodo ?? 'anual';
@@ -839,21 +907,29 @@ export class PlatformFacturasService {
           ejecutadoPorId: intencion.iniciadoPorId,
         });
       }
-    } else if (factura.tipo === TipoFactura.RENOVACION && factura.suscripcionId) {
+    } else if (
+      factura.tipo === TipoFactura.RENOVACION &&
+      factura.suscripcionId
+    ) {
       const suscripcion = await this.prisma.suscripcion.findUnique({
         where: { id: factura.suscripcionId },
         include: { plan: true },
       });
       if (suscripcion) {
-        const meta = factura.metadata as { periodo?: 'mensual' | 'anual' } | null;
+        const meta = factura.metadata as {
+          periodo?: 'mensual' | 'anual';
+        } | null;
         const periodo: 'mensual' | 'anual' =
-          meta?.periodo ?? (suscripcion.periodo === 'mensual' || suscripcion.periodo === 'anual'
-            ? (suscripcion.periodo as 'mensual' | 'anual')
+          meta?.periodo ??
+          (suscripcion.periodo === 'mensual' || suscripcion.periodo === 'anual'
+            ? suscripcion.periodo
             : 'anual');
-        const fechaInicio = new Date(Math.max(
-          new Date(suscripcion.fechaVencimiento).getTime(),
-          Date.now(),
-        ));
+        const fechaInicio = new Date(
+          Math.max(
+            new Date(suscripcion.fechaVencimiento).getTime(),
+            Date.now(),
+          ),
+        );
         const fechaVencimiento = calcularFechaVencimiento({
           fechaInicio,
           diasPrueba: 0,
@@ -900,7 +976,11 @@ export class PlatformFacturasService {
       include: { pagos: true },
     });
     if (!factura) {
-      return { registrado: false, codigo: 'FACTURA_NO_ENCONTRADA', mensaje: 'Factura no encontrada' };
+      return {
+        registrado: false,
+        codigo: 'FACTURA_NO_ENCONTRADA',
+        mensaje: 'Factura no encontrada',
+      };
     }
 
     const tx = await this.wompi.obtenerTransaccion(transactionId, undefined);
@@ -950,7 +1030,9 @@ export class PlatformFacturasService {
     return {
       registrado: true,
       codigo: yaRegistrado ? 'YA_REGISTRADO' : 'REGISTRADO_AHORA',
-      mensaje: yaRegistrado ? 'El pago ya estaba registrado' : 'Pago registrado correctamente',
+      mensaje: yaRegistrado
+        ? 'El pago ya estaba registrado'
+        : 'Pago registrado correctamente',
     };
   }
 
@@ -962,7 +1044,10 @@ export class PlatformFacturasService {
   ) {
     const factura = await this.prisma.factura.findFirst({
       where: { id: dto.facturaId, juntaId },
-      include: { pagos: true, junta: { select: { nombre: true, email: true } } },
+      include: {
+        pagos: true,
+        junta: { select: { nombre: true, email: true } },
+      },
     });
     if (!factura) throw new NotFoundException('Factura no encontrada');
 
@@ -970,7 +1055,9 @@ export class PlatformFacturasService {
       throw new BadRequestException('La factura ya está pagada');
     }
     if (factura.estado === EstadoFactura.CANCELADA) {
-      throw new BadRequestException('No se pueden registrar pagos en facturas canceladas');
+      throw new BadRequestException(
+        'No se pueden registrar pagos en facturas canceladas',
+      );
     }
 
     if (dto.monto <= 0) {
@@ -997,7 +1084,9 @@ export class PlatformFacturasService {
     });
 
     const nuevoEstado =
-      nuevoTotal >= factura.monto ? EstadoFactura.PAGADA : EstadoFactura.PARCIAL;
+      nuevoTotal >= factura.monto
+        ? EstadoFactura.PAGADA
+        : EstadoFactura.PARCIAL;
 
     await this.prisma.factura.update({
       where: { id: factura.id },
@@ -1023,7 +1112,9 @@ export class PlatformFacturasService {
       where: { id: factura.id },
       include: {
         pagos: true,
-        suscripcion: { select: { id: true, plan: { select: { nombre: true } } } },
+        suscripcion: {
+          select: { id: true, plan: { select: { nombre: true } } },
+        },
       },
     });
 
@@ -1040,7 +1131,11 @@ export class PlatformFacturasService {
   }
 
   /** Cancela una factura (solo PENDIENTE o VENCIDA). */
-  async cancelarFactura(juntaId: string, facturaId: string, ejecutadoPorId: string) {
+  async cancelarFactura(
+    juntaId: string,
+    facturaId: string,
+    ejecutadoPorId: string,
+  ) {
     const factura = await this.prisma.factura.findFirst({
       where: { id: facturaId, juntaId },
       include: { pagos: true },
@@ -1048,7 +1143,9 @@ export class PlatformFacturasService {
     if (!factura) throw new NotFoundException('Factura no encontrada');
 
     if (factura.estado === EstadoFactura.PAGADA) {
-      throw new BadRequestException('No se puede cancelar una factura ya pagada');
+      throw new BadRequestException(
+        'No se puede cancelar una factura ya pagada',
+      );
     }
     if (factura.estado === EstadoFactura.CANCELADA) {
       throw new BadRequestException('La factura ya está cancelada');
@@ -1072,7 +1169,9 @@ export class PlatformFacturasService {
       where: { id: facturaId },
       include: {
         pagos: true,
-        suscripcion: { select: { id: true, plan: { select: { nombre: true } } } },
+        suscripcion: {
+          select: { id: true, plan: { select: { nombre: true } } },
+        },
       },
     });
 
@@ -1080,7 +1179,11 @@ export class PlatformFacturasService {
   }
 
   /** Reactiva una factura cancelada (solo si no tiene pagos y está en vigencia). */
-  async reactivarFactura(juntaId: string, facturaId: string, ejecutadoPorId: string) {
+  async reactivarFactura(
+    juntaId: string,
+    facturaId: string,
+    ejecutadoPorId: string,
+  ) {
     const factura = await this.prisma.factura.findFirst({
       where: { id: facturaId, juntaId },
       include: { pagos: true },
@@ -1088,7 +1191,9 @@ export class PlatformFacturasService {
     if (!factura) throw new NotFoundException('Factura no encontrada');
 
     if (factura.estado !== EstadoFactura.CANCELADA) {
-      throw new BadRequestException('Solo se pueden reactivar facturas canceladas');
+      throw new BadRequestException(
+        'Solo se pueden reactivar facturas canceladas',
+      );
     }
 
     const totalPagado = factura.pagos.reduce((s, p) => s + p.monto, 0);
@@ -1125,7 +1230,9 @@ export class PlatformFacturasService {
       where: { id: facturaId },
       include: {
         pagos: true,
-        suscripcion: { select: { id: true, plan: { select: { nombre: true } } } },
+        suscripcion: {
+          select: { id: true, plan: { select: { nombre: true } } },
+        },
       },
     });
 
@@ -1152,7 +1259,10 @@ export class PlatformFacturasService {
         fechaVencimiento: { lte: enSieteDias },
         cancelacionSolicitada: false, // No renovar suscripciones cuya cancelación fue solicitada
       },
-      include: { plan: true, junta: { select: { id: true, nombre: true, email: true } } },
+      include: {
+        plan: true,
+        junta: { select: { id: true, nombre: true, email: true } },
+      },
     });
 
     let generadas = 0;
@@ -1164,7 +1274,13 @@ export class PlatformFacturasService {
         where: {
           suscripcionId: susc.id,
           tipo: TipoFactura.RENOVACION,
-          estado: { in: [EstadoFactura.PENDIENTE, EstadoFactura.VENCIDA, EstadoFactura.PARCIAL] },
+          estado: {
+            in: [
+              EstadoFactura.PENDIENTE,
+              EstadoFactura.VENCIDA,
+              EstadoFactura.PARCIAL,
+            ],
+          },
         },
       });
 
@@ -1174,9 +1290,10 @@ export class PlatformFacturasService {
       }
 
       try {
-        const periodo = (susc.periodo === 'mensual' || susc.periodo === 'anual')
-          ? susc.periodo
-          : this.inferirPeriodo(susc.fechaInicio, susc.fechaVencimiento);
+        const periodo =
+          susc.periodo === 'mensual' || susc.periodo === 'anual'
+            ? susc.periodo
+            : this.inferirPeriodo(susc.fechaInicio, susc.fechaVencimiento);
         const monto =
           susc.precioPersonalizado != null
             ? Number(susc.precioPersonalizado)
@@ -1237,8 +1354,12 @@ export class PlatformFacturasService {
     return { generadas, omitidas, errores };
   }
 
-  private inferirPeriodo(fechaInicio: Date, fechaVencimiento: Date): 'mensual' | 'anual' {
-    const diffMs = new Date(fechaVencimiento).getTime() - new Date(fechaInicio).getTime();
+  private inferirPeriodo(
+    fechaInicio: Date,
+    fechaVencimiento: Date,
+  ): 'mensual' | 'anual' {
+    const diffMs =
+      new Date(fechaVencimiento).getTime() - new Date(fechaInicio).getTime();
     const diffDias = diffMs / (1000 * 60 * 60 * 24);
     return diffDias > 180 ? 'anual' : 'mensual';
   }

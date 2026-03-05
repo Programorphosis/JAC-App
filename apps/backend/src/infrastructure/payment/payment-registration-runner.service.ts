@@ -26,7 +26,9 @@ export class PaymentRegistrationRunner {
     private readonly paymentService: PaymentService,
   ) {}
 
-  async registerJuntaPayment(params: RegisterJuntaPaymentParams): Promise<RegisterJuntaPaymentResult> {
+  async registerJuntaPayment(
+    params: RegisterJuntaPaymentParams,
+  ): Promise<RegisterJuntaPaymentResult> {
     return this.prisma.$transaction(
       async (tx) => {
         const ctx = new PrismaPaymentRegistrationContext(tx);
@@ -70,31 +72,32 @@ export class PaymentRegistrationRunner {
 
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
-        const [cartaPendiente, tienePagoVigente, cartaVigente] = await Promise.all([
-          tx.carta.findFirst({
-            where: {
-              usuarioId: params.usuarioId,
-              juntaId: params.juntaId,
-              estado: 'PENDIENTE',
-            },
-          }),
-          tx.pago.findFirst({
-            where: {
-              usuarioId: params.usuarioId,
-              juntaId: params.juntaId,
-              tipo: 'CARTA',
-              vigencia: true,
-            },
-          }),
-          tx.carta.findFirst({
-            where: {
-              usuarioId: params.usuarioId,
-              juntaId: params.juntaId,
-              estado: 'APROBADA',
-              vigenciaHasta: { gte: hoy },
-            },
-          }),
-        ]);
+        const [cartaPendiente, tienePagoVigente, cartaVigente] =
+          await Promise.all([
+            tx.carta.findFirst({
+              where: {
+                usuarioId: params.usuarioId,
+                juntaId: params.juntaId,
+                estado: 'PENDIENTE',
+              },
+            }),
+            tx.pago.findFirst({
+              where: {
+                usuarioId: params.usuarioId,
+                juntaId: params.juntaId,
+                tipo: 'CARTA',
+                vigencia: true,
+              },
+            }),
+            tx.carta.findFirst({
+              where: {
+                usuarioId: params.usuarioId,
+                juntaId: params.juntaId,
+                estado: 'APROBADA',
+                vigenciaHasta: { gte: hoy },
+              },
+            }),
+          ]);
 
         validateCartaPagoPreconditions({
           junta,
@@ -107,7 +110,9 @@ export class PaymentRegistrationRunner {
         });
 
         const montoCarta = junta!.montoCarta!;
-        const consecutivo = await ctx.getNextConsecutivoPagoCarta(params.juntaId);
+        const consecutivo = await ctx.getNextConsecutivoPagoCarta(
+          params.juntaId,
+        );
         const { pagoId } = await ctx.createCartaPayment({
           usuarioId: params.usuarioId,
           juntaId: params.juntaId,
@@ -139,7 +144,7 @@ export class PaymentRegistrationRunner {
           consecutivo,
         };
       },
-    { isolationLevel: 'Serializable' },
-  );
+      { isolationLevel: 'Serializable' },
+    );
   }
 }

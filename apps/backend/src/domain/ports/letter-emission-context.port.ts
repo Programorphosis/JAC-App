@@ -32,7 +32,10 @@ export interface ILetterEmissionContext {
   calculateDebt(usuarioId: string, juntaId: string): Promise<DebtResult>;
   getCarta(cartaId: string, juntaId: string): Promise<CartaParaEmitir | null>;
   hasPagoCarta(usuarioId: string, juntaId: string): Promise<boolean>;
-  getRequisitosParaCarta(usuarioId: string, juntaId: string): Promise<RequisitoParaCarta[]>;
+  getRequisitosParaCarta(
+    usuarioId: string,
+    juntaId: string,
+  ): Promise<RequisitoParaCarta[]>;
   getNextConsecutivoCarta(juntaId: string): Promise<number>;
   updateCartaAprobada(data: {
     cartaId: string;

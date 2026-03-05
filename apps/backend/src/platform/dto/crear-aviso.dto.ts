@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsEnum, IsUUID, IsBoolean, MinLength, MaxLength, ValidateIf } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsUUID,
+  IsBoolean,
+  MinLength,
+  MaxLength,
+  ValidateIf,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum AlcanceAvisoDto {
@@ -18,11 +27,18 @@ export class CrearAvisoDto {
   contenido!: string;
 
   @IsOptional()
-  @IsEnum(AlcanceAvisoDto, { message: 'Alcance debe ser PLATAFORMA, TODAS_JUNTAS o JUNTA_ESPECIFICA' })
+  @IsEnum(AlcanceAvisoDto, {
+    message: 'Alcance debe ser PLATAFORMA, TODAS_JUNTAS o JUNTA_ESPECIFICA',
+  })
   alcance?: AlcanceAvisoDto;
 
-  @ValidateIf((o) => o.alcance === AlcanceAvisoDto.JUNTA_ESPECIFICA)
-  @IsUUID('4', { message: 'Debe seleccionar una junta cuando el alcance es JUNTA_ESPECIFICA' })
+  @ValidateIf(
+    (o: { alcance?: AlcanceAvisoDto }) =>
+      o.alcance === AlcanceAvisoDto.JUNTA_ESPECIFICA,
+  )
+  @IsUUID('4', {
+    message: 'Debe seleccionar una junta cuando el alcance es JUNTA_ESPECIFICA',
+  })
   juntaId?: string;
 
   /** true = solo operativos (admin, secretaria, tesorera, fiscal, receptor_agua). Solo aplica si alcance es TODAS_JUNTAS o JUNTA_ESPECIFICA. */

@@ -14,7 +14,8 @@ import { DEBT_DATA_PROVIDER } from '../../domain/ports/debt-data-provider.port';
     },
     {
       provide: DebtService,
-      useFactory: (provider: PrismaDebtDataProvider) => new DebtService(provider),
+      useFactory: (provider: PrismaDebtDataProvider) =>
+        new DebtService(provider),
       inject: [PrismaDebtDataProvider],
     },
   ],

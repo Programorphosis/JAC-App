@@ -5,7 +5,10 @@ import { PrismaClient } from '@prisma/client';
 const TIMEZONE = 'America/Bogota';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   async onModuleInit() {
     await this.$connect();
     await this.$executeRawUnsafe(`SET time zone '${TIMEZONE}'`);

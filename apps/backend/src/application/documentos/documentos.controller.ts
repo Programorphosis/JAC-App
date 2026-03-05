@@ -66,7 +66,10 @@ export class DocumentosController {
     const user = req.user;
     const juntaId = user.juntaId!;
 
-    if (!this.permissions.puedeSubirDocumentoParaOtro(user) && usuarioId !== user.id) {
+    if (
+      !this.permissions.puedeSubirDocumentoParaOtro(user) &&
+      usuarioId !== user.id
+    ) {
       throw new ForbiddenException('Solo puede subir documentos propios');
     }
 
@@ -89,15 +92,20 @@ export class DocumentosController {
    */
   @Get(':id/descargar')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL, RolNombre.AFILIADO)
-  async descargar(
-    @Param('id') id: string,
-    @Request() req: { user: JwtUser },
-  ) {
+  @Roles(
+    RolNombre.ADMIN,
+    RolNombre.SECRETARIA,
+    RolNombre.TESORERA,
+    RolNombre.FISCAL,
+    RolNombre.AFILIADO,
+  )
+  async descargar(@Param('id') id: string, @Request() req: { user: JwtUser }) {
     const juntaId = req.user.juntaId!;
     const user = req.user;
 
-    const soloPropios = this.permissions.puedeVerDocumentosDeOtro(user) ? undefined : user.id;
+    const soloPropios = this.permissions.puedeVerDocumentosDeOtro(user)
+      ? undefined
+      : user.id;
     const url = await this.documentos.getUrlDescarga(id, juntaId, soloPropios);
     return { data: { url } };
   }

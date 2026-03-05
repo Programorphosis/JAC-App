@@ -14,8 +14,8 @@ import { JwtUser } from '../strategies/jwt.strategy';
 @Injectable()
 export class ModificadorSoloGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
-    const user: JwtUser | undefined = request.user;
+    const request = context.switchToHttp().getRequest<{ user?: JwtUser }>();
+    const user = request.user;
 
     if (!user) {
       throw new ForbiddenException('No autenticado');

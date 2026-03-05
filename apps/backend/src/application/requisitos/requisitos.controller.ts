@@ -11,8 +11,6 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RequisitosService } from './requisitos.service';
-import { UpdateEstadoRequisitoDto } from './dto/update-estado-requisito.dto';
-import { UpdateObligacionRequisitoDto } from './dto/update-obligacion-requisito.dto';
 import { CreateRequisitoTipoDto } from './dto/create-requisito-tipo.dto';
 import { UpdateRequisitoTipoDto } from './dto/update-requisito-tipo.dto';
 import { JuntaGuard } from '../../auth/guards/junta.guard';
@@ -72,10 +70,7 @@ export class RequisitosController {
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(RolNombre.ADMIN)
-  async eliminar(
-    @Param('id') id: string,
-    @Request() req: { user: JwtUser },
-  ) {
+  async eliminar(@Param('id') id: string, @Request() req: { user: JwtUser }) {
     const juntaId = req.user.juntaId!;
     const data = await this.requisitos.eliminarRequisitoTipo(
       id,

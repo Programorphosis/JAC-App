@@ -7,7 +7,12 @@ import { S3StorageService } from '../storage/s3-storage.service';
 
 @Module({
   imports: [PrismaModule],
-  providers: [LetterService, CartaPdfService, LetterEmissionRunner, S3StorageService],
+  providers: [
+    LetterService,
+    CartaPdfService,
+    LetterEmissionRunner,
+    S3StorageService,
+  ],
   exports: [LetterService, LetterEmissionRunner, CartaPdfService],
 })
 export class LetterModule {}

@@ -76,7 +76,7 @@ function formatearFecha(d: Date): string {
 }
 
 /** Divide texto en líneas de max caracteres. */
-function wrap(text: string, max = 95): string[] {
+function _wrap(text: string, max = 95): string[] {
   const words = text.split(/\s+/);
   const lines: string[] = [];
   let line = '';
@@ -130,7 +130,7 @@ function justifyLine(
   const wordWidths = words.map((w) => measure(w));
   const totalWordsWidth = wordWidths.reduce((a, b) => a + b, 0);
   const totalGaps = words.length - 1;
-  const spaceWidth = measure(' ');
+  const _spaceWidth = measure(' ');
   const spaceForGaps = lineWidth - totalWordsWidth;
   const gapWidth = totalGaps > 0 ? spaceForGaps / totalGaps : 0;
 
@@ -218,7 +218,7 @@ export class CartaPdfService {
     const contentWidth = pageWidth - 2 * margin;
     let y = pageHeight - 40;
 
-    const draw = (text: string, size = 10, bold = false, x = margin) => {
+    const _draw = (text: string, size = 10, bold = false, x = margin) => {
       page.drawText(text, {
         x,
         y,
@@ -229,7 +229,7 @@ export class CartaPdfService {
       y -= size + 3;
     };
 
-    const drawCentered = (text: string, size = 10, bold = false) => {
+    const _drawCentered = (text: string, size = 10, bold = false) => {
       const f = bold ? fontBold : font;
       const w = f.widthOfTextAtSize(text, size);
       page.drawText(text, {
@@ -242,7 +242,7 @@ export class CartaPdfService {
       y -= size + 3;
     };
 
-    const drawLine = () => {
+    const _drawLine = () => {
       page.drawLine({
         start: { x: margin, y },
         end: { x: pageWidth - margin, y },
@@ -260,7 +260,11 @@ export class CartaPdfService {
           const arrBuf = await res.arrayBuffer();
           const imgBytes = new Uint8Array(arrBuf);
           const contentType = res.headers.get('content-type') || '';
-          const isJpeg = contentType.includes('jpeg') || contentType.includes('jpg') || data.membreteUrl.toLowerCase().endsWith('.jpg') || data.membreteUrl.toLowerCase().endsWith('.jpeg');
+          const isJpeg =
+            contentType.includes('jpeg') ||
+            contentType.includes('jpg') ||
+            data.membreteUrl.toLowerCase().endsWith('.jpg') ||
+            data.membreteUrl.toLowerCase().endsWith('.jpeg');
           const img = isJpeg
             ? await pdfDoc.embedJpg(imgBytes)
             : await pdfDoc.embedPng(imgBytes);
@@ -280,7 +284,13 @@ export class CartaPdfService {
     // 1b️⃣ Marca de agua: Escudo Acción Comunal Colombia (centrado, baja opacidad)
     const watermarkPaths = [
       join(process.cwd(), 'assets', 'Escudo_Acción_Comunal_Colombia.svg.png'),
-      join(process.cwd(), 'apps', 'backend', 'assets', 'Escudo_Acción_Comunal_Colombia.svg.png'),
+      join(
+        process.cwd(),
+        'apps',
+        'backend',
+        'assets',
+        'Escudo_Acción_Comunal_Colombia.svg.png',
+      ),
     ];
     const watermarkSize = 420;
     for (const wmPath of watermarkPaths) {
@@ -291,7 +301,7 @@ export class CartaPdfService {
         const wmY = (pageHeight - watermarkSize) / 2;
         page.drawImage(wmImage, {
           x: wmX,
-          y: wmY-60,
+          y: wmY - 60,
           width: watermarkSize,
           height: watermarkSize + 100,
           opacity: 0.08,
@@ -327,7 +337,9 @@ export class CartaPdfService {
     let escudoLoaded = false;
     if (data.escudoS3Key && this.s3Storage.isConfigured()) {
       try {
-        const escudoBytes = await this.s3Storage.getObjectBytes(data.escudoS3Key);
+        const escudoBytes = await this.s3Storage.getObjectBytes(
+          data.escudoS3Key,
+        );
         const escudoImage = await pdfDoc.embedPng(escudoBytes);
         page.drawImage(escudoImage, {
           x: margin,
@@ -343,7 +355,13 @@ export class CartaPdfService {
     if (!escudoLoaded) {
       const escudoPaths = [
         join(process.cwd(), 'assets', 'Escudo_de_Puerto_Gaitán.svg.png'),
-        join(process.cwd(), 'apps', 'backend', 'assets', 'Escudo_de_Puerto_Gaitán.svg.png'),
+        join(
+          process.cwd(),
+          'apps',
+          'backend',
+          'assets',
+          'Escudo_de_Puerto_Gaitán.svg.png',
+        ),
       ];
       for (const escudoPath of escudoPaths) {
         try {
@@ -406,14 +424,23 @@ export class CartaPdfService {
 
     drawHeaderCentered('REPÚBLICA DE COLOMBIA', 11, true);
     if (data.juntaDepartamento) {
-      drawHeaderCentered(`DEPARTAMENTO ${data.juntaDepartamento.toUpperCase()}`, 10);
+      drawHeaderCentered(
+        `DEPARTAMENTO ${data.juntaDepartamento.toUpperCase()}`,
+        10,
+      );
     }
     if (data.juntaCiudad) {
       drawHeaderCentered(`MUNICIPIO DE ${data.juntaCiudad.toUpperCase()}`, 10);
     }
-    drawHeaderCentered(`JUNTA DE ACCIÓN COMUNAL ${data.juntaNombre.toUpperCase()}`, 10);
+    drawHeaderCentered(
+      `JUNTA DE ACCIÓN COMUNAL ${data.juntaNombre.toUpperCase()}`,
+      10,
+    );
     if (data.juntaPersoneriaJuridica) {
-      drawHeaderCentered(`Personería jurídica N.º ${data.juntaPersoneriaJuridica}`, 9);
+      drawHeaderCentered(
+        `Personería jurídica N.º ${data.juntaPersoneriaJuridica}`,
+        9,
+      );
     }
     if (data.juntaNit) {
       drawHeaderCentered(`NIT. ${data.juntaNit}`, 9);
@@ -435,7 +462,8 @@ export class CartaPdfService {
       ${tituloConstancia} La Junta de Acción Comunal ${data.juntaNombre.toUpperCase()}, a solicitud del interesado, se permite informar por medio de la presente que la persona que se relaciona a continuación se encuentra debidamente registrada en el libro de afiliados de la JUNTA DE ACCIÓN COMUNAL ${data.juntaNombre.toUpperCase()}, así:
       `.trim();
 
-    const measureEnunciado = (s: string) => font.widthOfTextAtSize(s, enunciadoSize);
+    const measureEnunciado = (s: string) =>
+      font.widthOfTextAtSize(s, enunciadoSize);
     const paragraphs = enunciado.split('\n');
 
     // Precalcular altura total para el rectángulo
@@ -448,7 +476,11 @@ export class CartaPdfService {
       }
       if (prevHadContent) enunciadoBlockHeight += 4;
       prevHadContent = true;
-      const lines = wrapByWidth(paragraph.trim(), measureEnunciado, contentWidth);
+      const lines = wrapByWidth(
+        paragraph.trim(),
+        measureEnunciado,
+        contentWidth,
+      );
       enunciadoBlockHeight += lines.length * enunciadoLineHeight;
     }
     enunciadoBlockHeight += 8;
@@ -488,7 +520,11 @@ export class CartaPdfService {
               color: negroInstitucional,
             });
           } else {
-            const justified = justifyLine(words, contentWidth, measureEnunciado);
+            const justified = justifyLine(
+              words,
+              contentWidth,
+              measureEnunciado,
+            );
             for (const { text, x } of justified) {
               page.drawText(text, {
                 x: margin + x,
@@ -512,18 +548,24 @@ export class CartaPdfService {
               const sep = w > 0 ? ' ' : '';
               const text = sep + words[w];
               const wordEnd = charPos + text.length;
-              const color = wordEnd <= redPartLen ? rojoConstancia : negroInstitucional;
+              const color =
+                wordEnd <= redPartLen ? rojoConstancia : negroInstitucional;
               page.drawText(text, { x, y, size: enunciadoSize, font, color });
               x += measureEnunciado(text);
               charPos = wordEnd;
             }
           } else {
-            const justified = justifyLine(words, contentWidth, measureEnunciado);
+            const justified = justifyLine(
+              words,
+              contentWidth,
+              measureEnunciado,
+            );
             for (let w = 0; w < words.length; w++) {
               const text = justified[w].text;
               const wordLen = (w > 0 ? 1 : 0) + text.length;
               const wordEnd = charPos + wordLen;
-              const color = wordEnd <= redPartLen ? rojoConstancia : negroInstitucional;
+              const color =
+                wordEnd <= redPartLen ? rojoConstancia : negroInstitucional;
               page.drawText(text, {
                 x: margin + justified[w].x,
                 y,
@@ -551,7 +593,13 @@ export class CartaPdfService {
     const folioVal = String(data.folio ?? '-');
     const numeralVal = String(data.numeral ?? '-');
 
-    page.drawText('FOLIO', { x: margin, y: folioLineY, size: 9, font: fontBold, color: negroInstitucional });
+    page.drawText('FOLIO', {
+      x: margin,
+      y: folioLineY,
+      size: 9,
+      font: fontBold,
+      color: negroInstitucional,
+    });
     const folioBoxX = margin + fontBold.widthOfTextAtSize('FOLIO', 9) + 8;
     page.drawRectangle({
       x: folioBoxX,
@@ -606,12 +654,17 @@ export class CartaPdfService {
     const half = contentWidth / 2;
     const numDatosRows = 6;
 
-    const nombreCompleto = `${data.usuarioNombres.toUpperCase()} ${data.usuarioApellidos.toUpperCase()}`.trim();
+    const nombreCompleto =
+      `${data.usuarioNombres.toUpperCase()} ${data.usuarioApellidos.toUpperCase()}`.trim();
     const docCelular = data.usuarioTelefono
       ? `${data.usuarioDocumento.toUpperCase()}  CELULAR: ${data.usuarioTelefono}`
       : data.usuarioDocumento.toUpperCase();
-    const tiempo = data.fechaAfiliacion ? calcularTiempoPermanencia(data.fechaAfiliacion) : '-';
-    const fechaAf = data.fechaAfiliacion ? formatearFecha(data.fechaAfiliacion) : '-';
+    const tiempo = data.fechaAfiliacion
+      ? calcularTiempoPermanencia(data.fechaAfiliacion)
+      : '-';
+    const fechaAf = data.fechaAfiliacion
+      ? formatearFecha(data.fechaAfiliacion)
+      : '-';
     const lugarExp = data.usuarioLugarExpedicion?.toUpperCase() ?? '-';
 
     const datosTableTop = afterFolioY;
@@ -673,11 +726,13 @@ export class CartaPdfService {
         color: negroInstitucional,
       });
       const valTrunc =
-        datosRows[i][1].length > 50 ? datosRows[i][1].slice(0, 47) + '...' : datosRows[i][1];
+        datosRows[i][1].length > 50
+          ? datosRows[i][1].slice(0, 47) + '...'
+          : datosRows[i][1];
       page.drawText(valTrunc, {
         x: margin + half + 5,
         y: textY,
-        size:10,
+        size: 10,
         font,
         color: negroInstitucional,
       });
@@ -760,7 +815,9 @@ export class CartaPdfService {
       });
 
       if (firma) {
-        const nombreFirmante = `${firma.nombres} ${firma.apellidos}`.trim().toUpperCase();
+        const nombreFirmante = `${firma.nombres} ${firma.apellidos}`
+          .trim()
+          .toUpperCase();
         const nombreWidth = fontBold.widthOfTextAtSize(nombreFirmante, 10);
         page.drawText(nombreFirmante, {
           x: colX + (colWidth - nombreWidth) / 2,
@@ -836,8 +893,7 @@ export class CartaPdfService {
 
     // 🧱 FILA CÓDIGO PENAL (100% ancho, sin borde visible, centrado)
     const penalTitulo = 'CÓDIGO PENAL COLOMBIANO';
-    const penalText =
-      `${penalTitulo} "Ley 599 de 2000 Artículo 287, Falsedad Material en Documento Público. El que falsifique documento público que pueda servir de prueba, incurrirá en prisión de tres (3) a seis (6) años."`;
+    const penalText = `${penalTitulo} "Ley 599 de 2000 Artículo 287, Falsedad Material en Documento Público. El que falsifique documento público que pueda servir de prueba, incurrirá en prisión de tres (3) a seis (6) años."`;
     const penalSize = 9;
     const penalLineH = 9;
     const penalMeasure = (s: string) => font.widthOfTextAtSize(s, penalSize);

@@ -11,7 +11,6 @@ import { EncryptionService } from '../../infrastructure/encryption/encryption.se
 import {
   DeudaCeroError,
   PagoDuplicadoError,
-  PagoCartaPendienteError,
   UsuarioNoEncontradoError,
   UsuarioInactivoError,
   IntencionPagoNoEncontradaError,
@@ -62,7 +61,10 @@ export class PagosService {
    * Valida que el usuario esté activo. Usuario inactivo no puede pagar ni solicitar carta.
    * CHECKLIST_OPERACION_JUNTAS §2.1, PLAN_IMPLEMENTACION_OPERACION Fase 1.1
    */
-  private async validarUsuarioActivo(usuarioId: string, juntaId: string): Promise<void> {
+  private async validarUsuarioActivo(
+    usuarioId: string,
+    juntaId: string,
+  ): Promise<void> {
     const usuario = await this.prisma.usuario.findFirst({
       where: { id: usuarioId, juntaId },
       select: { activo: true },
@@ -85,13 +87,19 @@ export class PagosService {
   ): Promise<WompiCredenciales & { publicKey?: string }> {
     const junta = await this.prisma.junta.findUnique({
       where: { id: juntaId },
-      select: { wompiPrivateKey: true, wompiPublicKey: true, wompiEnvironment: true },
+      select: {
+        wompiPrivateKey: true,
+        wompiPublicKey: true,
+        wompiEnvironment: true,
+      },
     });
     if (!junta?.wompiPrivateKey) {
       throw new WompiNoConfiguradoError(juntaId);
     }
     const privateKey = this.encryption.decrypt(junta.wompiPrivateKey);
-    const environment = (junta.wompiEnvironment || 'sandbox') as 'sandbox' | 'production';
+    const environment = (junta.wompiEnvironment || 'sandbox') as
+      | 'sandbox'
+      | 'production';
     let publicKey: string | undefined;
     if (junta.wompiPublicKey) {
       const raw = this.encryption.decrypt(junta.wompiPublicKey).trim();
@@ -131,8 +139,10 @@ export class PagosService {
     if (filtros?.tipo) where.tipo = filtros.tipo;
     if (filtros?.fechaDesde || filtros?.fechaHasta) {
       where.fechaPago = {};
-      if (filtros.fechaDesde) (where.fechaPago as Record<string, Date>).gte = filtros.fechaDesde;
-      if (filtros.fechaHasta) (where.fechaPago as Record<string, Date>).lte = filtros.fechaHasta;
+      if (filtros.fechaDesde)
+        (where.fechaPago as Record<string, Date>).gte = filtros.fechaDesde;
+      if (filtros.fechaHasta)
+        (where.fechaPago as Record<string, Date>).lte = filtros.fechaHasta;
     }
     if (filtros?.search && filtros.search.trim().length >= 2) {
       const term = filtros.search.trim();
@@ -140,7 +150,9 @@ export class PagosService {
       where.OR = [
         { usuario: { nombres: { contains: term, mode: 'insensitive' } } },
         { usuario: { apellidos: { contains: term, mode: 'insensitive' } } },
-        { usuario: { numeroDocumento: { contains: term, mode: 'insensitive' } } },
+        {
+          usuario: { numeroDocumento: { contains: term, mode: 'insensitive' } },
+        },
         { referenciaExterna: { contains: term, mode: 'insensitive' } },
         ...(isNum ? [{ consecutivo: parseInt(term, 10) }] : []),
       ];
@@ -226,8 +238,10 @@ export class PagosService {
     if (filtros?.tipo) where.tipo = filtros.tipo;
     if (filtros?.fechaDesde || filtros?.fechaHasta) {
       where.fechaPago = {};
-      if (filtros.fechaDesde) (where.fechaPago as Record<string, Date>).gte = filtros.fechaDesde;
-      if (filtros.fechaHasta) (where.fechaPago as Record<string, Date>).lte = filtros.fechaHasta;
+      if (filtros.fechaDesde)
+        (where.fechaPago as Record<string, Date>).gte = filtros.fechaDesde;
+      if (filtros.fechaHasta)
+        (where.fechaPago as Record<string, Date>).lte = filtros.fechaHasta;
     }
     if (filtros?.search && filtros.search.trim().length >= 2) {
       const term = filtros.search.trim();
@@ -235,7 +249,9 @@ export class PagosService {
       where.OR = [
         { usuario: { nombres: { contains: term, mode: 'insensitive' } } },
         { usuario: { apellidos: { contains: term, mode: 'insensitive' } } },
-        { usuario: { numeroDocumento: { contains: term, mode: 'insensitive' } } },
+        {
+          usuario: { numeroDocumento: { contains: term, mode: 'insensitive' } },
+        },
         { referenciaExterna: { contains: term, mode: 'insensitive' } },
         ...(isNum ? [{ consecutivo: parseInt(term, 10) }] : []),
       ];
@@ -252,25 +268,35 @@ export class PagosService {
         monto: true,
         consecutivo: true,
         referenciaExterna: true,
-        usuario: { select: { nombres: true, apellidos: true, numeroDocumento: true } },
+        usuario: {
+          select: { nombres: true, apellidos: true, numeroDocumento: true },
+        },
         registradoPor: { select: { nombres: true, apellidos: true } },
       },
     });
 
-    const escape = (v: unknown): string => {
+    const escape = (
+      v: string | number | boolean | null | undefined,
+    ): string => {
       if (v == null) return '';
       const s = String(v).replace(/"/g, '""');
       return `"${s}"`;
     };
 
     const lines: string[] = [];
-    lines.push('Fecha,Tipo,Método,Monto,Consecutivo,Referencia,Usuario,Registrado por');
+    lines.push(
+      'Fecha,Tipo,Método,Monto,Consecutivo,Referencia,Usuario,Registrado por',
+    );
     for (const p of pagos) {
-      const fecha = p.fechaPago ? new Date(p.fechaPago).toISOString().slice(0, 10) : '';
+      const fecha = p.fechaPago
+        ? new Date(p.fechaPago).toISOString().slice(0, 10)
+        : '';
       const usuario = p.usuario
         ? `${p.usuario.nombres} ${p.usuario.apellidos} (${p.usuario.numeroDocumento})`
         : '';
-      const reg = p.registradoPor ? `${p.registradoPor.nombres} ${p.registradoPor.apellidos}` : '';
+      const reg = p.registradoPor
+        ? `${p.registradoPor.nombres} ${p.registradoPor.apellidos}`
+        : '';
       lines.push(
         [
           escape(fecha),
@@ -400,9 +426,7 @@ export class PagosService {
    */
   async registrarPagoCarta(params: RegistrarPagoCartaParams) {
     await this.validarUsuarioActivo(params.usuarioId, params.juntaId);
-    return this.paymentRunner.registerCartaPayment(
-      params as RunnerCartaParams,
-    );
+    return this.paymentRunner.registerCartaPayment(params as RunnerCartaParams);
   }
 
   private generarReferencia(): string {
@@ -414,14 +438,18 @@ export class PagosService {
 
     await this.validarUsuarioActivo(usuarioId, juntaId);
 
-    const deuda = await this.debtService.calculateUserDebt({ usuarioId, juntaId });
+    const deuda = await this.debtService.calculateUserDebt({
+      usuarioId,
+      juntaId,
+    });
 
     if (deuda.total === 0) {
       throw new DeudaCeroError(usuarioId);
     }
 
     const credenciales = await this.obtenerCredencialesWompiJunta(juntaId);
-    const baseRedirect = process.env.WOMPI_REDIRECT_URL || 'http://localhost:4200/pagos/retorno';
+    const baseRedirect =
+      process.env.WOMPI_REDIRECT_URL || 'http://localhost:4200/pagos/retorno';
     const redirectUrl = `${baseRedirect}?junta_id=${juntaId}`;
 
     const montoCents = deuda.total * 100;
@@ -513,7 +541,8 @@ export class PagosService {
     });
 
     const credenciales = await this.obtenerCredencialesWompiJunta(juntaId);
-    const baseRedirect = process.env.WOMPI_REDIRECT_URL || 'http://localhost:4200/pagos/retorno';
+    const baseRedirect =
+      process.env.WOMPI_REDIRECT_URL || 'http://localhost:4200/pagos/retorno';
     const redirectUrl = `${baseRedirect}?junta_id=${juntaId}`;
 
     const montoCents = junta!.montoCarta! * 100;

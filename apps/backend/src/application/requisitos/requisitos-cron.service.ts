@@ -60,7 +60,9 @@ export class RequisitosCronService {
   }
 
   /** Obtiene el ADMIN de una junta específica para usar como ejecutadoPorId en auditoría. */
-  private async obtenerUsuarioAuditoriaPorJunta(juntaId: string): Promise<string | null> {
+  private async obtenerUsuarioAuditoriaPorJunta(
+    juntaId: string,
+  ): Promise<string | null> {
     const admin = await this.prisma.usuario.findFirst({
       where: {
         juntaId,

@@ -111,7 +111,9 @@ export class DocumentosService {
     usuarioId: string,
     juntaId: string,
     soloPropios?: string,
-  ): Promise<{ id: string; tipo: string; rutaS3: string; fechaSubida: Date }[]> {
+  ): Promise<
+    { id: string; tipo: string; rutaS3: string; fechaSubida: Date }[]
+  > {
     const docs = await this.prisma.documento.findMany({
       where: {
         usuarioId,

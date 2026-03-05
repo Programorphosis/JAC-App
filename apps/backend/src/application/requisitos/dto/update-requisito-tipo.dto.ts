@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsBoolean, IsUUID, ValidateIf } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsUUID,
+  ValidateIf,
+} from 'class-validator';
 
 export class UpdateRequisitoTipoDto {
   @IsOptional()

@@ -11,7 +11,7 @@ const UTF8_BOM = '\uFEFF';
 export class PlatformReportesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private escapeCsv(val: unknown): string {
+  private escapeCsv(val: string | number | boolean | null | undefined): string {
     if (val == null) return '';
     const s = String(val);
     if (s.includes(',') || s.includes('"') || s.includes('\n')) {
@@ -39,7 +39,9 @@ export class PlatformReportesService {
       const venc = j.suscripcion?.fechaVencimiento
         ? new Date(j.suscripcion.fechaVencimiento).toISOString().slice(0, 10)
         : '-';
-      const fc = j.fechaCreacion ? new Date(j.fechaCreacion).toISOString().slice(0, 10) : '';
+      const fc = j.fechaCreacion
+        ? new Date(j.fechaCreacion).toISOString().slice(0, 10)
+        : '';
 
       lines.push(
         [
@@ -56,7 +58,7 @@ export class PlatformReportesService {
           j._count.pagos,
           j._count.cartas,
           fc,
-        ].join(',')
+        ].join(','),
       );
     }
 
@@ -81,7 +83,10 @@ export class PlatformReportesService {
     for (const f of facturas) {
       const totalPagado = f.pagos.reduce((s, p) => s + p.monto, 0);
       const ultimoPago = f.pagos.length
-        ? f.pagos.reduce((max, p) => (p.fecha > max ? p.fecha : max), f.pagos[0].fecha)
+        ? f.pagos.reduce(
+            (max, p) => (p.fecha > max ? p.fecha : max),
+            f.pagos[0].fecha,
+          )
         : null;
 
       lines.push(
@@ -95,7 +100,7 @@ export class PlatformReportesService {
           f.tipo,
           totalPagado,
           ultimoPago ? new Date(ultimoPago).toISOString().slice(0, 10) : '',
-        ].join(',')
+        ].join(','),
       );
     }
 
@@ -142,7 +147,10 @@ export class PlatformReportesService {
       const limUsu = plan?.limiteUsuarios ?? '';
       const limCartas = plan?.limiteCartasMes ?? '';
       const limStorage = plan?.limiteStorageMb ?? '';
-      const mes = now.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
+      const mes = now.toLocaleString('es-CO', {
+        month: 'long',
+        year: 'numeric',
+      });
 
       lines.push(
         [
@@ -158,7 +166,7 @@ export class PlatformReportesService {
           cartasMes,
           documentos,
           mes,
-        ].join(',')
+        ].join(','),
       );
     }
 

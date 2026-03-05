@@ -28,6 +28,11 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.3.2"
   },
+  "lint-staged": {
+    "apps/backend/src/**/*.ts": [
+      "npm run lint --workspace=backend -- --fix"
+    ]
+  },
   "engines": {
     "node": ">=18.0.0"
   }

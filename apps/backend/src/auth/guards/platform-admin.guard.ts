@@ -13,8 +13,8 @@ export class PlatformAdminGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
-    const user: JwtUser | undefined = request.user;
+    const request = context.switchToHttp().getRequest<{ user?: JwtUser }>();
+    const user = request.user;
 
     if (!user) {
       throw new ForbiddenException('No autenticado');

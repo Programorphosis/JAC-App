@@ -1,6 +1,5 @@
 import { PaymentService } from './payment.service';
 import type { IPaymentRegistrationContext } from '../ports/payment-registration-context.port';
-import { DeudaCeroError, PagoDuplicadoError } from '../errors/domain.errors';
 
 function createMockContext(
   overrides: Partial<IPaymentRegistrationContext> = {},
@@ -33,7 +32,12 @@ describe('PaymentService', () => {
     const ctx = createMockContext();
 
     const result = await service.registerJuntaPayment(
-      { usuarioId: USR, juntaId: JUNTA, metodo: 'EFECTIVO', registradoPorId: ADMIN },
+      {
+        usuarioId: USR,
+        juntaId: JUNTA,
+        metodo: 'EFECTIVO',
+        registradoPorId: ADMIN,
+      },
       ctx,
     );
 
@@ -80,7 +84,9 @@ describe('PaymentService', () => {
     );
 
     expect(result.pagoId).toBe('pago-1');
-    expect(ctx.findPagoByReferenciaExterna).toHaveBeenCalledWith('wompi-tx-123');
+    expect(ctx.findPagoByReferenciaExterna).toHaveBeenCalledWith(
+      'wompi-tx-123',
+    );
     expect(ctx.createJuntaPayment).toHaveBeenCalledWith(
       expect.objectContaining({ referenciaExterna: 'wompi-tx-123' }),
     );
@@ -91,7 +97,9 @@ describe('PaymentService', () => {
   // ──────────────────────────────────────────────
   it('lanza PagoDuplicadoError si ya existe un pago con esa referencia externa', async () => {
     const ctx = createMockContext({
-      findPagoByReferenciaExterna: jest.fn().mockResolvedValue({ id: 'pago-existente' }),
+      findPagoByReferenciaExterna: jest
+        .fn()
+        .mockResolvedValue({ id: 'pago-existente' }),
     });
 
     await expect(
@@ -120,7 +128,12 @@ describe('PaymentService', () => {
 
     await expect(
       service.registerJuntaPayment(
-        { usuarioId: USR, juntaId: JUNTA, metodo: 'EFECTIVO', registradoPorId: ADMIN },
+        {
+          usuarioId: USR,
+          juntaId: JUNTA,
+          metodo: 'EFECTIVO',
+          registradoPorId: ADMIN,
+        },
         ctx,
       ),
     ).rejects.toThrow('al día');
@@ -135,7 +148,12 @@ describe('PaymentService', () => {
     const ctx = createMockContext();
 
     await service.registerJuntaPayment(
-      { usuarioId: USR, juntaId: JUNTA, metodo: 'EFECTIVO', registradoPorId: ADMIN },
+      {
+        usuarioId: USR,
+        juntaId: JUNTA,
+        metodo: 'EFECTIVO',
+        registradoPorId: ADMIN,
+      },
       ctx,
     );
 

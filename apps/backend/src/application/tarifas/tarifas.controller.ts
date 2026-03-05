@@ -25,7 +25,12 @@ export class TarifasController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL)
+  @Roles(
+    RolNombre.ADMIN,
+    RolNombre.SECRETARIA,
+    RolNombre.TESORERA,
+    RolNombre.FISCAL,
+  )
   async listar(
     @Query('estadoLaboral') estadoLaboral?: 'TRABAJANDO' | 'NO_TRABAJANDO',
     @Request() req?: { user: JwtUser },
@@ -37,10 +42,7 @@ export class TarifasController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(RolNombre.TESORERA)
-  async crear(
-    @Body() dto: CreateTarifaDto,
-    @Request() req: { user: JwtUser },
-  ) {
+  async crear(@Body() dto: CreateTarifaDto, @Request() req: { user: JwtUser }) {
     const juntaId = req.user.juntaId!;
     return this.tarifas.crear(dto, juntaId, req.user.id);
   }

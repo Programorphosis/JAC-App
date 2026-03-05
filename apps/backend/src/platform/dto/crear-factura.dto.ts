@@ -1,4 +1,12 @@
-import { IsNumber, IsDateString, IsOptional, IsString, IsObject, IsIn, Min } from 'class-validator';
+import {
+  IsNumber,
+  IsDateString,
+  IsOptional,
+  IsString,
+  IsObject,
+  IsIn,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 const TIPOS_VALIDOS = ['MENSUAL', 'MANUAL', 'AJUSTE'] as const;

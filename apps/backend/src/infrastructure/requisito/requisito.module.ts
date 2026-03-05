@@ -16,8 +16,10 @@ import { PrismaAuditEventStore } from '../audit/prisma-audit-event-store.service
     },
     {
       provide: RequisitoService,
-      useFactory: (repo: PrismaRequisitoRepository, audit: PrismaAuditEventStore) =>
-        new RequisitoService(repo, audit),
+      useFactory: (
+        repo: PrismaRequisitoRepository,
+        audit: PrismaAuditEventStore,
+      ) => new RequisitoService(repo, audit),
       inject: [REQUISITO_REPOSITORY, PrismaAuditEventStore],
     },
     RequisitoOperationRunner,

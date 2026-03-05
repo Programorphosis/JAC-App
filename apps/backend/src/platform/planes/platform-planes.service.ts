@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CrearPlanDto } from '../dto/crear-plan.dto';
 import { ActualizarPlanDto } from '../dto/actualizar-plan.dto';
@@ -30,7 +34,9 @@ export class PlatformPlanesService {
       where: { nombre: dto.nombre.trim() },
     });
     if (existente) {
-      throw new ConflictException(`Ya existe un plan con nombre "${dto.nombre}"`);
+      throw new ConflictException(
+        `Ya existe un plan con nombre "${dto.nombre}"`,
+      );
     }
 
     const plan = await this.prisma.plan.create({
@@ -39,9 +45,15 @@ export class PlatformPlanesService {
         descripcion: dto.descripcion?.trim() || null,
         precioMensual: dto.precioMensual,
         precioAnual: dto.precioAnual,
-        limiteUsuarios: dto.permiteUsuariosIlimitados ? null : (dto.limiteUsuarios ?? null),
-        limiteStorageMb: dto.permiteStorageIlimitado ? null : (dto.limiteStorageMb ?? null),
-        limiteCartasMes: dto.permiteCartasIlimitadas ? null : (dto.limiteCartasMes ?? null),
+        limiteUsuarios: dto.permiteUsuariosIlimitados
+          ? null
+          : (dto.limiteUsuarios ?? null),
+        limiteStorageMb: dto.permiteStorageIlimitado
+          ? null
+          : (dto.limiteStorageMb ?? null),
+        limiteCartasMes: dto.permiteCartasIlimitadas
+          ? null
+          : (dto.limiteCartasMes ?? null),
         permiteUsuariosIlimitados: dto.permiteUsuariosIlimitados ?? false,
         permiteStorageIlimitado: dto.permiteStorageIlimitado ?? false,
         permiteCartasIlimitadas: dto.permiteCartasIlimitadas ?? false,
@@ -64,28 +76,51 @@ export class PlatformPlanesService {
         where: { nombre: dto.nombre.trim() },
       });
       if (existente) {
-        throw new ConflictException(`Ya existe un plan con nombre "${dto.nombre}"`);
+        throw new ConflictException(
+          `Ya existe un plan con nombre "${dto.nombre}"`,
+        );
       }
     }
 
-    const permiteUsuarios = dto.permiteUsuariosIlimitados ?? plan.permiteUsuariosIlimitados;
-    const permiteStorage = dto.permiteStorageIlimitado ?? plan.permiteStorageIlimitado;
-    const permiteCartas = dto.permiteCartasIlimitadas ?? plan.permiteCartasIlimitadas;
+    const permiteUsuarios =
+      dto.permiteUsuariosIlimitados ?? plan.permiteUsuariosIlimitados;
+    const permiteStorage =
+      dto.permiteStorageIlimitado ?? plan.permiteStorageIlimitado;
+    const permiteCartas =
+      dto.permiteCartasIlimitadas ?? plan.permiteCartasIlimitadas;
 
     const actualizado = await this.prisma.plan.update({
       where: { id },
       data: {
         ...(dto.nombre !== undefined && { nombre: dto.nombre.trim() }),
-        ...(dto.descripcion !== undefined && { descripcion: dto.descripcion?.trim() || null }),
-        ...(dto.precioMensual !== undefined && { precioMensual: dto.precioMensual }),
+        ...(dto.descripcion !== undefined && {
+          descripcion: dto.descripcion?.trim() || null,
+        }),
+        ...(dto.precioMensual !== undefined && {
+          precioMensual: dto.precioMensual,
+        }),
         ...(dto.precioAnual !== undefined && { precioAnual: dto.precioAnual }),
-        limiteUsuarios: permiteUsuarios ? null : (dto.limiteUsuarios ?? plan.limiteUsuarios),
-        limiteStorageMb: permiteStorage ? null : (dto.limiteStorageMb ?? plan.limiteStorageMb),
-        limiteCartasMes: permiteCartas ? null : (dto.limiteCartasMes ?? plan.limiteCartasMes),
-        ...(dto.permiteUsuariosIlimitados !== undefined && { permiteUsuariosIlimitados: dto.permiteUsuariosIlimitados }),
-        ...(dto.permiteStorageIlimitado !== undefined && { permiteStorageIlimitado: dto.permiteStorageIlimitado }),
-        ...(dto.permiteCartasIlimitadas !== undefined && { permiteCartasIlimitadas: dto.permiteCartasIlimitadas }),
-        ...(dto.esPersonalizable !== undefined && { esPersonalizable: dto.esPersonalizable }),
+        limiteUsuarios: permiteUsuarios
+          ? null
+          : (dto.limiteUsuarios ?? plan.limiteUsuarios),
+        limiteStorageMb: permiteStorage
+          ? null
+          : (dto.limiteStorageMb ?? plan.limiteStorageMb),
+        limiteCartasMes: permiteCartas
+          ? null
+          : (dto.limiteCartasMes ?? plan.limiteCartasMes),
+        ...(dto.permiteUsuariosIlimitados !== undefined && {
+          permiteUsuariosIlimitados: dto.permiteUsuariosIlimitados,
+        }),
+        ...(dto.permiteStorageIlimitado !== undefined && {
+          permiteStorageIlimitado: dto.permiteStorageIlimitado,
+        }),
+        ...(dto.permiteCartasIlimitadas !== undefined && {
+          permiteCartasIlimitadas: dto.permiteCartasIlimitadas,
+        }),
+        ...(dto.esPersonalizable !== undefined && {
+          esPersonalizable: dto.esPersonalizable,
+        }),
         ...(dto.diasPrueba !== undefined && { diasPrueba: dto.diasPrueba }),
         ...(dto.activo !== undefined && { activo: dto.activo }),
         ...(dto.precioPorUsuarioAdicional !== undefined && {

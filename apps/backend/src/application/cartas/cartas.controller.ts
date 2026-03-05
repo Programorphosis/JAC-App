@@ -52,7 +52,12 @@ export class CartasController {
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL, RolNombre.AFILIADO)
+  @Roles(
+    RolNombre.SECRETARIA,
+    RolNombre.TESORERA,
+    RolNombre.FISCAL,
+    RolNombre.AFILIADO,
+  )
   async listar(
     @Query('usuarioId') usuarioId: string | undefined,
     @Query('estado') estado: string | undefined,
@@ -62,16 +67,24 @@ export class CartasController {
     const user = req.user;
 
     if (usuarioId?.trim()) {
-      if (!this.permissions.puedeVerCartasDeOtro(user) && usuarioId !== user.id) {
+      if (
+        !this.permissions.puedeVerCartasDeOtro(user) &&
+        usuarioId !== user.id
+      ) {
         throw new ForbiddenException('Solo puede listar sus propias cartas');
       }
-      const data = await this.cartas.listarPorUsuario(usuarioId.trim(), juntaId);
+      const data = await this.cartas.listarPorUsuario(
+        usuarioId.trim(),
+        juntaId,
+      );
       return { data, meta: { timestamp: new Date().toISOString() } };
     }
 
     if (estado === 'PENDIENTE') {
       if (!this.permissions.puedeListarCartasPendientes(user)) {
-        throw new ForbiddenException('Solo SECRETARIA o FISCAL pueden listar cartas pendientes');
+        throw new ForbiddenException(
+          'Solo SECRETARIA o FISCAL pueden listar cartas pendientes',
+        );
       }
       const data = await this.cartas.listarPendientes(juntaId);
       return { data, meta: { timestamp: new Date().toISOString() } };
@@ -98,11 +111,18 @@ export class CartasController {
     const user = req.user;
     const juntaId = user.juntaId!;
 
-    if (!this.permissions.puedeSolicitarCartaParaOtro(user) && usuarioId !== user.id) {
+    if (
+      !this.permissions.puedeSolicitarCartaParaOtro(user) &&
+      usuarioId !== user.id
+    ) {
       throw new ForbiddenException('Solo puede solicitar carta para sí mismo');
     }
 
-    const data = await this.cartas.solicitar(usuarioId.trim(), juntaId, user.id);
+    const data = await this.cartas.solicitar(
+      usuarioId.trim(),
+      juntaId,
+      user.id,
+    );
     return {
       data,
       meta: { timestamp: new Date().toISOString() },
@@ -126,7 +146,9 @@ export class CartasController {
     const user = req.user;
 
     if (!this.permissions.puedeVerCartasDeOtro(user)) {
-      throw new ForbiddenException('Solo SECRETARIA o FISCAL pueden generar PDF de prueba');
+      throw new ForbiddenException(
+        'Solo SECRETARIA o FISCAL pueden generar PDF de prueba',
+      );
     }
 
     const usuario = await this.prisma.usuario.findFirst({
@@ -219,9 +241,15 @@ export class CartasController {
     const juntaId = req.user.juntaId!;
     const user = req.user;
 
-    const soloPropios = this.permissions.puedeVerCartasDeOtro(user) ? undefined : user.id;
+    const soloPropios = this.permissions.puedeVerCartasDeOtro(user)
+      ? undefined
+      : user.id;
 
-    const url = await this.cartas.getUrlDescargaCarta(cartaId, juntaId, soloPropios);
+    const url = await this.cartas.getUrlDescargaCarta(
+      cartaId,
+      juntaId,
+      soloPropios,
+    );
     return { data: { url } };
   }
 

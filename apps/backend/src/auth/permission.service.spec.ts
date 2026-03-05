@@ -18,15 +18,21 @@ describe('PermissionService', () => {
 
   // ─── puedeConsultarRecursoDeOtro ────────────────────────
   describe('puedeConsultarRecursoDeOtro', () => {
-    it.each([RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL])(
-      'debe permitir a %s',
-      (rol) => {
-        expect(svc.puedeConsultarRecursoDeOtro(makeUser({ roles: [rol] }))).toBe(true);
-      },
-    );
+    it.each([
+      RolNombre.ADMIN,
+      RolNombre.SECRETARIA,
+      RolNombre.TESORERA,
+      RolNombre.FISCAL,
+    ])('debe permitir a %s', (rol) => {
+      expect(svc.puedeConsultarRecursoDeOtro(makeUser({ roles: [rol] }))).toBe(
+        true,
+      );
+    });
 
     it('debe permitir a modificador con junta', () => {
-      expect(svc.puedeConsultarRecursoDeOtro(makeUser({ esModificador: true }))).toBe(true);
+      expect(
+        svc.puedeConsultarRecursoDeOtro(makeUser({ esModificador: true })),
+      ).toBe(true);
     });
 
     it('debe negar a AFILIADO', () => {
@@ -34,18 +40,26 @@ describe('PermissionService', () => {
     });
 
     it('debe negar si juntaId es null', () => {
-      expect(svc.puedeConsultarRecursoDeOtro(makeUser({ juntaId: null, roles: [RolNombre.ADMIN] }))).toBe(false);
+      expect(
+        svc.puedeConsultarRecursoDeOtro(
+          makeUser({ juntaId: null, roles: [RolNombre.ADMIN] }),
+        ),
+      ).toBe(false);
     });
   });
 
   // ─── puedeVerHistorialDeOtro ────────────────────────────
   describe('puedeVerHistorialDeOtro', () => {
-    it.each([RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL])(
-      'debe permitir a %s',
-      (rol) => {
-        expect(svc.puedeVerHistorialDeOtro(makeUser({ roles: [rol] }))).toBe(true);
-      },
-    );
+    it.each([
+      RolNombre.ADMIN,
+      RolNombre.SECRETARIA,
+      RolNombre.TESORERA,
+      RolNombre.FISCAL,
+    ])('debe permitir a %s', (rol) => {
+      expect(svc.puedeVerHistorialDeOtro(makeUser({ roles: [rol] }))).toBe(
+        true,
+      );
+    });
 
     it('debe negar a AFILIADO', () => {
       expect(svc.puedeVerHistorialDeOtro(makeUser())).toBe(false);
@@ -55,41 +69,59 @@ describe('PermissionService', () => {
   // ─── puedeVerCartasDeOtro ──────────────────────────────
   describe('puedeVerCartasDeOtro', () => {
     it('debe permitir a SECRETARIA', () => {
-      expect(svc.puedeVerCartasDeOtro(makeUser({ roles: [RolNombre.SECRETARIA] }))).toBe(true);
+      expect(
+        svc.puedeVerCartasDeOtro(makeUser({ roles: [RolNombre.SECRETARIA] })),
+      ).toBe(true);
     });
 
     it('debe permitir a FISCAL', () => {
-      expect(svc.puedeVerCartasDeOtro(makeUser({ roles: [RolNombre.FISCAL] }))).toBe(true);
+      expect(
+        svc.puedeVerCartasDeOtro(makeUser({ roles: [RolNombre.FISCAL] })),
+      ).toBe(true);
     });
 
     it('debe negar a ADMIN', () => {
-      expect(svc.puedeVerCartasDeOtro(makeUser({ roles: [RolNombre.ADMIN] }))).toBe(false);
+      expect(
+        svc.puedeVerCartasDeOtro(makeUser({ roles: [RolNombre.ADMIN] })),
+      ).toBe(false);
     });
 
     it('debe negar a TESORERA', () => {
-      expect(svc.puedeVerCartasDeOtro(makeUser({ roles: [RolNombre.TESORERA] }))).toBe(false);
+      expect(
+        svc.puedeVerCartasDeOtro(makeUser({ roles: [RolNombre.TESORERA] })),
+      ).toBe(false);
     });
   });
 
   // ─── puedeSolicitarCartaParaOtro ──────────────────────
   describe('puedeSolicitarCartaParaOtro', () => {
     it('debe permitir solo a SECRETARIA', () => {
-      expect(svc.puedeSolicitarCartaParaOtro(makeUser({ roles: [RolNombre.SECRETARIA] }))).toBe(true);
+      expect(
+        svc.puedeSolicitarCartaParaOtro(
+          makeUser({ roles: [RolNombre.SECRETARIA] }),
+        ),
+      ).toBe(true);
     });
 
     it('debe negar a ADMIN', () => {
-      expect(svc.puedeSolicitarCartaParaOtro(makeUser({ roles: [RolNombre.ADMIN] }))).toBe(false);
+      expect(
+        svc.puedeSolicitarCartaParaOtro(makeUser({ roles: [RolNombre.ADMIN] })),
+      ).toBe(false);
     });
   });
 
   // ─── puedeVerDocumentosDeOtro ─────────────────────────
   describe('puedeVerDocumentosDeOtro', () => {
-    it.each([RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL])(
-      'debe permitir a %s',
-      (rol) => {
-        expect(svc.puedeVerDocumentosDeOtro(makeUser({ roles: [rol] }))).toBe(true);
-      },
-    );
+    it.each([
+      RolNombre.ADMIN,
+      RolNombre.SECRETARIA,
+      RolNombre.TESORERA,
+      RolNombre.FISCAL,
+    ])('debe permitir a %s', (rol) => {
+      expect(svc.puedeVerDocumentosDeOtro(makeUser({ roles: [rol] }))).toBe(
+        true,
+      );
+    });
 
     it('debe negar a AFILIADO', () => {
       expect(svc.puedeVerDocumentosDeOtro(makeUser())).toBe(false);
@@ -99,37 +131,57 @@ describe('PermissionService', () => {
   // ─── puedeSubirDocumentoParaOtro ──────────────────────
   describe('puedeSubirDocumentoParaOtro', () => {
     it('debe permitir solo a TESORERA', () => {
-      expect(svc.puedeSubirDocumentoParaOtro(makeUser({ roles: [RolNombre.TESORERA] }))).toBe(true);
+      expect(
+        svc.puedeSubirDocumentoParaOtro(
+          makeUser({ roles: [RolNombre.TESORERA] }),
+        ),
+      ).toBe(true);
     });
 
     it('debe negar a ADMIN', () => {
-      expect(svc.puedeSubirDocumentoParaOtro(makeUser({ roles: [RolNombre.ADMIN] }))).toBe(false);
+      expect(
+        svc.puedeSubirDocumentoParaOtro(makeUser({ roles: [RolNombre.ADMIN] })),
+      ).toBe(false);
     });
   });
 
   // ─── puedeCrearPagoParaOtro ───────────────────────────
   describe('puedeCrearPagoParaOtro', () => {
     it('debe permitir solo a TESORERA', () => {
-      expect(svc.puedeCrearPagoParaOtro(makeUser({ roles: [RolNombre.TESORERA] }))).toBe(true);
+      expect(
+        svc.puedeCrearPagoParaOtro(makeUser({ roles: [RolNombre.TESORERA] })),
+      ).toBe(true);
     });
 
     it('debe negar a SECRETARIA', () => {
-      expect(svc.puedeCrearPagoParaOtro(makeUser({ roles: [RolNombre.SECRETARIA] }))).toBe(false);
+      expect(
+        svc.puedeCrearPagoParaOtro(makeUser({ roles: [RolNombre.SECRETARIA] })),
+      ).toBe(false);
     });
   });
 
   // ─── puedeListarCartasPendientes ──────────────────────
   describe('puedeListarCartasPendientes', () => {
     it('debe permitir a SECRETARIA', () => {
-      expect(svc.puedeListarCartasPendientes(makeUser({ roles: [RolNombre.SECRETARIA] }))).toBe(true);
+      expect(
+        svc.puedeListarCartasPendientes(
+          makeUser({ roles: [RolNombre.SECRETARIA] }),
+        ),
+      ).toBe(true);
     });
 
     it('debe permitir a FISCAL', () => {
-      expect(svc.puedeListarCartasPendientes(makeUser({ roles: [RolNombre.FISCAL] }))).toBe(true);
+      expect(
+        svc.puedeListarCartasPendientes(
+          makeUser({ roles: [RolNombre.FISCAL] }),
+        ),
+      ).toBe(true);
     });
 
     it('debe negar a ADMIN', () => {
-      expect(svc.puedeListarCartasPendientes(makeUser({ roles: [RolNombre.ADMIN] }))).toBe(false);
+      expect(
+        svc.puedeListarCartasPendientes(makeUser({ roles: [RolNombre.ADMIN] })),
+      ).toBe(false);
     });
   });
 });

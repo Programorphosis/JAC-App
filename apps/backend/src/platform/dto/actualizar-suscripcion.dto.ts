@@ -1,6 +1,20 @@
-import { IsString, IsOptional, IsDateString, IsIn, IsInt, Min, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsDateString,
+  IsIn,
+  IsInt,
+  Min,
+  IsBoolean,
+} from 'class-validator';
 
-const ESTADOS_VALIDOS = ['ACTIVA', 'SUSPENDIDA', 'CANCELADA', 'PRUEBA', 'VENCIDA'] as const;
+const ESTADOS_VALIDOS = [
+  'ACTIVA',
+  'SUSPENDIDA',
+  'CANCELADA',
+  'PRUEBA',
+  'VENCIDA',
+] as const;
 const PERIODOS_VALIDOS = ['mensual', 'anual'] as const;
 
 export class ActualizarSuscripcionDto {

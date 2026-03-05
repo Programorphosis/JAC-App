@@ -88,7 +88,10 @@ export class BootstrapService {
       where: { nombre: RolNombre.PLATFORM_ADMIN },
     });
 
-    const passwordHashPlatform = await bcrypt.hash(body.platformAdmin.password, 10);
+    const passwordHashPlatform = await bcrypt.hash(
+      body.platformAdmin.password,
+      10,
+    );
     const passwordTemporalJunta = generarPasswordTemporal();
 
     const platformAdmin = await this.prisma.usuario.create({

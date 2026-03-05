@@ -6,7 +6,9 @@ function createMockRepo(
   overrides: Partial<IRequisitoRepository> = {},
 ): jest.Mocked<IRequisitoRepository> {
   return {
-    getEstadoRequisito: jest.fn().mockResolvedValue({ estado: 'AL_DIA', obligacionActiva: true }),
+    getEstadoRequisito: jest
+      .fn()
+      .mockResolvedValue({ estado: 'AL_DIA', obligacionActiva: true }),
     getRequisitosParaCarta: jest.fn().mockResolvedValue([]),
     updateEstadoRequisitoEstado: jest.fn().mockResolvedValue(undefined),
     updateEstadoRequisitoObligacion: jest.fn().mockResolvedValue(undefined),
@@ -42,7 +44,10 @@ describe('RequisitoService', () => {
 
   describe('updateEstadoRequisito', () => {
     it('cambia estado de AL_DIA a MORA correctamente', async () => {
-      repo.getEstadoRequisito.mockResolvedValue({ estado: 'AL_DIA', obligacionActiva: true });
+      repo.getEstadoRequisito.mockResolvedValue({
+        estado: 'AL_DIA',
+        obligacionActiva: true,
+      });
 
       await service.updateEstadoRequisito({
         requisitoTipoId: REQ,
@@ -61,7 +66,11 @@ describe('RequisitoService', () => {
           cambioAutomatico: false,
         }),
       );
-      expect(repo.updateEstadoRequisitoEstado).toHaveBeenCalledWith(USR, REQ, 'MORA');
+      expect(repo.updateEstadoRequisitoEstado).toHaveBeenCalledWith(
+        USR,
+        REQ,
+        'MORA',
+      );
       expect(audit.registerEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           accion: 'CAMBIO_ESTADO_REQUISITO',
@@ -71,7 +80,10 @@ describe('RequisitoService', () => {
     });
 
     it('cambia estado de MORA a AL_DIA', async () => {
-      repo.getEstadoRequisito.mockResolvedValue({ estado: 'MORA', obligacionActiva: true });
+      repo.getEstadoRequisito.mockResolvedValue({
+        estado: 'MORA',
+        obligacionActiva: true,
+      });
 
       await service.updateEstadoRequisito({
         requisitoTipoId: REQ,
@@ -81,11 +93,18 @@ describe('RequisitoService', () => {
         cambiadoPorId: ADMIN,
       });
 
-      expect(repo.updateEstadoRequisitoEstado).toHaveBeenCalledWith(USR, REQ, 'AL_DIA');
+      expect(repo.updateEstadoRequisitoEstado).toHaveBeenCalledWith(
+        USR,
+        REQ,
+        'AL_DIA',
+      );
     });
 
     it('lanza error si el estado ya es el mismo', async () => {
-      repo.getEstadoRequisito.mockResolvedValue({ estado: 'AL_DIA', obligacionActiva: true });
+      repo.getEstadoRequisito.mockResolvedValue({
+        estado: 'AL_DIA',
+        obligacionActiva: true,
+      });
 
       await expect(
         service.updateEstadoRequisito({
@@ -114,7 +133,11 @@ describe('RequisitoService', () => {
       expect(repo.createHistorialRequisito).toHaveBeenCalledWith(
         expect.objectContaining({ estadoAnterior: null }),
       );
-      expect(repo.updateEstadoRequisitoEstado).toHaveBeenCalledWith(USR, REQ, 'AL_DIA');
+      expect(repo.updateEstadoRequisitoEstado).toHaveBeenCalledWith(
+        USR,
+        REQ,
+        'AL_DIA',
+      );
     });
   });
 
@@ -124,7 +147,10 @@ describe('RequisitoService', () => {
 
   describe('updateObligacionRequisito', () => {
     it('cambia obligación de activa a inactiva', async () => {
-      repo.getEstadoRequisito.mockResolvedValue({ estado: 'AL_DIA', obligacionActiva: true });
+      repo.getEstadoRequisito.mockResolvedValue({
+        estado: 'AL_DIA',
+        obligacionActiva: true,
+      });
 
       await service.updateObligacionRequisito({
         requisitoTipoId: REQ,
@@ -141,14 +167,21 @@ describe('RequisitoService', () => {
           obligacionNueva: false,
         }),
       );
-      expect(repo.updateEstadoRequisitoObligacion).toHaveBeenCalledWith(USR, REQ, false);
+      expect(repo.updateEstadoRequisitoObligacion).toHaveBeenCalledWith(
+        USR,
+        REQ,
+        false,
+      );
       expect(audit.registerEvent).toHaveBeenCalledWith(
         expect.objectContaining({ accion: 'CAMBIO_OBLIGACION_REQUISITO' }),
       );
     });
 
     it('lanza error si la obligación ya tiene el mismo valor', async () => {
-      repo.getEstadoRequisito.mockResolvedValue({ estado: 'AL_DIA', obligacionActiva: true });
+      repo.getEstadoRequisito.mockResolvedValue({
+        estado: 'AL_DIA',
+        obligacionActiva: true,
+      });
 
       await expect(
         service.updateObligacionRequisito({
@@ -212,8 +245,20 @@ describe('RequisitoService', () => {
 
     it('procesa múltiples requisitos con múltiples usuarios', async () => {
       repo.getRequisitosYUsuariosParaCorte.mockResolvedValue([
-        { requisitoTipoId: 'req-agua', juntaId: JUNTA, usuarios: [{ usuarioId: 'usr-1' }] },
-        { requisitoTipoId: 'req-basura', juntaId: JUNTA, usuarios: [{ usuarioId: 'usr-1' }, { usuarioId: 'usr-2' }, { usuarioId: 'usr-3' }] },
+        {
+          requisitoTipoId: 'req-agua',
+          juntaId: JUNTA,
+          usuarios: [{ usuarioId: 'usr-1' }],
+        },
+        {
+          requisitoTipoId: 'req-basura',
+          juntaId: JUNTA,
+          usuarios: [
+            { usuarioId: 'usr-1' },
+            { usuarioId: 'usr-2' },
+            { usuarioId: 'usr-3' },
+          ],
+        },
       ]);
 
       await service.applyMonthlyCutoff({ ejecutadoPorId: 'system' });
@@ -227,7 +272,10 @@ describe('RequisitoService', () => {
     it('pasa juntaId al repositorio cuando se especifica', async () => {
       repo.getRequisitosYUsuariosParaCorte.mockResolvedValue([]);
 
-      await service.applyMonthlyCutoff({ juntaId: JUNTA, ejecutadoPorId: 'system' });
+      await service.applyMonthlyCutoff({
+        juntaId: JUNTA,
+        ejecutadoPorId: 'system',
+      });
 
       expect(repo.getRequisitosYUsuariosParaCorte).toHaveBeenCalledWith(JUNTA);
     });
@@ -237,7 +285,9 @@ describe('RequisitoService', () => {
 
       await service.applyMonthlyCutoff({ ejecutadoPorId: 'system' });
 
-      expect(repo.getRequisitosYUsuariosParaCorte).toHaveBeenCalledWith(undefined);
+      expect(repo.getRequisitosYUsuariosParaCorte).toHaveBeenCalledWith(
+        undefined,
+      );
     });
   });
 });

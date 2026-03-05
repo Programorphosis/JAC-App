@@ -103,9 +103,16 @@ export class LimitesService {
     const efectivos = await this.getLimitesEfectivos(juntaId);
     if (!efectivos) return null;
     return {
-      limiteUsuarios: efectivos.limiteUsuarios === Infinity ? null : efectivos.limiteUsuarios,
-      limiteStorageMb: efectivos.limiteStorageMb === Infinity ? null : efectivos.limiteStorageMb,
-      limiteCartasMes: efectivos.limiteCartasMes === Infinity ? null : efectivos.limiteCartasMes,
+      limiteUsuarios:
+        efectivos.limiteUsuarios === Infinity ? null : efectivos.limiteUsuarios,
+      limiteStorageMb:
+        efectivos.limiteStorageMb === Infinity
+          ? null
+          : efectivos.limiteStorageMb,
+      limiteCartasMes:
+        efectivos.limiteCartasMes === Infinity
+          ? null
+          : efectivos.limiteCartasMes,
     };
   }
 
@@ -120,7 +127,10 @@ export class LimitesService {
 
   /** Valida que se pueda crear un usuario. Lanza error de dominio si se excede. */
   async validarCrearUsuario(juntaId: string): Promise<void> {
-    if (VENCIMIENTO_POLICY === 'BLOQUEO_PARCIAL' && (await this.esSuscripcionVencida(juntaId))) {
+    if (
+      VENCIMIENTO_POLICY === 'BLOQUEO_PARCIAL' &&
+      (await this.esSuscripcionVencida(juntaId))
+    ) {
       throw new SuscripcionVencidaError();
     }
 
@@ -135,7 +145,10 @@ export class LimitesService {
 
   /** Valida que se pueda emitir una carta este mes. Lanza error de dominio si se excede. */
   async validarEmitirCarta(juntaId: string): Promise<void> {
-    if (VENCIMIENTO_POLICY === 'BLOQUEO_PARCIAL' && (await this.esSuscripcionVencida(juntaId))) {
+    if (
+      VENCIMIENTO_POLICY === 'BLOQUEO_PARCIAL' &&
+      (await this.esSuscripcionVencida(juntaId))
+    ) {
       throw new SuscripcionVencidaError();
     }
 
@@ -150,7 +163,10 @@ export class LimitesService {
 
   /** Valida storage antes de subir. sizeBytes: tamaño del archivo a subir en bytes. */
   async validarStorage(juntaId: string, sizeBytesNuevo: number): Promise<void> {
-    if (VENCIMIENTO_POLICY === 'BLOQUEO_PARCIAL' && (await this.esSuscripcionVencida(juntaId))) {
+    if (
+      VENCIMIENTO_POLICY === 'BLOQUEO_PARCIAL' &&
+      (await this.esSuscripcionVencida(juntaId))
+    ) {
       throw new SuscripcionVencidaError();
     }
 
@@ -170,23 +186,24 @@ export class LimitesService {
     const now = new Date();
     const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [usuarios, docsAgg, documentosCount, cartasEsteMes] = await Promise.all([
-      this.prisma.usuario.count({ where: { juntaId } }),
-      this.prisma.documento.aggregate({
-        where: { usuario: { juntaId } },
-        _sum: { sizeBytes: true },
-      }),
-      this.prisma.documento.count({
-        where: { usuario: { juntaId } },
-      }),
-      this.prisma.carta.count({
-        where: {
-          juntaId,
-          estado: 'APROBADA',
-          fechaEmision: { gte: inicioMes },
-        },
-      }),
-    ]);
+    const [usuarios, docsAgg, documentosCount, cartasEsteMes] =
+      await Promise.all([
+        this.prisma.usuario.count({ where: { juntaId } }),
+        this.prisma.documento.aggregate({
+          where: { usuario: { juntaId } },
+          _sum: { sizeBytes: true },
+        }),
+        this.prisma.documento.count({
+          where: { usuario: { juntaId } },
+        }),
+        this.prisma.carta.count({
+          where: {
+            juntaId,
+            estado: 'APROBADA',
+            fechaEmision: { gte: inicioMes },
+          },
+        }),
+      ]);
 
     const totalBytes = docsAgg._sum.sizeBytes ?? 0n;
     const storageMb = Number(totalBytes) / 1024 / 1024;
@@ -294,7 +311,9 @@ export class LimitesService {
   }
 
   /** 80% Advertencia, 95% Crítico, 100% Bloqueo. */
-  private nivelAlerta(pct: number): 'OK' | 'ADVERTENCIA' | 'CRITICO' | 'BLOQUEO' {
+  private nivelAlerta(
+    pct: number,
+  ): 'OK' | 'ADVERTENCIA' | 'CRITICO' | 'BLOQUEO' {
     if (pct >= 100) return 'BLOQUEO';
     if (pct >= 95) return 'CRITICO';
     if (pct >= 80) return 'ADVERTENCIA';
@@ -323,7 +342,7 @@ export class LimitesService {
       permiteStorageIlimitado?: boolean;
       permiteCartasIlimitadas?: boolean;
     },
-    forzarDowngrade = false,
+    _forzarDowngrade = false,
     periodo: 'mensual' | 'anual' = 'anual',
   ): Promise<{ esUpgrade: boolean; nuevaFechaVencimiento?: Date }> {
     const esUpgrade = planNuevo.precioMensual > planActual.precioMensual;
@@ -335,7 +354,9 @@ export class LimitesService {
       if (periodo === 'mensual') {
         nuevaFechaVencimiento.setMonth(nuevaFechaVencimiento.getMonth() + 1);
       } else {
-        nuevaFechaVencimiento.setFullYear(nuevaFechaVencimiento.getFullYear() + 1);
+        nuevaFechaVencimiento.setFullYear(
+          nuevaFechaVencimiento.getFullYear() + 1,
+        );
       }
       return { esUpgrade: true, nuevaFechaVencimiento };
     }
@@ -346,7 +367,7 @@ export class LimitesService {
 
       const limiteUsuarios = planNuevo.permiteUsuariosIlimitados
         ? Infinity
-        : planNuevo.limiteUsuarios ?? 0;
+        : (planNuevo.limiteUsuarios ?? 0);
       if (limiteUsuarios !== Infinity && uso.usuarios > limiteUsuarios) {
         errores.push(
           `Usuarios actuales (${uso.usuarios}) exceden el límite del plan (${limiteUsuarios}).`,
@@ -355,7 +376,7 @@ export class LimitesService {
 
       const limiteStorage = planNuevo.permiteStorageIlimitado
         ? Infinity
-        : planNuevo.limiteStorageMb ?? 0;
+        : (planNuevo.limiteStorageMb ?? 0);
       if (limiteStorage !== Infinity && uso.storageMb > limiteStorage) {
         errores.push(
           `Storage usado (${uso.storageMb.toFixed(1)} MB) excede el límite del plan (${limiteStorage} MB).`,
@@ -364,7 +385,7 @@ export class LimitesService {
 
       const limiteCartas = planNuevo.permiteCartasIlimitadas
         ? Infinity
-        : planNuevo.limiteCartasMes ?? 0;
+        : (planNuevo.limiteCartasMes ?? 0);
       if (limiteCartas !== Infinity && uso.cartasEsteMes > limiteCartas) {
         errores.push(
           `Cartas este mes (${uso.cartasEsteMes}) exceden el límite del plan (${limiteCartas}).`,

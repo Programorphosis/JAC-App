@@ -32,8 +32,11 @@ export class EmailService {
   private readonly appUrl: string;
 
   constructor() {
-    const transport = (process.env.EMAIL_TRANSPORT ?? 'disabled') as EmailTransport;
-    this.appUrl = (process.env.APP_PUBLIC_URL ?? 'http://localhost:4200').replace(/\/$/, '');
+    const transport = (process.env.EMAIL_TRANSPORT ??
+      'disabled') as EmailTransport;
+    this.appUrl = (
+      process.env.APP_PUBLIC_URL ?? 'http://localhost:4200'
+    ).replace(/\/$/, '');
     this.from = process.env.EMAIL_FROM ?? 'JAC App <noreply@localhost>';
 
     if (transport === 'disabled') {
@@ -91,7 +94,10 @@ export class EmailService {
       });
       this.logger.log(`Email enviado → ${opts.to}: "${opts.subject}"`);
     } catch (err) {
-      this.logger.error(`Error enviando email a ${opts.to}: "${opts.subject}"`, err);
+      this.logger.error(
+        `Error enviando email a ${opts.to}: "${opts.subject}"`,
+        err,
+      );
     }
   }
 

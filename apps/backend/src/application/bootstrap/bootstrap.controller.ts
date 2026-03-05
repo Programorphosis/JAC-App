@@ -25,16 +25,22 @@ export class BootstrapController {
   ) {
     const expectedToken = process.env.BOOTSTRAP_TOKEN;
     if (!expectedToken || token !== expectedToken) {
-      throw new BadRequestException('Token de bootstrap inválido o no configurado');
+      throw new BadRequestException(
+        'Token de bootstrap inválido o no configurado',
+      );
     }
 
     const puede = await this.bootstrapService.puedeEjecutarBootstrap();
     if (!puede) {
-      throw new ConflictException('El bootstrap ya fue ejecutado. El sistema tiene juntas registradas.');
+      throw new ConflictException(
+        'El bootstrap ya fue ejecutado. El sistema tiene juntas registradas.',
+      );
     }
 
     if (!body.platformAdmin || !body.primeraJunta) {
-      throw new BadRequestException('Se requieren platformAdmin y primeraJunta');
+      throw new BadRequestException(
+        'Se requieren platformAdmin y primeraJunta',
+      );
     }
 
     if (
@@ -44,7 +50,9 @@ export class BootstrapController {
       !body.platformAdmin.numeroDocumento ||
       !body.platformAdmin.password
     ) {
-      throw new BadRequestException('platformAdmin requiere: nombres, apellidos, tipoDocumento, numeroDocumento, password');
+      throw new BadRequestException(
+        'platformAdmin requiere: nombres, apellidos, tipoDocumento, numeroDocumento, password',
+      );
     }
 
     if (

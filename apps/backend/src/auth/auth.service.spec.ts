@@ -1,6 +1,5 @@
 import {
   UnauthorizedException,
-  BadRequestException,
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
@@ -105,7 +104,11 @@ describe('AuthService – login', () => {
     prisma.usuario.findFirst.mockResolvedValue(null);
 
     await expect(
-      service.login({ tipoDocumento: 'CC', numeroDocumento: '999', password: 'x' }),
+      service.login({
+        tipoDocumento: 'CC',
+        numeroDocumento: '999',
+        password: 'x',
+      }),
     ).rejects.toThrow(UnauthorizedException);
   });
 
@@ -114,7 +117,11 @@ describe('AuthService – login', () => {
     prisma.usuario.findFirst.mockResolvedValue(makeUsuario({ activo: false }));
 
     await expect(
-      service.login({ tipoDocumento: 'CC', numeroDocumento: '123', password: 'x' }),
+      service.login({
+        tipoDocumento: 'CC',
+        numeroDocumento: '123',
+        password: 'x',
+      }),
     ).rejects.toThrow('Credenciales inválidas');
   });
 
@@ -126,7 +133,11 @@ describe('AuthService – login', () => {
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
     await expect(
-      service.login({ tipoDocumento: 'CC', numeroDocumento: '123', password: 'x' }),
+      service.login({
+        tipoDocumento: 'CC',
+        numeroDocumento: '123',
+        password: 'x',
+      }),
     ).rejects.toThrow('La junta no está activa');
   });
 
@@ -138,7 +149,11 @@ describe('AuthService – login', () => {
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
     await expect(
-      service.login({ tipoDocumento: 'CC', numeroDocumento: '123', password: 'x' }),
+      service.login({
+        tipoDocumento: 'CC',
+        numeroDocumento: '123',
+        password: 'x',
+      }),
     ).rejects.toThrow('mantenimiento');
   });
 
@@ -148,7 +163,11 @@ describe('AuthService – login', () => {
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
     await expect(
-      service.login({ tipoDocumento: 'CC', numeroDocumento: '123', password: 'wrong' }),
+      service.login({
+        tipoDocumento: 'CC',
+        numeroDocumento: '123',
+        password: 'wrong',
+      }),
     ).rejects.toThrow('Credenciales inválidas');
   });
 
@@ -157,7 +176,11 @@ describe('AuthService – login', () => {
     prisma.usuario.findFirst.mockResolvedValue(makeUsuario());
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-    await service.login({ tipoDocumento: 'CC', numeroDocumento: '123', password: 'pass' });
+    await service.login({
+      tipoDocumento: 'CC',
+      numeroDocumento: '123',
+      password: 'pass',
+    });
 
     expect(audit.registerEvent).toHaveBeenCalledWith(
       expect.objectContaining({ accion: 'LOGIN_EXITOSO', juntaId: 'j1' }),
@@ -175,7 +198,11 @@ describe('AuthService – login', () => {
     );
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-    await service.login({ tipoDocumento: 'CC', numeroDocumento: '123', password: 'pass' });
+    await service.login({
+      tipoDocumento: 'CC',
+      numeroDocumento: '123',
+      password: 'pass',
+    });
 
     expect(audit.registerEvent).not.toHaveBeenCalled();
   });
@@ -187,7 +214,11 @@ describe('AuthService – login', () => {
     );
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-    const result = await service.login({ tipoDocumento: 'CC', numeroDocumento: '123', password: 'pass' });
+    const result = await service.login({
+      tipoDocumento: 'CC',
+      numeroDocumento: '123',
+      password: 'pass',
+    });
 
     expect(result.user.esModificador).toBe(true);
     expect(result.user.requisitoTipoIds).toEqual(['rt-1']);
@@ -196,7 +227,11 @@ describe('AuthService – login', () => {
   it('debe usar juntaId=null cuando dto.juntaId es "platform"', async () => {
     const { service, prisma } = createMocks();
     prisma.usuario.findFirst.mockResolvedValue(
-      makeUsuario({ juntaId: null, junta: null, roles: [{ rol: { nombre: RolNombre.PLATFORM_ADMIN } }] }),
+      makeUsuario({
+        juntaId: null,
+        junta: null,
+        roles: [{ rol: { nombre: RolNombre.PLATFORM_ADMIN } }],
+      }),
     );
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
@@ -208,7 +243,9 @@ describe('AuthService – login', () => {
     });
 
     expect(prisma.usuario.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: expect.objectContaining({ juntaId: null }) }),
+      expect.objectContaining({
+        where: expect.objectContaining({ juntaId: null }),
+      }),
     );
   });
 });
@@ -264,7 +301,9 @@ describe('AuthService – validateRefreshToken', () => {
   it('debe lanzar UnauthorizedException si el usuario está inactivo', async () => {
     const { service, prisma, jwt } = createMocks();
     jwt.verify.mockReturnValue({ sub: 'u1', tipo: 'refresh' });
-    prisma.usuario.findUniqueOrThrow.mockResolvedValue(makeUsuario({ activo: false }));
+    prisma.usuario.findUniqueOrThrow.mockResolvedValue(
+      makeUsuario({ activo: false }),
+    );
 
     await expect(service.validateRefreshToken('token')).rejects.toThrow(
       'Token de refresco inválido',
@@ -295,7 +334,9 @@ describe('AuthService – validateRefreshToken', () => {
 
   it('debe lanzar UnauthorizedException si el token es inválido (verify lanza)', async () => {
     const { service, jwt } = createMocks();
-    jwt.verify.mockImplementation(() => { throw new Error('invalid'); });
+    jwt.verify.mockImplementation(() => {
+      throw new Error('invalid');
+    });
 
     await expect(service.validateRefreshToken('garbage')).rejects.toThrow(
       'Token de refresco inválido',
@@ -314,7 +355,10 @@ describe('AuthService – impersonar', () => {
         roles: [{ rol: { nombre: RolNombre.PLATFORM_ADMIN } }],
       }),
     );
-    prisma.junta.findUnique.mockResolvedValue({ id: 'j2', nombre: 'Junta Test' });
+    prisma.junta.findUnique.mockResolvedValue({
+      id: 'j2',
+      nombre: 'Junta Test',
+    });
 
     const result = await service.impersonar('u1', 'j2');
 
@@ -341,11 +385,16 @@ describe('AuthService – impersonar', () => {
   it('debe rechazar si no tiene rol PLATFORM_ADMIN', async () => {
     const { service, prisma } = createMocks();
     prisma.usuario.findUniqueOrThrow.mockResolvedValue(
-      makeUsuario({ juntaId: null, roles: [{ rol: { nombre: RolNombre.ADMIN } }] }),
+      makeUsuario({
+        juntaId: null,
+        roles: [{ rol: { nombre: RolNombre.ADMIN } }],
+      }),
     );
     prisma.junta.findUnique.mockResolvedValue({ id: 'j2' });
 
-    await expect(service.impersonar('u1', 'j2')).rejects.toThrow('PLATFORM_ADMIN');
+    await expect(service.impersonar('u1', 'j2')).rejects.toThrow(
+      'PLATFORM_ADMIN',
+    );
   });
 
   it('debe rechazar si la junta no existe', async () => {
@@ -358,7 +407,9 @@ describe('AuthService – impersonar', () => {
     );
     prisma.junta.findUnique.mockResolvedValue(null);
 
-    await expect(service.impersonar('u1', 'j-fake')).rejects.toThrow('Junta no encontrada');
+    await expect(service.impersonar('u1', 'j-fake')).rejects.toThrow(
+      'Junta no encontrada',
+    );
   });
 });
 
@@ -379,7 +430,10 @@ describe('AuthService – salirImpersonacion', () => {
     expect(result.user.juntaId).toBeNull();
     expect(result.user.impersonando).toBeUndefined();
     expect(audit.registerEvent).toHaveBeenCalledWith(
-      expect.objectContaining({ accion: 'IMPERSONACION_FIN', juntaId: 'j-imp' }),
+      expect.objectContaining({
+        accion: 'IMPERSONACION_FIN',
+        juntaId: 'j-imp',
+      }),
     );
   });
 
@@ -425,7 +479,9 @@ describe('AuthService – solicitarCodigoVerificacionEmail', () => {
     prisma.usuario.findFirst.mockResolvedValue({ id: 'otro' });
 
     await expect(
-      service.solicitarCodigoVerificacionEmail('u1', { email: 'usado@test.com' }),
+      service.solicitarCodigoVerificacionEmail('u1', {
+        email: 'usado@test.com',
+      }),
     ).rejects.toThrow(ConflictException);
   });
 });
@@ -460,7 +516,10 @@ describe('AuthService – cambiarPassword', () => {
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
     await expect(
-      service.cambiarPassword('u1', { passwordActual: 'wrongpass', passwordNueva: 'newpass' }),
+      service.cambiarPassword('u1', {
+        passwordActual: 'wrongpass',
+        passwordNueva: 'newpass',
+      }),
     ).rejects.toThrow('Contraseña actual incorrecta');
   });
 
@@ -504,7 +563,10 @@ describe('AuthService – cambiarPassword', () => {
     );
     expect(prisma.usuario.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ email: 'nuevo@test.com', emailVerificado: true }),
+        data: expect.objectContaining({
+          email: 'nuevo@test.com',
+          emailVerificado: true,
+        }),
       }),
     );
   });
@@ -550,7 +612,9 @@ describe('AuthService – solicitarCodigoRecuperacion', () => {
     const { service, prisma, email } = createMocks();
     prisma.usuario.findFirst.mockResolvedValue(makeUsuario());
 
-    const result = await service.solicitarCodigoRecuperacion({ email: 'juan@test.com' });
+    const result = await service.solicitarCodigoRecuperacion({
+      email: 'juan@test.com',
+    });
 
     expect(result.enviado).toBe(true);
     expect(prisma.codigoRecuperacion.create).toHaveBeenCalled();
@@ -561,7 +625,9 @@ describe('AuthService – solicitarCodigoRecuperacion', () => {
     const { service, prisma, email } = createMocks();
     prisma.usuario.findFirst.mockResolvedValue(null);
 
-    const result = await service.solicitarCodigoRecuperacion({ email: 'no@exist.com' });
+    const result = await service.solicitarCodigoRecuperacion({
+      email: 'no@exist.com',
+    });
 
     expect(result.enviado).toBe(true);
     expect(email.enviarCodigoRecuperacion).not.toHaveBeenCalled();
@@ -584,7 +650,10 @@ describe('AuthService – verificarCodigoYRecuperar', () => {
 
     expect(prisma.usuario.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ passwordHash: 'hashed-pw', requiereCambioPassword: false }),
+        data: expect.objectContaining({
+          passwordHash: 'hashed-pw',
+          requiereCambioPassword: false,
+        }),
       }),
     );
     expect(prisma.codigoRecuperacion.update).toHaveBeenCalledWith(

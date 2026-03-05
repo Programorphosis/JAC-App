@@ -10,23 +10,30 @@ import type {
   CalculateUserDebtParams,
   DebtResult,
   DebtMonthDetail,
-  EstadoLaboralTipo,
 } from '../types/debt.types';
 import { UsuarioNoEncontradoError } from '../errors/domain.errors';
 
 export class DebtService {
   constructor(private readonly dataProvider: IDebtDataProvider) {}
 
-  async calculateUserDebt(params: CalculateUserDebtParams): Promise<DebtResult> {
+  async calculateUserDebt(
+    params: CalculateUserDebtParams,
+  ): Promise<DebtResult> {
     const { usuarioId, juntaId, fechaCorte } = params;
     const corte = fechaCorte ?? new Date();
 
-    const usuario = await this.dataProvider.getUsuarioParaCalculo(usuarioId, juntaId);
+    const usuario = await this.dataProvider.getUsuarioParaCalculo(
+      usuarioId,
+      juntaId,
+    );
     if (!usuario) {
       throw new UsuarioNoEncontradoError(usuarioId);
     }
 
-    const ultimoPago = await this.dataProvider.getUltimoPagoJunta(usuarioId, juntaId);
+    const ultimoPago = await this.dataProvider.getUltimoPagoJunta(
+      usuarioId,
+      juntaId,
+    );
 
     const inicio = ultimoPago
       ? this.primeroDelMesSiguiente(ultimoPago.fechaPago)
@@ -76,7 +83,10 @@ export class DebtService {
     return new Date(d.getFullYear(), d.getMonth(), 0);
   }
 
-  private generarMeses(inicio: Date, fin: Date): Array<{ year: number; month: number }> {
+  private generarMeses(
+    inicio: Date,
+    fin: Date,
+  ): Array<{ year: number; month: number }> {
     const meses: Array<{ year: number; month: number }> = [];
     const current = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
 

@@ -52,7 +52,7 @@ export class PagosController {
     @Request() req?: { user: JwtUser },
   ) {
     const juntaId = req!.user.juntaId!;
-    const usuarioId = req!.user.id!;
+    const usuarioId = req!.user.id;
     const p = page ? parseInt(page, 10) : 1;
     const l = limit ? parseInt(limit, 10) : 20;
     return this.pagos.listar(juntaId, p, l, {
@@ -67,7 +67,12 @@ export class PagosController {
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.FISCAL)
+  @Roles(
+    RolNombre.TESORERA,
+    RolNombre.ADMIN,
+    RolNombre.SECRETARIA,
+    RolNombre.FISCAL,
+  )
   async listar(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -90,8 +95,10 @@ export class PagosController {
     if (fechaHasta?.trim()) filtros.fechaHasta = new Date(fechaHasta.trim());
     if (search?.trim()) filtros.search = search.trim();
     const validSortBy = ['fechaPago', 'monto', 'tipo', 'metodo', 'consecutivo'];
-    if (sortBy && validSortBy.includes(sortBy)) filtros.sortBy = sortBy as typeof filtros.sortBy;
-    if (sortOrder === 'asc' || sortOrder === 'desc') filtros.sortOrder = sortOrder;
+    if (sortBy && validSortBy.includes(sortBy))
+      filtros.sortBy = sortBy as typeof filtros.sortBy;
+    if (sortOrder === 'asc' || sortOrder === 'desc')
+      filtros.sortOrder = sortOrder;
     return this.pagos.listar(juntaId, p, l, filtros);
   }
 
@@ -100,7 +107,12 @@ export class PagosController {
    */
   @Get('estadisticas')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.FISCAL)
+  @Roles(
+    RolNombre.TESORERA,
+    RolNombre.ADMIN,
+    RolNombre.SECRETARIA,
+    RolNombre.FISCAL,
+  )
   async estadisticas(
     @Query('anio') anio?: string,
     @Request() req?: { user: JwtUser },
@@ -189,7 +201,10 @@ export class PagosController {
   ) {
     const juntaId = req.user.juntaId!;
 
-    if (!this.permissions.puedeCrearPagoParaOtro(req.user) && dto.usuarioId !== req.user.id) {
+    if (
+      !this.permissions.puedeCrearPagoParaOtro(req.user) &&
+      dto.usuarioId !== req.user.id
+    ) {
       throw new BadRequestException('Solo puede crear intención para sí mismo');
     }
 
@@ -218,8 +233,13 @@ export class PagosController {
   ) {
     const juntaId = req.user.juntaId!;
 
-    if (!this.permissions.puedeCrearPagoParaOtro(req.user) && dto.usuarioId !== req.user.id) {
-      throw new BadRequestException('Solo puede crear intención para su propia deuda');
+    if (
+      !this.permissions.puedeCrearPagoParaOtro(req.user) &&
+      dto.usuarioId !== req.user.id
+    ) {
+      throw new BadRequestException(
+        'Solo puede crear intención para su propia deuda',
+      );
     }
 
     const result = await this.pagos.crearIntencionPagoOnline({
@@ -258,7 +278,10 @@ export class PagosController {
       throw new BadRequestException('junta_id no coincide con su junta');
     }
 
-    const result = await this.pagos.consultarYRegistrarSiAprobado(transactionId, juntaId);
+    const result = await this.pagos.consultarYRegistrarSiAprobado(
+      transactionId,
+      juntaId,
+    );
     return {
       data: result,
       meta: { timestamp: new Date().toISOString() },
@@ -271,7 +294,12 @@ export class PagosController {
    */
   @Get('exportar')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.FISCAL)
+  @Roles(
+    RolNombre.TESORERA,
+    RolNombre.ADMIN,
+    RolNombre.SECRETARIA,
+    RolNombre.FISCAL,
+  )
   async exportar(
     @Query('usuarioId') usuarioId?: string,
     @Query('tipo') tipo?: 'JUNTA' | 'CARTA',

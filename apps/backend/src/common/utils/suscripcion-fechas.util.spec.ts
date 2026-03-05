@@ -6,7 +6,10 @@ import {
 describe('calcularFechaVencimiento', () => {
   it('con diasPrueba > 0, suma días de prueba', () => {
     const inicio = new Date(2025, 0, 1); // 1 ene 2025
-    const resultado = calcularFechaVencimiento({ fechaInicio: inicio, diasPrueba: 15 });
+    const resultado = calcularFechaVencimiento({
+      fechaInicio: inicio,
+      diasPrueba: 15,
+    });
     expect(resultado.getDate()).toBe(16);
     expect(resultado.getMonth()).toBe(0);
   });

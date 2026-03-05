@@ -17,10 +17,12 @@ export class PaymentService {
     params: RegisterJuntaPaymentParams,
     ctx: IPaymentRegistrationContext,
   ): Promise<RegisterJuntaPaymentResult> {
-    const { usuarioId, juntaId, metodo, registradoPorId, referenciaExterna } = params;
+    const { usuarioId, juntaId, metodo, registradoPorId, referenciaExterna } =
+      params;
 
     if (referenciaExterna) {
-      const existente = await ctx.findPagoByReferenciaExterna(referenciaExterna);
+      const existente =
+        await ctx.findPagoByReferenciaExterna(referenciaExterna);
       if (existente) {
         throw new PagoDuplicadoError(referenciaExterna);
       }

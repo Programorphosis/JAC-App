@@ -18,10 +18,16 @@ export interface UltimoPagoJunta {
 
 export interface IDebtDataProvider {
   /** Usuario debe existir y pertenecer a la junta. */
-  getUsuarioParaCalculo(usuarioId: string, juntaId: string): Promise<UsuarioParaCalculo | null>;
+  getUsuarioParaCalculo(
+    usuarioId: string,
+    juntaId: string,
+  ): Promise<UsuarioParaCalculo | null>;
 
   /** Último pago tipo JUNTA del usuario en la junta. */
-  getUltimoPagoJunta(usuarioId: string, juntaId: string): Promise<UltimoPagoJunta | null>;
+  getUltimoPagoJunta(
+    usuarioId: string,
+    juntaId: string,
+  ): Promise<UltimoPagoJunta | null>;
 
   /**
    * Estado laboral vigente en el mes. Debe existir exactamente un registro.

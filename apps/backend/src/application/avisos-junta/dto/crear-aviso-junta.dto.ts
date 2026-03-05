@@ -1,4 +1,4 @@
-import { IsString, IsOptional, MinLength, MaxLength } from 'class-validator';
+import { IsString, MinLength, MaxLength } from 'class-validator';
 
 /**
  * DTO para crear aviso de junta (admin/secretaria → afiliados).

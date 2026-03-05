@@ -1,5 +1,8 @@
 import { TipoPago, MetodoPago } from '@prisma/client';
-import type { IPaymentRegistrationContext, CreateJuntaPaymentData } from '../../domain/ports/payment-registration-context.port';
+import type {
+  IPaymentRegistrationContext,
+  CreateJuntaPaymentData,
+} from '../../domain/ports/payment-registration-context.port';
 import type { DebtResult } from '../../domain/types/debt.types';
 import type { RegisterAuditEventParams } from '../../domain/types/audit.types';
 import { DebtService } from '../../domain/services/debt.service';
@@ -18,9 +21,7 @@ type PrismaTx = Omit<
 export class PrismaPaymentRegistrationContext implements IPaymentRegistrationContext {
   private readonly debtService: DebtService;
 
-  constructor(
-    private readonly client: PrismaTx,
-  ) {
+  constructor(private readonly client: PrismaTx) {
     const provider = new PrismaDebtDataProvider(client);
     this.debtService = new DebtService(provider);
   }
@@ -29,7 +30,9 @@ export class PrismaPaymentRegistrationContext implements IPaymentRegistrationCon
     return this.debtService.calculateUserDebt({ usuarioId, juntaId });
   }
 
-  async createJuntaPayment(data: CreateJuntaPaymentData): Promise<{ pagoId: string }> {
+  async createJuntaPayment(
+    data: CreateJuntaPaymentData,
+  ): Promise<{ pagoId: string }> {
     const pago = await this.client.pago.create({
       data: {
         juntaId: data.juntaId,
@@ -59,7 +62,9 @@ export class PrismaPaymentRegistrationContext implements IPaymentRegistrationCon
     });
   }
 
-  async findPagoByReferenciaExterna(referenciaExterna: string): Promise<{ id: string } | null> {
+  async findPagoByReferenciaExterna(
+    referenciaExterna: string,
+  ): Promise<{ id: string } | null> {
     const pago = await this.client.pago.findUnique({
       where: { referenciaExterna },
       select: { id: true },
@@ -75,7 +80,10 @@ export class PrismaPaymentRegistrationContext implements IPaymentRegistrationCon
     return this.getNextConsecutivo(juntaId, 'PAGO_CARTA');
   }
 
-  private async getNextConsecutivo(juntaId: string, tipo: string): Promise<number> {
+  private async getNextConsecutivo(
+    juntaId: string,
+    tipo: string,
+  ): Promise<number> {
     const anio = new Date().getFullYear();
 
     const existente = await this.client.consecutivo.findUnique({

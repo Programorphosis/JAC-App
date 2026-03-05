@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { WebhooksController } from './webhooks.controller';
 
@@ -29,7 +28,11 @@ function makeBody(overrides: Record<string, unknown> = {}) {
     sent_at: '2025-01-15T10:00:00Z',
     timestamp: 1736935200,
     signature: {
-      properties: ['transaction.id', 'transaction.status', 'transaction.amount_in_cents'],
+      properties: [
+        'transaction.id',
+        'transaction.status',
+        'transaction.amount_in_cents',
+      ],
       checksum: '',
     },
   };
@@ -44,8 +47,14 @@ describe('WebhooksController', () => {
   let mockEncryption: Record<string, jest.Mock>;
 
   beforeEach(() => {
-    mockPagos = { registrarPagoDesdeProveedor: jest.fn().mockResolvedValue(undefined) };
-    mockFacturas = { registrarPagoDesdeProveedorFactura: jest.fn().mockResolvedValue(undefined) };
+    mockPagos = {
+      registrarPagoDesdeProveedor: jest.fn().mockResolvedValue(undefined),
+    };
+    mockFacturas = {
+      registrarPagoDesdeProveedorFactura: jest
+        .fn()
+        .mockResolvedValue(undefined),
+    };
     mockPrisma = {
       intencionPago: { findUnique: jest.fn().mockResolvedValue(null) },
       intencionPagoFactura: { findUnique: jest.fn().mockResolvedValue(null) },
@@ -92,14 +101,22 @@ describe('WebhooksController', () => {
   it('debe procesar rama junta con checksum válido', async () => {
     const secret = 'secret-123';
     const timestamp = 1736935200;
-    const checksum = buildChecksumFor('tx-001', 'APPROVED', 100000, timestamp, secret);
+    const checksum = buildChecksumFor(
+      'tx-001',
+      'APPROVED',
+      100000,
+      timestamp,
+      secret,
+    );
 
     mockPrisma.intencionPago.findUnique.mockResolvedValue({ juntaId: 'j1' });
-    mockPrisma.junta.findUnique.mockResolvedValue({ wompiEventsSecret: 'encrypted-secret' });
+    mockPrisma.junta.findUnique.mockResolvedValue({
+      wompiEventsSecret: 'encrypted-secret',
+    });
     mockEncryption.decrypt.mockReturnValue(secret);
 
     const body = makeBody();
-    body.signature!.checksum = checksum;
+    body.signature.checksum = checksum;
 
     const result = await controller.wompi(body as any, checksum);
 
@@ -111,15 +128,17 @@ describe('WebhooksController', () => {
 
   it('debe rechazar checksum inválido en rama junta', async () => {
     mockPrisma.intencionPago.findUnique.mockResolvedValue({ juntaId: 'j1' });
-    mockPrisma.junta.findUnique.mockResolvedValue({ wompiEventsSecret: 'encrypted' });
+    mockPrisma.junta.findUnique.mockResolvedValue({
+      wompiEventsSecret: 'encrypted',
+    });
     mockEncryption.decrypt.mockReturnValue('secret-123');
 
     const body = makeBody();
-    body.signature!.checksum = 'CHECKSUM_INVALIDO';
+    body.signature.checksum = 'CHECKSUM_INVALIDO';
 
-    await expect(controller.wompi(body as any, 'CHECKSUM_INVALIDO')).rejects.toThrow(
-      'Checksum inválido',
-    );
+    await expect(
+      controller.wompi(body as any, 'CHECKSUM_INVALIDO'),
+    ).rejects.toThrow('Checksum inválido');
   });
 
   it('debe rechazar si junta no tiene webhook configurado', async () => {
@@ -127,7 +146,7 @@ describe('WebhooksController', () => {
     mockPrisma.junta.findUnique.mockResolvedValue({ wompiEventsSecret: null });
 
     const body = makeBody();
-    body.signature!.checksum = 'any';
+    body.signature.checksum = 'any';
 
     await expect(controller.wompi(body as any, 'any')).rejects.toThrow(
       'Junta sin webhook configurado',
@@ -137,17 +156,26 @@ describe('WebhooksController', () => {
   it('debe manejar pago duplicado sin error en rama junta', async () => {
     const secret = 'secret-123';
     const timestamp = 1736935200;
-    const checksum = buildChecksumFor('tx-001', 'APPROVED', 100000, timestamp, secret);
+    const checksum = buildChecksumFor(
+      'tx-001',
+      'APPROVED',
+      100000,
+      timestamp,
+      secret,
+    );
 
     mockPrisma.intencionPago.findUnique.mockResolvedValue({ juntaId: 'j1' });
     mockPrisma.junta.findUnique.mockResolvedValue({ wompiEventsSecret: 'enc' });
     mockEncryption.decrypt.mockReturnValue(secret);
 
-    const { PagoDuplicadoError } = await import('../../domain/errors/domain.errors');
-    mockPagos.registrarPagoDesdeProveedor.mockRejectedValue(new PagoDuplicadoError('ref-1'));
+    const { PagoDuplicadoError } =
+      await import('../../domain/errors/domain.errors');
+    mockPagos.registrarPagoDesdeProveedor.mockRejectedValue(
+      new PagoDuplicadoError('ref-1'),
+    );
 
     const body = makeBody();
-    body.signature!.checksum = checksum;
+    body.signature.checksum = checksum;
 
     const result = await controller.wompi(body as any, checksum);
     expect(result).toEqual({ received: true });
@@ -156,13 +184,21 @@ describe('WebhooksController', () => {
   it('debe procesar rama factura plataforma', async () => {
     process.env.WOMPI_EVENTS_SECRET = 'plat-secret';
     const timestamp = 1736935200;
-    const checksum = buildChecksumFor('tx-001', 'APPROVED', 100000, timestamp, 'plat-secret');
+    const checksum = buildChecksumFor(
+      'tx-001',
+      'APPROVED',
+      100000,
+      timestamp,
+      'plat-secret',
+    );
 
     mockPrisma.intencionPago.findUnique.mockResolvedValue(null);
-    mockPrisma.intencionPagoFactura.findUnique.mockResolvedValue({ id: 'if-1' });
+    mockPrisma.intencionPagoFactura.findUnique.mockResolvedValue({
+      id: 'if-1',
+    });
 
     const body = makeBody();
-    body.signature!.checksum = checksum;
+    body.signature.checksum = checksum;
 
     const result = await controller.wompi(body as any, checksum);
 
@@ -176,10 +212,12 @@ describe('WebhooksController', () => {
     delete process.env.WOMPI_EVENTS_SECRET;
 
     mockPrisma.intencionPago.findUnique.mockResolvedValue(null);
-    mockPrisma.intencionPagoFactura.findUnique.mockResolvedValue({ id: 'if-1' });
+    mockPrisma.intencionPagoFactura.findUnique.mockResolvedValue({
+      id: 'if-1',
+    });
 
     const body = makeBody();
-    body.signature!.checksum = 'any';
+    body.signature.checksum = 'any';
 
     await expect(controller.wompi(body as any, 'any')).rejects.toThrow(
       'Plataforma sin WOMPI_EVENTS_SECRET',
@@ -199,9 +237,13 @@ describe('WebhooksController', () => {
 describe('WebhooksController – validarChecksumWompi (indirecta)', () => {
   it('debe rechazar si falta checksum en header y en body', async () => {
     const mockPrisma = {
-      intencionPago: { findUnique: jest.fn().mockResolvedValue({ juntaId: 'j1' }) },
+      intencionPago: {
+        findUnique: jest.fn().mockResolvedValue({ juntaId: 'j1' }),
+      },
       intencionPagoFactura: { findUnique: jest.fn() },
-      junta: { findUnique: jest.fn().mockResolvedValue({ wompiEventsSecret: 'enc' }) },
+      junta: {
+        findUnique: jest.fn().mockResolvedValue({ wompiEventsSecret: 'enc' }),
+      },
     };
     const mockEncryption = { decrypt: jest.fn().mockReturnValue('secret') };
 
@@ -215,6 +257,8 @@ describe('WebhooksController – validarChecksumWompi (indirecta)', () => {
     const body = makeBody();
     delete (body as any).signature;
 
-    await expect(controller.wompi(body as any, '')).rejects.toThrow('Falta checksum');
+    await expect(controller.wompi(body as any, '')).rejects.toThrow(
+      'Falta checksum',
+    );
   });
 });

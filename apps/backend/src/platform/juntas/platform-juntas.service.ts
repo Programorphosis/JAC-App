@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { normalizarTelefonoColombia } from '../../common/utils/validacion-telefono.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
@@ -10,7 +14,12 @@ import { AuditService } from '../../domain/services/audit.service';
 import { EncryptionService } from '../../infrastructure/encryption/encryption.service';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
-import { RolNombre, EstadoSuscripcion, EstadoFactura, TipoFactura } from '@prisma/client';
+import {
+  RolNombre,
+  EstadoSuscripcion,
+  EstadoFactura,
+  TipoFactura,
+} from '@prisma/client';
 import { LimitesService } from '../../infrastructure/limits/limites.service';
 import {
   calcularFechaVencimiento,
@@ -163,7 +172,7 @@ export class PlatformJuntasService {
       : null;
 
     const wompiConfigurado = !!junta.wompiPrivateKey;
-    const { wompiPrivateKey: _, ...rest } = junta;
+    const { wompiPrivateKey: _omitted, ...rest } = junta;
 
     return {
       data: {
@@ -190,7 +199,9 @@ export class PlatformJuntasService {
     },
     ejecutadoPorId: string,
   ) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const data: Record<string, unknown> = {};
@@ -201,13 +212,19 @@ export class PlatformJuntasService {
       return this.encryption.encrypt(v.trim());
     };
 
-    if (dto.wompiPrivateKey !== undefined) data.wompiPrivateKey = enc(dto.wompiPrivateKey);
-    if (dto.wompiPublicKey !== undefined) data.wompiPublicKey = enc(dto.wompiPublicKey);
+    if (dto.wompiPrivateKey !== undefined)
+      data.wompiPrivateKey = enc(dto.wompiPrivateKey);
+    if (dto.wompiPublicKey !== undefined)
+      data.wompiPublicKey = enc(dto.wompiPublicKey);
     if (dto.wompiIntegritySecret !== undefined)
       data.wompiIntegritySecret = enc(dto.wompiIntegritySecret);
-    if (dto.wompiEventsSecret !== undefined) data.wompiEventsSecret = enc(dto.wompiEventsSecret);
+    if (dto.wompiEventsSecret !== undefined)
+      data.wompiEventsSecret = enc(dto.wompiEventsSecret);
     if (dto.wompiEnvironment !== undefined)
-      data.wompiEnvironment = dto.wompiEnvironment && dto.wompiEnvironment.trim() ? dto.wompiEnvironment.trim() : null;
+      data.wompiEnvironment =
+        dto.wompiEnvironment && dto.wompiEnvironment.trim()
+          ? dto.wompiEnvironment.trim()
+          : null;
 
     await this.prisma.junta.update({
       where: { id: juntaId },
@@ -230,7 +247,9 @@ export class PlatformJuntasService {
 
   /** Lista usuarios de la junta (para selector cambiar admin). */
   async listarUsuarios(juntaId: string) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const usuarios = await this.prisma.usuario.findMany({
@@ -260,7 +279,9 @@ export class PlatformJuntasService {
 
   /** Resumen de la junta: usuarios, pagos recientes, cartas emitidas. */
   async resumen(juntaId: string) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const [counts, pagosRecientes, cartasRecientes] = await Promise.all([
@@ -338,7 +359,9 @@ export class PlatformJuntasService {
     periodo: 'mensual' | 'anual' | undefined,
     ejecutadoPorId: string,
   ) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const existente = await this.prisma.suscripcion.findUnique({
@@ -375,7 +398,8 @@ export class PlatformJuntasService {
 
     if (dias > 0) {
       const periodoFactura = periodo ?? 'anual';
-      const monto = periodoFactura === 'mensual' ? plan.precioMensual : plan.precioAnual;
+      const monto =
+        periodoFactura === 'mensual' ? plan.precioMensual : plan.precioAnual;
       await this.prisma.factura.create({
         data: {
           juntaId,
@@ -422,16 +446,22 @@ export class PlatformJuntasService {
       where: { juntaId },
       include: { plan: true },
     });
-    if (!suscripcion) throw new NotFoundException('La junta no tiene suscripción');
+    if (!suscripcion)
+      throw new NotFoundException('La junta no tiene suscripción');
 
     const updateData: Record<string, unknown> = {};
     if (data.planId) {
-      const plan = await this.prisma.plan.findUnique({ where: { id: data.planId } });
+      const plan = await this.prisma.plan.findUnique({
+        where: { id: data.planId },
+      });
       if (!plan) throw new NotFoundException('Plan no encontrado');
 
       const resultado = await this.limites.validarCambioPlan(
         juntaId,
-        { precioMensual: suscripcion.plan.precioMensual, id: suscripcion.plan.id },
+        {
+          precioMensual: suscripcion.plan.precioMensual,
+          id: suscripcion.plan.id,
+        },
         plan,
         data.forzarDowngrade ?? false,
         data.periodo ?? 'anual',
@@ -460,7 +490,8 @@ export class PlatformJuntasService {
       } else {
         // Upgrade o mismo tier
         updateData.planId = data.planId;
-        const debeActualizarFecha = resultado.esUpgrade || (!esDowngrade && data.periodo != null);
+        const debeActualizarFecha =
+          resultado.esUpgrade || (!esDowngrade && data.periodo != null);
         if (debeActualizarFecha) {
           updateData.fechaVencimiento = calcularFechaVencimiento({
             fechaInicio: new Date(),
@@ -496,10 +527,14 @@ export class PlatformJuntasService {
           'El plan actual no permite overrides. Elija un plan personalizable para aumentar capacidades.',
         );
       }
-      if (data.overrideLimiteUsuarios !== undefined) updateData.overrideLimiteUsuarios = data.overrideLimiteUsuarios;
-      if (data.overrideLimiteStorageMb !== undefined) updateData.overrideLimiteStorageMb = data.overrideLimiteStorageMb;
-      if (data.overrideLimiteCartasMes !== undefined) updateData.overrideLimiteCartasMes = data.overrideLimiteCartasMes;
-      if (data.motivoPersonalizacion !== undefined) updateData.motivoPersonalizacion = data.motivoPersonalizacion;
+      if (data.overrideLimiteUsuarios !== undefined)
+        updateData.overrideLimiteUsuarios = data.overrideLimiteUsuarios;
+      if (data.overrideLimiteStorageMb !== undefined)
+        updateData.overrideLimiteStorageMb = data.overrideLimiteStorageMb;
+      if (data.overrideLimiteCartasMes !== undefined)
+        updateData.overrideLimiteCartasMes = data.overrideLimiteCartasMes;
+      if (data.motivoPersonalizacion !== undefined)
+        updateData.motivoPersonalizacion = data.motivoPersonalizacion;
       updateData.esPlanPersonalizado = true;
     }
 
@@ -579,7 +614,9 @@ export class PlatformJuntasService {
    * que efectivamente quedaron en estado VENCIDA (excluye las que hicieron downgrade).
    * Usado por el cron para enviar notificaciones de email.
    */
-  async marcarSuscripcionesVencidasConJuntas(): Promise<{ nombre: string; email: string | null }[]> {
+  async marcarSuscripcionesVencidasConJuntas(): Promise<
+    { nombre: string; email: string | null }[]
+  > {
     const ahora = new Date();
     const vencidas = await this.prisma.suscripcion.findMany({
       where: {
@@ -618,7 +655,10 @@ export class PlatformJuntasService {
           where: { id: susc.id },
           data: { estado: EstadoSuscripcion.VENCIDA },
         });
-        juntasVencidas.push({ nombre: susc.junta.nombre, email: susc.junta.email });
+        juntasVencidas.push({
+          nombre: susc.junta.nombre,
+          email: susc.junta.email,
+        });
       }
     }
 
@@ -627,48 +667,65 @@ export class PlatformJuntasService {
 
   /** Uso de la junta: usuarios activos, pagos/mes, cartas/mes, documentos. */
   async uso(juntaId: string) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const now = new Date();
     const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [usuariosActivos, pagosEsteMes, cartasEsteMes, docsAgg, documentosCount] =
-      await Promise.all([
-        this.prisma.usuario.count({
-          where: { juntaId, activo: true },
-        }),
-        this.prisma.pago.count({
-          where: {
-            juntaId,
-            fechaPago: { gte: inicioMes },
-          },
-        }),
-        this.prisma.carta.count({
-          where: {
-            juntaId,
-            estado: 'APROBADA',
-            fechaEmision: { gte: inicioMes },
-          },
-        }),
-        this.prisma.documento.aggregate({
-          where: { usuario: { juntaId } },
-          _sum: { sizeBytes: true },
-        }),
-        this.prisma.documento.count({
-          where: { usuario: { juntaId } },
-        }),
-      ]);
+    const [
+      usuariosActivos,
+      pagosEsteMes,
+      cartasEsteMes,
+      docsAgg,
+      documentosCount,
+    ] = await Promise.all([
+      this.prisma.usuario.count({
+        where: { juntaId, activo: true },
+      }),
+      this.prisma.pago.count({
+        where: {
+          juntaId,
+          fechaPago: { gte: inicioMes },
+        },
+      }),
+      this.prisma.carta.count({
+        where: {
+          juntaId,
+          estado: 'APROBADA',
+          fechaEmision: { gte: inicioMes },
+        },
+      }),
+      this.prisma.documento.aggregate({
+        where: { usuario: { juntaId } },
+        _sum: { sizeBytes: true },
+      }),
+      this.prisma.documento.count({
+        where: { usuario: { juntaId } },
+      }),
+    ]);
 
     const totalBytes = docsAgg._sum.sizeBytes ?? 0n;
-    const storageMb = Math.round((Number(totalBytes) / 1024 / 1024) * 100) / 100;
+    const storageMb =
+      Math.round((Number(totalBytes) / 1024 / 1024) * 100) / 100;
 
     const limitesEfectivos = await this.limites.getLimitesEfectivos(juntaId);
     const limitesParaApi = limitesEfectivos
       ? {
-          limiteUsuarios: limitesEfectivos.limiteUsuarios === Infinity ? null : limitesEfectivos.limiteUsuarios,
-          limiteStorageMb: limitesEfectivos.limiteStorageMb === Infinity ? null : limitesEfectivos.limiteStorageMb,
-          limiteCartasMes: limitesEfectivos.limiteCartasMes === Infinity ? null : limitesEfectivos.limiteCartasMes,
+          limiteUsuarios:
+            limitesEfectivos.limiteUsuarios === Infinity
+              ? null
+              : limitesEfectivos.limiteUsuarios,
+          limiteStorageMb:
+            limitesEfectivos.limiteStorageMb === Infinity
+              ? null
+              : limitesEfectivos.limiteStorageMb,
+          limiteCartasMes:
+            limitesEfectivos.limiteCartasMes === Infinity
+              ? null
+              : limitesEfectivos.limiteCartasMes,
         }
       : null;
 
@@ -743,7 +800,9 @@ export class PlatformJuntasService {
     if (data.email !== undefined) {
       const emailVal = data.email?.trim();
       if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-        throw new BadRequestException('El email no es válido. Email y teléfono son obligatorios.');
+        throw new BadRequestException(
+          'El email no es válido. Email y teléfono son obligatorios.',
+        );
       }
     }
 
@@ -755,17 +814,23 @@ export class PlatformJuntasService {
       ...(data.activo === false && { fechaBaja: new Date() }),
       ...(data.activo === true && { fechaBaja: null }),
       ...(data.telefono !== undefined && {
-        telefono: normalizarTelefonoColombia(data.telefono!)!,
+        telefono: normalizarTelefonoColombia(data.telefono)!,
       }),
       ...(data.email !== undefined && {
         email: data.email!.trim().toLowerCase(),
       }),
       ...(data.direccion !== undefined && { direccion: data.direccion }),
       ...(data.ciudad !== undefined && { ciudad: data.ciudad }),
-      ...(data.departamento !== undefined && { departamento: data.departamento }),
-      ...(data.personeriaJuridica !== undefined && { personeriaJuridica: data.personeriaJuridica }),
+      ...(data.departamento !== undefined && {
+        departamento: data.departamento,
+      }),
+      ...(data.personeriaJuridica !== undefined && {
+        personeriaJuridica: data.personeriaJuridica,
+      }),
       ...(data.membreteUrl !== undefined && { membreteUrl: data.membreteUrl }),
-      ...(data.enMantenimiento !== undefined && { enMantenimiento: data.enMantenimiento }),
+      ...(data.enMantenimiento !== undefined && {
+        enMantenimiento: data.enMantenimiento,
+      }),
     };
 
     const actualizada = await this.prisma.junta.update({
@@ -829,11 +894,14 @@ export class PlatformJuntasService {
   }
 
   async resetPasswordAdmin(juntaId: string, ejecutadoPorId: string) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const admin = await this.obtenerAdminDeJunta(juntaId);
-    if (!admin) throw new NotFoundException('No hay admin asignado en esta junta');
+    if (!admin)
+      throw new NotFoundException('No hay admin asignado en esta junta');
 
     const passwordTemporal = generarPasswordTemporal();
     const passwordHash = await bcrypt.hash(passwordTemporal, 10);
@@ -870,7 +938,9 @@ export class PlatformJuntasService {
     nuevoAdminUsuarioId: string,
     ejecutadoPorId: string,
   ) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const nuevoAdmin = await this.prisma.usuario.findFirst({
@@ -878,7 +948,9 @@ export class PlatformJuntasService {
       include: { roles: { include: { rol: true } } },
     });
     if (!nuevoAdmin) {
-      throw new BadRequestException('El usuario no existe o no pertenece a esta junta');
+      throw new BadRequestException(
+        'El usuario no existe o no pertenece a esta junta',
+      );
     }
 
     const rolAdmin = await this.prisma.rol.findUniqueOrThrow({
@@ -937,11 +1009,14 @@ export class PlatformJuntasService {
   }
 
   async bloquearAdmin(juntaId: string, ejecutadoPorId: string) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const admin = await this.obtenerAdminDeJunta(juntaId);
-    if (!admin) throw new NotFoundException('No hay admin asignado en esta junta');
+    if (!admin)
+      throw new NotFoundException('No hay admin asignado en esta junta');
 
     await this.prisma.usuario.update({
       where: { id: admin.id },

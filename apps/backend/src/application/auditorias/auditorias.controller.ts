@@ -13,7 +13,12 @@ import { AuditoriasService } from './auditorias.service';
  */
 @Controller('auditorias')
 @UseGuards(AuthGuard('jwt'), JuntaGuard, RolesGuard)
-@Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL)
+@Roles(
+  RolNombre.ADMIN,
+  RolNombre.SECRETARIA,
+  RolNombre.TESORERA,
+  RolNombre.FISCAL,
+)
 export class AuditoriasController {
   constructor(private readonly auditorias: AuditoriasService) {}
 
@@ -35,7 +40,8 @@ export class AuditoriasController {
       search: search?.trim() || undefined,
     };
     const validSortBy = ['fecha', 'accion', 'entidad'];
-    if (sortBy && validSortBy.includes(sortBy)) opts.sortBy = sortBy as typeof opts.sortBy;
+    if (sortBy && validSortBy.includes(sortBy))
+      opts.sortBy = sortBy as typeof opts.sortBy;
     if (sortOrder === 'asc' || sortOrder === 'desc') opts.sortOrder = sortOrder;
     const result = await this.auditorias.listarPorJunta(juntaId, opts);
     return {

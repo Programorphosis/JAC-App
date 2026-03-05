@@ -14,6 +14,8 @@ export class VerificarCodigoRecuperacionDto {
   codigo!: string;
 
   @IsString()
-  @MinLength(6, { message: 'La nueva contraseña debe tener al menos 6 caracteres' })
+  @MinLength(6, {
+    message: 'La nueva contraseña debe tener al menos 6 caracteres',
+  })
   passwordNueva!: string;
 }

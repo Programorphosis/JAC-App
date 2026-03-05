@@ -9,7 +9,9 @@ const REGEX_TELEFONO_COLOMBIA = /^(\+?57)?[0-9]{10}$/;
 /**
  * Valida si el valor es un teléfono colombiano válido (10 dígitos, opcional +57).
  */
-export function validarTelefonoColombia(valor: string | null | undefined): boolean {
+export function validarTelefonoColombia(
+  valor: string | null | undefined,
+): boolean {
   if (valor == null || typeof valor !== 'string') return false;
   const limpio = valor.replace(/\s/g, '').trim();
   return REGEX_TELEFONO_COLOMBIA.test(limpio);
@@ -18,7 +20,9 @@ export function validarTelefonoColombia(valor: string | null | undefined): boole
 /**
  * Normaliza a E.164 (+573001234567). Retorna null si inválido.
  */
-export function normalizarTelefonoColombia(valor: string | null | undefined): string | null {
+export function normalizarTelefonoColombia(
+  valor: string | null | undefined,
+): string | null {
   if (valor == null || typeof valor !== 'string') return null;
   const limpio = valor.replace(/\s/g, '').trim();
   if (!REGEX_TELEFONO_COLOMBIA.test(limpio)) return null;

@@ -19,20 +19,25 @@ export class PlatformDashboardService {
     const now = new Date();
     const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [totalJuntas, juntasActivas, juntasNuevasEsteMes, juntasVencidas, juntasConAlertas] =
-      await Promise.all([
-        this.prisma.junta.count(),
-        this.prisma.junta.count({ where: { activo: true } }),
-        this.prisma.junta.count({
-          where: { fechaCreacion: { gte: inicioMes } },
-        }),
-        this.prisma.junta.count({
-          where: {
-            suscripcion: { estado: EstadoSuscripcion.VENCIDA },
-          },
-        }),
-        this.contarJuntasConAlertas(),
-      ]);
+    const [
+      totalJuntas,
+      juntasActivas,
+      juntasNuevasEsteMes,
+      juntasVencidas,
+      juntasConAlertas,
+    ] = await Promise.all([
+      this.prisma.junta.count(),
+      this.prisma.junta.count({ where: { activo: true } }),
+      this.prisma.junta.count({
+        where: { fechaCreacion: { gte: inicioMes } },
+      }),
+      this.prisma.junta.count({
+        where: {
+          suscripcion: { estado: EstadoSuscripcion.VENCIDA },
+        },
+      }),
+      this.contarJuntasConAlertas(),
+    ]);
 
     return {
       data: {
@@ -49,7 +54,11 @@ export class PlatformDashboardService {
   /** Cuenta juntas con al menos una alerta >80%. */
   private async contarJuntasConAlertas(): Promise<number> {
     const juntas = await this.prisma.junta.findMany({
-      where: { suscripcion: { estado: { in: [EstadoSuscripcion.ACTIVA, EstadoSuscripcion.PRUEBA] } } },
+      where: {
+        suscripcion: {
+          estado: { in: [EstadoSuscripcion.ACTIVA, EstadoSuscripcion.PRUEBA] },
+        },
+      },
       select: { id: true },
     });
     let count = 0;

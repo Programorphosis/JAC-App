@@ -33,7 +33,13 @@ export class DeudaController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL, RolNombre.AFILIADO)
+  @Roles(
+    RolNombre.ADMIN,
+    RolNombre.SECRETARIA,
+    RolNombre.TESORERA,
+    RolNombre.FISCAL,
+    RolNombre.AFILIADO,
+  )
   async obtener(
     @Param('usuarioId') usuarioId: string,
     @Query('detalle') detalle?: string,
@@ -42,7 +48,10 @@ export class DeudaController {
     const user = req!.user;
     const juntaId = user.juntaId!;
 
-    if (!this.permissions.puedeConsultarRecursoDeOtro(user) && usuarioId !== user.id) {
+    if (
+      !this.permissions.puedeConsultarRecursoDeOtro(user) &&
+      usuarioId !== user.id
+    ) {
       throw new ForbiddenException('Solo puede consultar su propia deuda');
     }
 

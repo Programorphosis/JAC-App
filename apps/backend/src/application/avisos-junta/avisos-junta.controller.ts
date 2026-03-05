@@ -34,7 +34,7 @@ export class AvisosJuntaController {
 
   @Get()
   async listarActivos(@Request() req: { user: JwtUser }) {
-    const user = req.user as JwtUser;
+    const user = req.user;
     return this.avisos.listarActivos(user.juntaId ?? null);
   }
 
@@ -45,7 +45,7 @@ export class AvisosJuntaController {
     @Request() req: { user: JwtUser },
     @Query('activo') activo?: string,
   ) {
-    const juntaId = (req.user as JwtUser).juntaId!;
+    const juntaId = req.user.juntaId!;
     const activoFilter =
       activo === 'true' ? true : activo === 'false' ? false : undefined;
     return this.avisos.listarTodos(juntaId, activoFilter);
@@ -58,8 +58,8 @@ export class AvisosJuntaController {
     @Request() req: { user: JwtUser },
     @Body() body: CrearAvisoJuntaDto,
   ) {
-    const juntaId = (req.user as JwtUser).juntaId!;
-    return this.avisos.crear(juntaId, req.user as JwtUser, body);
+    const juntaId = req.user.juntaId!;
+    return this.avisos.crear(juntaId, req.user, body);
   }
 
   @Patch(':id')
@@ -70,15 +70,15 @@ export class AvisosJuntaController {
     @Request() req: { user: JwtUser },
     @Body() body: ActualizarAvisoJuntaDto,
   ) {
-    const juntaId = (req.user as JwtUser).juntaId!;
-    return this.avisos.actualizar(id, juntaId, req.user as JwtUser, body);
+    const juntaId = req.user.juntaId!;
+    return this.avisos.actualizar(id, juntaId, req.user, body);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA)
   async eliminar(@Param('id') id: string, @Request() req: { user: JwtUser }) {
-    const juntaId = (req.user as JwtUser).juntaId!;
-    return this.avisos.eliminar(id, juntaId, req.user as JwtUser);
+    const juntaId = req.user.juntaId!;
+    return this.avisos.eliminar(id, juntaId, req.user);
   }
 }

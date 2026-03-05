@@ -23,7 +23,9 @@ export class DomainExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const requestId = (request?.headers?.[REQUEST_ID_HEADER.toLowerCase()] as string) || undefined;
+    const requestId =
+      (request?.headers?.[REQUEST_ID_HEADER.toLowerCase()] as string) ||
+      undefined;
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Error interno del servidor';
@@ -31,14 +33,20 @@ export class DomainExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse();
-      message = typeof res === 'string' ? res : (res as { message?: string | string[] })?.message as string;
+      message =
+        typeof res === 'string'
+          ? res
+          : ((res as { message?: string | string[] })?.message as string);
       if (Array.isArray(message)) message = message.join('. ');
     } else if (exception instanceof DomainError) {
       status = this.mapDomainErrorToStatus(exception);
       message = exception.message;
     } else if (exception instanceof Error) {
       message = exception.message;
-      this.logger.warn(`Error no controlado: ${exception.message}`, exception.stack);
+      this.logger.warn(
+        `Error no controlado: ${exception.message}`,
+        exception.stack,
+      );
     }
 
     const json: Record<string, unknown> = {

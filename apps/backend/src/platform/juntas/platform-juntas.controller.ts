@@ -11,10 +11,12 @@ import {
   Request,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { PlatformJuntasService, CreateJuntaPlatformDto } from './platform-juntas.service';
+import {
+  PlatformJuntasService,
+  CreateJuntaPlatformDto,
+} from './platform-juntas.service';
 import { PlatformAdminGuard } from '../../auth/guards/platform-admin.guard';
 import { JwtUser } from '../../auth/strategies/jwt.strategy';
-import { CreateJuntaAdminUser } from '../../application/junta/junta.service';
 import { CrearSuscripcionDto } from '../dto/crear-suscripcion.dto';
 import { CrearIntencionSuscripcionDto } from '../dto/crear-intencion-suscripcion.dto';
 import { CrearIntencionOverridesDto } from '../dto/crear-intencion-overrides.dto';
@@ -82,7 +84,13 @@ export class PlatformJuntasController {
     @Body() body: CrearSuscripcionDto,
     @Request() req: { user: JwtUser },
   ) {
-    return this.juntas.crearSuscripcion(id, body.planId, body.diasPrueba, body.periodo, req.user.id);
+    return this.juntas.crearSuscripcion(
+      id,
+      body.planId,
+      body.diasPrueba,
+      body.periodo,
+      req.user.id,
+    );
   }
 
   @Post(':id/intencion-suscripcion')

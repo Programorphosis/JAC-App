@@ -13,7 +13,6 @@ import type {
   ApplyMonthlyCutoffParams,
 } from '../types/requisito.types';
 import {
-  UsuarioNoEncontradoError,
   EstadoRequisitoMismoEstadoError,
   EstadoRequisitoMismaObligacionError,
 } from '../errors/domain.errors';
@@ -24,8 +23,11 @@ export class RequisitoService {
     private readonly auditStore: IAuditEventStore,
   ) {}
 
-  async updateEstadoRequisito(params: UpdateEstadoRequisitoParams): Promise<void> {
-    const { requisitoTipoId, usuarioId, juntaId, nuevoEstado, cambiadoPorId } = params;
+  async updateEstadoRequisito(
+    params: UpdateEstadoRequisitoParams,
+  ): Promise<void> {
+    const { requisitoTipoId, usuarioId, juntaId, nuevoEstado, cambiadoPorId } =
+      params;
 
     const actual = await this.requisitoRepo.getEstadoRequisito(
       usuarioId,
@@ -33,7 +35,11 @@ export class RequisitoService {
       juntaId,
     );
     if (actual?.estado === nuevoEstado) {
-      throw new EstadoRequisitoMismoEstadoError(usuarioId, requisitoTipoId, nuevoEstado);
+      throw new EstadoRequisitoMismoEstadoError(
+        usuarioId,
+        requisitoTipoId,
+        nuevoEstado,
+      );
     }
 
     await this.requisitoRepo.createHistorialRequisito({
@@ -59,7 +65,11 @@ export class RequisitoService {
       entidad: 'EstadoRequisito',
       entidadId: `${usuarioId}:${requisitoTipoId}`,
       accion: 'CAMBIO_ESTADO_REQUISITO',
-      metadata: { requisitoTipoId, estadoAnterior: actual?.estado, estadoNuevo: nuevoEstado },
+      metadata: {
+        requisitoTipoId,
+        estadoAnterior: actual?.estado,
+        estadoNuevo: nuevoEstado,
+      },
       ejecutadoPorId: cambiadoPorId,
     });
   }
@@ -67,7 +77,13 @@ export class RequisitoService {
   async updateObligacionRequisito(
     params: UpdateObligacionRequisitoParams,
   ): Promise<void> {
-    const { requisitoTipoId, usuarioId, juntaId, obligacionActiva, cambiadoPorId } = params;
+    const {
+      requisitoTipoId,
+      usuarioId,
+      juntaId,
+      obligacionActiva,
+      cambiadoPorId,
+    } = params;
 
     const actual = await this.requisitoRepo.getEstadoRequisito(
       usuarioId,
@@ -114,7 +130,11 @@ export class RequisitoService {
     const requisitosYUsuarios =
       await this.requisitoRepo.getRequisitosYUsuariosParaCorte(juntaId);
 
-    for (const { requisitoTipoId, juntaId: jId, usuarios } of requisitosYUsuarios) {
+    for (const {
+      requisitoTipoId,
+      juntaId: jId,
+      usuarios,
+    } of requisitosYUsuarios) {
       for (const { usuarioId } of usuarios) {
         await this.requisitoRepo.createHistorialRequisito({
           usuarioId,

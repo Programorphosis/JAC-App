@@ -78,10 +78,15 @@ export class WompiReconciliationService {
         const creds = await this.obtenerCredencialesJunta(intencion.juntaId);
         if (!creds) continue;
 
-        const link = await this.wompi.obtenerPaymentLink(intencion.wompiLinkId, creds);
+        const link = await this.wompi.obtenerPaymentLink(
+          intencion.wompiLinkId,
+          creds,
+        );
         if (!link?.transactions?.length) continue;
 
-        const approved = link.transactions.filter((t) => t.status === 'APPROVED');
+        const approved = link.transactions.filter(
+          (t) => t.status === 'APPROVED',
+        );
         for (const tx of approved) {
           const yaExiste = await this.prisma.pago.findUnique({
             where: { referenciaExterna: tx.id },
@@ -132,12 +137,19 @@ export class WompiReconciliationService {
         });
         if (!factura) continue;
 
-        const link = await this.wompi.obtenerPaymentLink(intencion.wompiLinkId, credsPlataforma);
+        const link = await this.wompi.obtenerPaymentLink(
+          intencion.wompiLinkId,
+          credsPlataforma,
+        );
         if (!link?.transactions?.length) continue;
 
-        const approved = link.transactions.filter((t) => t.status === 'APPROVED');
+        const approved = link.transactions.filter(
+          (t) => t.status === 'APPROVED',
+        );
         for (const tx of approved) {
-          const yaExiste = factura.pagos.some((p) => p.referenciaExterna === tx.id);
+          const yaExiste = factura.pagos.some(
+            (p) => p.referenciaExterna === tx.id,
+          );
           if (yaExiste) continue;
 
           try {
@@ -160,9 +172,10 @@ export class WompiReconciliationService {
     return result;
   }
 
-  private async obtenerCredencialesJunta(
-    juntaId: string,
-  ): Promise<{ privateKey: string; environment: 'sandbox' | 'production' } | null> {
+  private async obtenerCredencialesJunta(juntaId: string): Promise<{
+    privateKey: string;
+    environment: 'sandbox' | 'production';
+  } | null> {
     const junta = await this.prisma.junta.findUnique({
       where: { id: juntaId },
       select: { wompiPrivateKey: true, wompiEnvironment: true },
@@ -170,7 +183,9 @@ export class WompiReconciliationService {
     if (!junta?.wompiPrivateKey) return null;
 
     const privateKey = this.encryption.decrypt(junta.wompiPrivateKey);
-    const environment = (junta.wompiEnvironment || 'sandbox') as 'sandbox' | 'production';
+    const environment = (junta.wompiEnvironment || 'sandbox') as
+      | 'sandbox'
+      | 'production';
     return { privateKey, environment };
   }
 

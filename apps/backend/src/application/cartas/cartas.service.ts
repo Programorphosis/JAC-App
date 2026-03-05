@@ -42,7 +42,10 @@ export class CartasService {
     private readonly limites: LimitesService,
   ) {}
 
-  async listarPorUsuario(usuarioId: string, juntaId: string): Promise<
+  async listarPorUsuario(
+    usuarioId: string,
+    juntaId: string,
+  ): Promise<
     Array<{
       id: string;
       estado: string;
@@ -196,8 +199,14 @@ export class CartasService {
   }
 
   /** Valida deuda=0, pago CARTA vigente, requisitos AL_DIA. Lanza si no cumple. */
-  private async validarRequisitosCarta(usuarioId: string, juntaId: string): Promise<void> {
-    const deuda = await this.debtService.calculateUserDebt({ usuarioId, juntaId });
+  private async validarRequisitosCarta(
+    usuarioId: string,
+    juntaId: string,
+  ): Promise<void> {
+    const deuda = await this.debtService.calculateUserDebt({
+      usuarioId,
+      juntaId,
+    });
     if (deuda.total !== 0) {
       throw new RequisitosCartaNoCumplidosError(
         `Deuda pendiente: ${deuda.total}. Debe estar al día para solicitar carta.`,

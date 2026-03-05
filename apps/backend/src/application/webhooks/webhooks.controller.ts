@@ -105,7 +105,8 @@ export class WebhooksController {
       } catch (err) {
         const esDuplicado =
           err instanceof PagoDuplicadoError ||
-          (err instanceof Error && (err as Error & { code?: string }).code === 'PAGO_DUPLICADO');
+          (err instanceof Error &&
+            (err as Error & { code?: string }).code === 'PAGO_DUPLICADO');
         if (esDuplicado) return { received: true };
         throw err;
       }
@@ -119,7 +120,9 @@ export class WebhooksController {
     if (intencionFactura) {
       const secret = process.env.WOMPI_EVENTS_SECRET;
       if (!secret) {
-        throw new BadRequestException('Plataforma sin WOMPI_EVENTS_SECRET configurado');
+        throw new BadRequestException(
+          'Plataforma sin WOMPI_EVENTS_SECRET configurado',
+        );
       }
       this.validarChecksumWompi(body, headerChecksum, secret);
 
@@ -159,12 +162,15 @@ export class WebhooksController {
     for (const path of props) {
       const v = this.getNestedValue(body.data, path);
       if (v !== undefined && v !== null) {
-        values.push(String(v));
+        values.push(String(v as string | number));
       }
     }
 
     const concatenated = values.join('') + String(timestamp) + secret;
-    const calculated = createHash('sha256').update(concatenated).digest('hex').toUpperCase();
+    const calculated = createHash('sha256')
+      .update(concatenated)
+      .digest('hex')
+      .toUpperCase();
 
     if (calculated !== checksum.toUpperCase()) {
       throw new BadRequestException('Checksum inválido');

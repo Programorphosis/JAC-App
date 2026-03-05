@@ -7,7 +7,8 @@ export const REQUEST_ID_HEADER = 'X-Request-Id';
 @Injectable()
 export class RequestIdMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction): void {
-    const requestId = (req.headers[REQUEST_ID_HEADER.toLowerCase()] as string) || randomUUID();
+    const requestId =
+      (req.headers[REQUEST_ID_HEADER.toLowerCase()] as string) || randomUUID();
     req.headers[REQUEST_ID_HEADER.toLowerCase()] = requestId;
     res.setHeader(REQUEST_ID_HEADER, requestId);
     next();

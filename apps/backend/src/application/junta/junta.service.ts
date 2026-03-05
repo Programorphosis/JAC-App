@@ -3,7 +3,12 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../../domain/services/audit.service';
 import { normalizarTelefonoColombia } from '../../common/utils/validacion-telefono.util';
 import * as bcrypt from 'bcrypt';
-import { RolNombre, EstadoSuscripcion, EstadoFactura, TipoFactura } from '@prisma/client';
+import {
+  RolNombre,
+  EstadoSuscripcion,
+  EstadoFactura,
+  TipoFactura,
+} from '@prisma/client';
 import {
   calcularFechaVencimiento,
   getEstadoSuscripcion,
@@ -37,8 +42,18 @@ export interface CreateJuntaParams {
 }
 
 export interface CreateJuntaResult {
-  junta: { id: string; nombre: string; nit: string | null; montoCarta: number | null };
-  adminUsuario: { id: string; nombres: string; apellidos: string; numeroDocumento: string };
+  junta: {
+    id: string;
+    nombre: string;
+    nit: string | null;
+    montoCarta: number | null;
+  };
+  adminUsuario: {
+    id: string;
+    nombres: string;
+    apellidos: string;
+    numeroDocumento: string;
+  };
   passwordTemporal: string;
 }
 
@@ -56,7 +71,9 @@ export class JuntaService {
 
   async createJunta(params: CreateJuntaParams): Promise<CreateJuntaResult> {
     if (!params.aceptoTerminos) {
-      throw new BadRequestException('Se requiere aceptar los términos de servicio para crear una junta');
+      throw new BadRequestException(
+        'Se requiere aceptar los términos de servicio para crear una junta',
+      );
     }
     const emailNorm = params.email?.trim().toLowerCase();
     if (!emailNorm || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm)) {
@@ -64,7 +81,9 @@ export class JuntaService {
     }
     const telefonoNorm = normalizarTelefonoColombia(params.telefono);
     if (!telefonoNorm) {
-      throw new BadRequestException('El teléfono de la junta debe ser un número colombiano válido (10 dígitos)');
+      throw new BadRequestException(
+        'El teléfono de la junta debe ser un número colombiano válido (10 dígitos)',
+      );
     }
     const passwordHash = await bcrypt.hash(params.passwordTemporal, 10);
 
@@ -160,7 +179,10 @@ export class JuntaService {
       entidad: 'Junta',
       entidadId: result.junta.id,
       accion: 'CREACION_JUNTA',
-      metadata: { nombre: result.junta.nombre, adminUsuarioId: result.adminUsuario.id },
+      metadata: {
+        nombre: result.junta.nombre,
+        adminUsuarioId: result.adminUsuario.id,
+      },
       ejecutadoPorId: params.ejecutadoPorId,
     });
 

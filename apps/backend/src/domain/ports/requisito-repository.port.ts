@@ -62,7 +62,11 @@ export interface IRequisitoRepository {
   }): Promise<void>;
 
   /** Requisitos con tieneCorteAutomatico=true y activo=true. Para cada uno, usuarios con obligacionActiva y AL_DIA. */
-  getRequisitosYUsuariosParaCorte(
-    juntaId?: string,
-  ): Promise<Array<{ requisitoTipoId: string; juntaId: string; usuarios: UsuarioParaCorte[] }>>;
+  getRequisitosYUsuariosParaCorte(juntaId?: string): Promise<
+    Array<{
+      requisitoTipoId: string;
+      juntaId: string;
+      usuarios: UsuarioParaCorte[];
+    }>
+  >;
 }

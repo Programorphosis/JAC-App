@@ -35,7 +35,14 @@ export class EstadoGeneralController {
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.TESORERA, RolNombre.FISCAL, RolNombre.AFILIADO, RolNombre.RECEPTOR_AGUA)
+  @Roles(
+    RolNombre.ADMIN,
+    RolNombre.SECRETARIA,
+    RolNombre.TESORERA,
+    RolNombre.FISCAL,
+    RolNombre.AFILIADO,
+    RolNombre.RECEPTOR_AGUA,
+  )
   async obtener(
     @Param('usuarioId') usuarioId: string,
     @Request() req: { user: JwtUser },
@@ -43,7 +50,10 @@ export class EstadoGeneralController {
     const user = req.user;
     const juntaId = user.juntaId!;
 
-    if (!this.permissions.puedeConsultarRecursoDeOtro(user) && usuarioId !== user.id) {
+    if (
+      !this.permissions.puedeConsultarRecursoDeOtro(user) &&
+      usuarioId !== user.id
+    ) {
       throw new ForbiddenException('Solo puede consultar su propio estado');
     }
 

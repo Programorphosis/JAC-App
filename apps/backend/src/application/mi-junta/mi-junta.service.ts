@@ -10,7 +10,12 @@ import { AuditService } from '../../domain/services/audit.service';
 import { LimitesService } from '../../infrastructure/limits/limites.service';
 import { S3StorageService } from '../../infrastructure/storage/s3-storage.service';
 import { AlmacenamientoNoConfiguradoError } from '../../domain/errors';
-import { EstadoSuscripcion, EstadoFactura, TipoFactura, TipoPago } from '@prisma/client';
+import {
+  EstadoSuscripcion,
+  EstadoFactura,
+  TipoFactura,
+  TipoPago,
+} from '@prisma/client';
 import {
   calcularFechaVencimiento,
   getEstadoSuscripcion,
@@ -37,61 +42,61 @@ export class MiJuntaService {
       this.prisma.junta.findUnique({
         where: { id: juntaId },
         select: {
-        id: true,
-        nombre: true,
-        nit: true,
-        escudoS3Key: true,
-        montoCarta: true,
-        vigenciaCartaMeses: true,
-        fechaCreacion: true,
-        activo: true,
-        fechaBaja: true,
-        telefono: true,
-        email: true,
-        direccion: true,
-        ciudad: true,
-        departamento: true,
-        enMantenimiento: true,
-        wompiPrivateKey: true, // Solo para derivar wompiConfigurado; no se devuelve
-        _count: { select: { usuarios: true, pagos: true, cartas: true } },
-        suscripcion: {
-          select: {
-            id: true,
-            estado: true,
-            fechaInicio: true,
-            fechaVencimiento: true,
-            periodo: true,
-            planIdPendiente: true,
-            overrideLimiteUsuarios: true,
-            overrideLimiteStorageMb: true,
-            overrideLimiteCartasMes: true,
-            esPlanPersonalizado: true,
-            motivoPersonalizacion: true,
-            cancelacionSolicitada: true,
-            fechaCancelacionSolicitada: true,
-            plan: {
-              select: {
-                id: true,
-                nombre: true,
-                descripcion: true,
-                precioMensual: true,
-                precioAnual: true,
-                limiteUsuarios: true,
-                limiteStorageMb: true,
-                limiteCartasMes: true,
-                esPersonalizable: true,
-                permiteUsuariosIlimitados: true,
-                permiteStorageIlimitado: true,
-                permiteCartasIlimitadas: true,
-                precioPorUsuarioAdicional: true,
-                precioPorMbAdicional: true,
-                precioPorCartaAdicional: true,
+          id: true,
+          nombre: true,
+          nit: true,
+          escudoS3Key: true,
+          montoCarta: true,
+          vigenciaCartaMeses: true,
+          fechaCreacion: true,
+          activo: true,
+          fechaBaja: true,
+          telefono: true,
+          email: true,
+          direccion: true,
+          ciudad: true,
+          departamento: true,
+          enMantenimiento: true,
+          wompiPrivateKey: true, // Solo para derivar wompiConfigurado; no se devuelve
+          _count: { select: { usuarios: true, pagos: true, cartas: true } },
+          suscripcion: {
+            select: {
+              id: true,
+              estado: true,
+              fechaInicio: true,
+              fechaVencimiento: true,
+              periodo: true,
+              planIdPendiente: true,
+              overrideLimiteUsuarios: true,
+              overrideLimiteStorageMb: true,
+              overrideLimiteCartasMes: true,
+              esPlanPersonalizado: true,
+              motivoPersonalizacion: true,
+              cancelacionSolicitada: true,
+              fechaCancelacionSolicitada: true,
+              plan: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  descripcion: true,
+                  precioMensual: true,
+                  precioAnual: true,
+                  limiteUsuarios: true,
+                  limiteStorageMb: true,
+                  limiteCartasMes: true,
+                  esPersonalizable: true,
+                  permiteUsuariosIlimitados: true,
+                  permiteStorageIlimitado: true,
+                  permiteCartasIlimitadas: true,
+                  precioPorUsuarioAdicional: true,
+                  precioPorMbAdicional: true,
+                  precioPorCartaAdicional: true,
+                },
               },
             },
           },
         },
-      },
-    }),
+      }),
       this.prisma.tarifa.count({ where: { juntaId } }),
     ]);
 
@@ -101,7 +106,9 @@ export class MiJuntaService {
 
     const { wompiPrivateKey, escudoS3Key, ...rest } = junta;
     const baseUrl = process.env.API_PUBLIC_URL?.trim();
-    const webhookUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/webhooks/wompi` : null;
+    const webhookUrl = baseUrl
+      ? `${baseUrl.replace(/\/$/, '')}/api/webhooks/wompi`
+      : null;
 
     return {
       ...rest,
@@ -118,22 +125,35 @@ export class MiJuntaService {
   async metricas(juntaId: string) {
     const now = new Date();
     const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1);
-    const finMes = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    const finMes = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
 
-    const [totalUsuarios, usuariosActivos, totalPagos, pagosEsteMes, totalCartas, cartasAprobadas] =
-      await Promise.all([
-        this.prisma.usuario.count({ where: { juntaId } }),
-        this.prisma.usuario.count({ where: { juntaId, activo: true } }),
-        this.prisma.pago.count({ where: { juntaId } }),
-        this.prisma.pago.count({
-          where: {
-            juntaId,
-            fechaPago: { gte: inicioMes, lte: finMes },
-          },
-        }),
-        this.prisma.carta.count({ where: { juntaId } }),
-        this.prisma.carta.count({ where: { juntaId, estado: 'APROBADA' } }),
-      ]);
+    const [
+      totalUsuarios,
+      usuariosActivos,
+      totalPagos,
+      pagosEsteMes,
+      totalCartas,
+      cartasAprobadas,
+    ] = await Promise.all([
+      this.prisma.usuario.count({ where: { juntaId } }),
+      this.prisma.usuario.count({ where: { juntaId, activo: true } }),
+      this.prisma.pago.count({ where: { juntaId } }),
+      this.prisma.pago.count({
+        where: {
+          juntaId,
+          fechaPago: { gte: inicioMes, lte: finMes },
+        },
+      }),
+      this.prisma.carta.count({ where: { juntaId } }),
+      this.prisma.carta.count({ where: { juntaId, estado: 'APROBADA' } }),
+    ]);
 
     return {
       totalUsuarios,
@@ -149,7 +169,10 @@ export class MiJuntaService {
    * Reporte anual por junta: resumen contable (pagos, cartas) en CSV.
    * GET /api/mi-junta/reporte-anual?anio=2025
    */
-  async reporteAnual(juntaId: string, anio: number): Promise<{ data: string; filename: string }> {
+  async reporteAnual(
+    juntaId: string,
+    anio: number,
+  ): Promise<{ data: string; filename: string }> {
     const junta = await this.prisma.junta.findUnique({
       where: { id: juntaId },
       select: { nombre: true },
@@ -178,18 +201,26 @@ export class MiJuntaService {
     ]);
 
     const UTF8_BOM = '\uFEFF';
-    const escape = (v: unknown): string => {
+    const escape = (
+      v: string | number | boolean | null | undefined,
+    ): string => {
       if (v == null) return '';
       const s = String(v).replace(/"/g, '""');
-      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+      return s.includes(',') || s.includes('"') || s.includes('\n')
+        ? `"${s}"`
+        : s;
     };
 
     const lines: string[] = [];
     lines.push(`Reporte anual - ${escape(junta.nombre)} - ${anio}`);
     lines.push('');
 
-    const totalPagosJunta = pagos.filter((p) => p.tipo === TipoPago.JUNTA).reduce((s, p) => s + p.monto, 0);
-    const totalPagosCarta = pagos.filter((p) => p.tipo === TipoPago.CARTA).reduce((s, p) => s + p.monto, 0);
+    const totalPagosJunta = pagos
+      .filter((p) => p.tipo === TipoPago.JUNTA)
+      .reduce((s, p) => s + p.monto, 0);
+    const totalPagosCarta = pagos
+      .filter((p) => p.tipo === TipoPago.CARTA)
+      .reduce((s, p) => s + p.monto, 0);
     lines.push('Resumen del año');
     lines.push(`Total pagos cuota junta (COP),${totalPagosJunta}`);
     lines.push(`Total pagos carta (COP),${totalPagosCarta}`);
@@ -198,7 +229,9 @@ export class MiJuntaService {
     lines.push('');
 
     lines.push('Detalle por mes');
-    lines.push('Mes,Pagos cuota junta (COP),Pagos carta (COP),Cartas aprobadas');
+    lines.push(
+      'Mes,Pagos cuota junta (COP),Pagos carta (COP),Cartas aprobadas',
+    );
     for (let m = 1; m <= 12; m++) {
       const mesInicio = new Date(anio, m - 1, 1);
       const mesFin = new Date(anio, m, 0, 23, 59, 59);
@@ -210,13 +243,36 @@ export class MiJuntaService {
         const d = c.fechaEmision ? new Date(c.fechaEmision) : null;
         return d && d >= mesInicio && d <= mesFin;
       });
-      const pJunta = pagosMes.filter((p) => p.tipo === TipoPago.JUNTA).reduce((s, p) => s + p.monto, 0);
-      const pCarta = pagosMes.filter((p) => p.tipo === TipoPago.CARTA).reduce((s, p) => s + p.monto, 0);
-      const nombresMes = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-      lines.push(`${nombresMes[m - 1]} ${anio},${pJunta},${pCarta},${cartasMes.length}`);
+      const pJunta = pagosMes
+        .filter((p) => p.tipo === TipoPago.JUNTA)
+        .reduce((s, p) => s + p.monto, 0);
+      const pCarta = pagosMes
+        .filter((p) => p.tipo === TipoPago.CARTA)
+        .reduce((s, p) => s + p.monto, 0);
+      const nombresMes = [
+        'Ene',
+        'Feb',
+        'Mar',
+        'Abr',
+        'May',
+        'Jun',
+        'Jul',
+        'Ago',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dic',
+      ];
+      lines.push(
+        `${nombresMes[m - 1]} ${anio},${pJunta},${pCarta},${cartasMes.length}`,
+      );
     }
 
-    const nombreSafe = junta.nombre.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_').slice(0, 40) || 'junta';
+    const nombreSafe =
+      junta.nombre
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '_')
+        .slice(0, 40) || 'junta';
     const filename = `reporte_anual_${nombreSafe}_${anio}.csv`;
     return { data: UTF8_BOM + lines.join('\n'), filename };
   }
@@ -226,7 +282,9 @@ export class MiJuntaService {
    * Para vista plan-suscripcion: consumo, fechas, alertas.
    */
   async consumo(juntaId: string) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const [uso, limites, alertas] = await Promise.all([
@@ -236,7 +294,10 @@ export class MiJuntaService {
     ]);
 
     const now = new Date();
-    const mesActual = now.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
+    const mesActual = now.toLocaleString('es-CO', {
+      month: 'long',
+      year: 'numeric',
+    });
 
     return {
       data: {
@@ -247,9 +308,18 @@ export class MiJuntaService {
         },
         limites: limites
           ? {
-              limiteUsuarios: limites.limiteUsuarios === Infinity ? null : limites.limiteUsuarios,
-              limiteStorageMb: limites.limiteStorageMb === Infinity ? null : limites.limiteStorageMb,
-              limiteCartasMes: limites.limiteCartasMes === Infinity ? null : limites.limiteCartasMes,
+              limiteUsuarios:
+                limites.limiteUsuarios === Infinity
+                  ? null
+                  : limites.limiteUsuarios,
+              limiteStorageMb:
+                limites.limiteStorageMb === Infinity
+                  ? null
+                  : limites.limiteStorageMb,
+              limiteCartasMes:
+                limites.limiteCartasMes === Infinity
+                  ? null
+                  : limites.limiteCartasMes,
             }
           : null,
         alertas,
@@ -273,7 +343,9 @@ export class MiJuntaService {
     },
     ejecutadoPorId: string,
   ) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const data: Record<string, unknown> = {};
@@ -283,13 +355,18 @@ export class MiJuntaService {
       return this.encryption.encrypt(v.trim());
     };
 
-    if (dto.wompiPrivateKey !== undefined) data.wompiPrivateKey = enc(dto.wompiPrivateKey);
-    if (dto.wompiPublicKey !== undefined) data.wompiPublicKey = enc(dto.wompiPublicKey);
+    if (dto.wompiPrivateKey !== undefined)
+      data.wompiPrivateKey = enc(dto.wompiPrivateKey);
+    if (dto.wompiPublicKey !== undefined)
+      data.wompiPublicKey = enc(dto.wompiPublicKey);
     if (dto.wompiIntegritySecret !== undefined)
       data.wompiIntegritySecret = enc(dto.wompiIntegritySecret);
-    if (dto.wompiEventsSecret !== undefined) data.wompiEventsSecret = enc(dto.wompiEventsSecret);
+    if (dto.wompiEventsSecret !== undefined)
+      data.wompiEventsSecret = enc(dto.wompiEventsSecret);
     if (dto.wompiEnvironment !== undefined)
-      data.wompiEnvironment = dto.wompiEnvironment?.trim() ? dto.wompiEnvironment.trim() : null;
+      data.wompiEnvironment = dto.wompiEnvironment?.trim()
+        ? dto.wompiEnvironment.trim()
+        : null;
 
     await this.prisma.junta.update({ where: { id: juntaId }, data });
 
@@ -315,19 +392,28 @@ export class MiJuntaService {
    * No hay devoluciones: el período ya pagado se respeta íntegramente.
    * Solo ADMIN puede solicitar la cancelación.
    */
-  async cancelarSuscripcion(juntaId: string, motivo: string | undefined, ejecutadoPorId: string) {
+  async cancelarSuscripcion(
+    juntaId: string,
+    motivo: string | undefined,
+    ejecutadoPorId: string,
+  ) {
     const suscripcion = await this.prisma.suscripcion.findUnique({
       where: { juntaId },
       include: { plan: { select: { nombre: true } } },
     });
-    if (!suscripcion) throw new NotFoundException('La junta no tiene suscripción activa');
+    if (!suscripcion)
+      throw new NotFoundException('La junta no tiene suscripción activa');
 
     const estadosActivos: string[] = ['ACTIVA', 'PRUEBA'];
     if (!estadosActivos.includes(suscripcion.estado)) {
-      throw new BadRequestException('Solo se pueden cancelar suscripciones activas o en período de prueba');
+      throw new BadRequestException(
+        'Solo se pueden cancelar suscripciones activas o en período de prueba',
+      );
     }
     if (suscripcion.cancelacionSolicitada) {
-      throw new BadRequestException('La cancelación ya fue solicitada anteriormente');
+      throw new BadRequestException(
+        'La cancelación ya fue solicitada anteriormente',
+      );
     }
 
     // Solo marcamos la intención — el estado NO cambia, los límites del plan siguen vigentes
@@ -367,13 +453,18 @@ export class MiJuntaService {
       where: { juntaId },
       include: { plan: { select: { nombre: true } } },
     });
-    if (!suscripcion) throw new NotFoundException('La junta no tiene suscripción');
+    if (!suscripcion)
+      throw new NotFoundException('La junta no tiene suscripción');
     if (!suscripcion.cancelacionSolicitada) {
-      throw new BadRequestException('No hay cancelación pendiente que reactivar');
+      throw new BadRequestException(
+        'No hay cancelación pendiente que reactivar',
+      );
     }
     const estadosActivos: string[] = ['ACTIVA', 'PRUEBA'];
     if (!estadosActivos.includes(suscripcion.estado)) {
-      throw new BadRequestException('Solo se puede reactivar una suscripción activa o en período de prueba');
+      throw new BadRequestException(
+        'Solo se puede reactivar una suscripción activa o en período de prueba',
+      );
     }
 
     await this.prisma.suscripcion.update({
@@ -414,7 +505,9 @@ export class MiJuntaService {
     },
     ejecutadoPorId: string,
   ) {
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     const data: Record<string, unknown> = {};
@@ -432,13 +525,17 @@ export class MiJuntaService {
     if (dto.email !== undefined) {
       const emailVal = dto.email?.trim();
       if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-        throw new BadRequestException('El email no es válido. Email y teléfono son obligatorios.');
+        throw new BadRequestException(
+          'El email no es válido. Email y teléfono son obligatorios.',
+        );
       }
       data.email = emailVal.toLowerCase();
     }
-    if (dto.direccion !== undefined) data.direccion = dto.direccion?.trim() || null;
+    if (dto.direccion !== undefined)
+      data.direccion = dto.direccion?.trim() || null;
     if (dto.ciudad !== undefined) data.ciudad = dto.ciudad?.trim() || null;
-    if (dto.departamento !== undefined) data.departamento = dto.departamento?.trim() || null;
+    if (dto.departamento !== undefined)
+      data.departamento = dto.departamento?.trim() || null;
 
     if (Object.keys(data).length === 0) return { ok: true };
 
@@ -469,7 +566,9 @@ export class MiJuntaService {
       throw new AlmacenamientoNoConfiguradoError();
     }
 
-    const junta = await this.prisma.junta.findUnique({ where: { id: juntaId } });
+    const junta = await this.prisma.junta.findUnique({
+      where: { id: juntaId },
+    });
     if (!junta) throw new NotFoundException('Junta no encontrada');
 
     this.s3.validateEscudoFile(file);
@@ -570,7 +669,8 @@ export class MiJuntaService {
 
     if (dias > 0) {
       const periodoFactura = periodo ?? 'anual';
-      const monto = periodoFactura === 'mensual' ? plan.precioMensual : plan.precioAnual;
+      const monto =
+        periodoFactura === 'mensual' ? plan.precioMensual : plan.precioAnual;
       await this.prisma.factura.create({
         data: {
           juntaId,
@@ -614,17 +714,24 @@ export class MiJuntaService {
       where: { juntaId },
       include: { plan: true },
     });
-    if (!suscripcion) throw new NotFoundException('La junta no tiene suscripción');
+    if (!suscripcion)
+      throw new NotFoundException('La junta no tiene suscripción');
 
     const updateData: Record<string, unknown> = {};
     if (data.planId) {
-      const plan = await this.prisma.plan.findUnique({ where: { id: data.planId } });
+      const plan = await this.prisma.plan.findUnique({
+        where: { id: data.planId },
+      });
       if (!plan) throw new NotFoundException('Plan no encontrado');
-      if (!plan.activo) throw new BadRequestException('El plan no está disponible');
+      if (!plan.activo)
+        throw new BadRequestException('El plan no está disponible');
 
       const resultado = await this.limites.validarCambioPlan(
         juntaId,
-        { precioMensual: suscripcion.plan.precioMensual, id: suscripcion.plan.id },
+        {
+          precioMensual: suscripcion.plan.precioMensual,
+          id: suscripcion.plan.id,
+        },
         plan,
         false,
         data.periodo ?? 'anual',

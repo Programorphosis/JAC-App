@@ -20,7 +20,10 @@ export class DomainError extends Error {
 // DebtService
 export class SinHistorialLaboralError extends DomainError {
   constructor(usuarioId: string) {
-    super(`Usuario ${usuarioId} no tiene historial laboral`, 'SIN_HISTORIAL_LABORAL');
+    super(
+      `Usuario ${usuarioId} no tiene historial laboral`,
+      'SIN_HISTORIAL_LABORAL',
+    );
     this.name = 'SinHistorialLaboralError';
   }
 }
@@ -37,7 +40,10 @@ export class SinTarifaVigenteError extends DomainError {
 
 export class HistorialLaboralSuperpuestoError extends DomainError {
   constructor(usuarioId: string) {
-    super(`Historial laboral con superposición para usuario ${usuarioId}`, 'HISTORIAL_SUPERPUESTO');
+    super(
+      `Historial laboral con superposición para usuario ${usuarioId}`,
+      'HISTORIAL_SUPERPUESTO',
+    );
     this.name = 'HistorialLaboralSuperpuestoError';
   }
 }
@@ -45,28 +51,37 @@ export class HistorialLaboralSuperpuestoError extends DomainError {
 // PaymentService
 export class DeudaCeroError extends DomainError {
   constructor(usuarioId: string) {
-    super(`Usuario ${usuarioId} ya está al día, no hay deuda por pagar`, 'DEUDA_CERO');
+    super(
+      `Usuario ${usuarioId} ya está al día, no hay deuda por pagar`,
+      'DEUDA_CERO',
+    );
     this.name = 'DeudaCeroError';
   }
 }
 
 export class MontoIncorrectoError extends DomainError {
   constructor(esperado: number, recibido: number) {
-    super(`Monto incorrecto: esperado ${esperado}, recibido ${recibido}`, 'MONTO_INCORRECTO');
+    super(
+      `Monto incorrecto: esperado ${esperado}, recibido ${recibido}`,
+      'MONTO_INCORRECTO',
+    );
     this.name = 'MontoIncorrectoError';
   }
 }
 
 export class PagoDuplicadoError extends DomainError {
   constructor(referenciaExterna: string) {
-    super(`Pago ya registrado con referencia ${referenciaExterna}`, 'PAGO_DUPLICADO');
+    super(
+      `Pago ya registrado con referencia ${referenciaExterna}`,
+      'PAGO_DUPLICADO',
+    );
     this.name = 'PagoDuplicadoError';
   }
 }
 
 /** No permitir nuevo pago carta si ya existe uno sin usar (carta PENDIENTE). */
 export class PagoCartaPendienteError extends DomainError {
-  constructor(usuarioId: string) {
+  constructor(_usuarioId: string) {
     super(
       `Ya existe un pago de carta pendiente de usar para este usuario. No se puede registrar otro pago hasta que se expida o rechace la carta.`,
       'PAGO_CARTA_PENDIENTE',
@@ -78,7 +93,10 @@ export class PagoCartaPendienteError extends DomainError {
 // LetterService
 export class RequisitosCartaNoCumplidosError extends DomainError {
   constructor(motivo: string) {
-    super(`Requisitos de carta no cumplidos: ${motivo}`, 'REQUISITOS_CARTA_NO_CUMPLIDOS');
+    super(
+      `Requisitos de carta no cumplidos: ${motivo}`,
+      'REQUISITOS_CARTA_NO_CUMPLIDOS',
+    );
     this.name = 'RequisitosCartaNoCumplidosError';
   }
 }
@@ -110,7 +128,7 @@ export class UsuarioNoEncontradoError extends DomainError {
 
 /** Usuario inactivo no puede solicitar carta ni pagar. CHECKLIST_OPERACION_JUNTAS §2.1 */
 export class UsuarioInactivoError extends DomainError {
-  constructor(usuarioId: string) {
+  constructor(_usuarioId: string) {
     super(
       `El usuario está inactivo. Active el usuario para continuar.`,
       'USUARIO_INACTIVO',
@@ -130,7 +148,7 @@ export class EstadoRequisitoMismoEstadoError extends DomainError {
 }
 
 export class EstadoRequisitoMismaObligacionError extends DomainError {
-  constructor(usuarioId: string, requisitoTipoId: string) {
+  constructor(usuarioId: string, _requisitoTipoId: string) {
     super(
       `Usuario ${usuarioId} ya tiene esa obligación en el requisito. No se requiere cambio.`,
       'ESTADO_REQUISITO_MISMA_OBLIGACION',
@@ -141,14 +159,17 @@ export class EstadoRequisitoMismaObligacionError extends DomainError {
 
 export class RequisitoTipoNoEncontradoError extends DomainError {
   constructor(requisitoTipoId: string) {
-    super(`Requisito tipo ${requisitoTipoId} no encontrado`, 'REQUISITO_TIPO_NO_ENCONTRADO');
+    super(
+      `Requisito tipo ${requisitoTipoId} no encontrado`,
+      'REQUISITO_TIPO_NO_ENCONTRADO',
+    );
     this.name = 'RequisitoTipoNoEncontradoError';
   }
 }
 
 // Cartas / Documentos / Pagos – errores de aplicación
 export class CartaPendienteExistenteError extends DomainError {
-  constructor(usuarioId: string) {
+  constructor(_usuarioId: string) {
     super(
       'Ya existe una carta pendiente para este usuario. Debe esperar a que se valide o rechace.',
       'CARTA_PENDIENTE_EXISTENTE',
@@ -159,7 +180,10 @@ export class CartaPendienteExistenteError extends DomainError {
 
 export class CartaNoEncontradaError extends DomainError {
   constructor(cartaId: string) {
-    super(`Carta ${cartaId} no encontrada o sin PDF disponible`, 'CARTA_NO_ENCONTRADA');
+    super(
+      `Carta ${cartaId} no encontrada o sin PDF disponible`,
+      'CARTA_NO_ENCONTRADA',
+    );
     this.name = 'CartaNoEncontradaError';
   }
 }
@@ -173,20 +197,26 @@ export class DocumentoNoEncontradoError extends DomainError {
 
 export class TipoDocumentoNoPermitidoError extends DomainError {
   constructor(tipo: string) {
-    super(`Tipo de documento no permitido: ${tipo}`, 'TIPO_DOCUMENTO_NO_PERMITIDO');
+    super(
+      `Tipo de documento no permitido: ${tipo}`,
+      'TIPO_DOCUMENTO_NO_PERMITIDO',
+    );
     this.name = 'TipoDocumentoNoPermitidoError';
   }
 }
 
 export class MontoCartaNoConfiguradoError extends DomainError {
-  constructor(juntaId: string) {
-    super('La junta no tiene monto de carta configurado', 'MONTO_CARTA_NO_CONFIGURADO');
+  constructor(_juntaId: string) {
+    super(
+      'La junta no tiene monto de carta configurado',
+      'MONTO_CARTA_NO_CONFIGURADO',
+    );
     this.name = 'MontoCartaNoConfiguradoError';
   }
 }
 
 export class CartaVigenteError extends DomainError {
-  constructor(usuarioId: string) {
+  constructor(_usuarioId: string) {
     super(
       'Tiene una carta vigente. Debe esperar a que venza para poder pagar otra.',
       'CARTA_VIGENTE',
@@ -197,14 +227,17 @@ export class CartaVigenteError extends DomainError {
 
 export class IntencionPagoNoEncontradaError extends DomainError {
   constructor() {
-    super('Intención de pago no encontrada o monto no coincide', 'INTENCION_PAGO_NO_ENCONTRADA');
+    super(
+      'Intención de pago no encontrada o monto no coincide',
+      'INTENCION_PAGO_NO_ENCONTRADA',
+    );
     this.name = 'IntencionPagoNoEncontradaError';
   }
 }
 
 /** Junta sin credenciales Wompi configuradas. WOMPI_POR_JUNTA_DOC §8 */
 export class WompiNoConfiguradoError extends DomainError {
-  constructor(juntaId: string) {
+  constructor(_juntaId: string) {
     super(
       'Tu junta no tiene configurados los pagos online. Comunícate con el administrador de tu junta para más información.',
       'WOMPI_NO_CONFIGURADO',
@@ -215,28 +248,40 @@ export class WompiNoConfiguradoError extends DomainError {
 
 export class BootstrapYaEjecutadoError extends DomainError {
   constructor() {
-    super('Bootstrap ya fue ejecutado. No se puede repetir.', 'BOOTSTRAP_YA_EJECUTADO');
+    super(
+      'Bootstrap ya fue ejecutado. No se puede repetir.',
+      'BOOTSTRAP_YA_EJECUTADO',
+    );
     this.name = 'BootstrapYaEjecutadoError';
   }
 }
 
 export class AlmacenamientoNoConfiguradoError extends DomainError {
   constructor() {
-    super('El almacenamiento S3 no está configurado', 'ALMACENAMIENTO_NO_CONFIGURADO');
+    super(
+      'El almacenamiento S3 no está configurado',
+      'ALMACENAMIENTO_NO_CONFIGURADO',
+    );
     this.name = 'AlmacenamientoNoConfiguradoError';
   }
 }
 
 export class ArchivoSobrepasaTamanioError extends DomainError {
   constructor(maxMb: number) {
-    super(`El archivo supera el tamaño máximo de ${maxMb} MB`, 'ARCHIVO_SOBREPASA_TAMANIO');
+    super(
+      `El archivo supera el tamaño máximo de ${maxMb} MB`,
+      'ARCHIVO_SOBREPASA_TAMANIO',
+    );
     this.name = 'ArchivoSobrepasaTamanioError';
   }
 }
 
 export class FormatoArchivoNoPermitidoError extends DomainError {
   constructor() {
-    super('Formato no permitido. Use PDF, JPG o PNG', 'FORMATO_ARCHIVO_NO_PERMITIDO');
+    super(
+      'Formato no permitido. Use PDF, JPG o PNG',
+      'FORMATO_ARCHIVO_NO_PERMITIDO',
+    );
     this.name = 'FormatoArchivoNoPermitidoError';
   }
 }

@@ -166,7 +166,10 @@ export class UsersService {
 
     const existente = await this.prisma.usuario.findUnique({
       where: {
-        juntaId_numeroDocumento: { juntaId, numeroDocumento: dto.numeroDocumento },
+        juntaId_numeroDocumento: {
+          juntaId,
+          numeroDocumento: dto.numeroDocumento,
+        },
       },
     });
 
@@ -177,10 +180,14 @@ export class UsersService {
     }
 
     const passwordInicial =
-      dto.password && dto.password.length >= 6 ? dto.password : dto.numeroDocumento;
+      dto.password && dto.password.length >= 6
+        ? dto.password
+        : dto.numeroDocumento;
     const passwordHash = await bcrypt.hash(passwordInicial, 10);
     const rolesRaw = dto.roles?.length ? dto.roles : [];
-    const roles = rolesRaw.includes(ROL_BASE) ? rolesRaw : [ROL_BASE, ...rolesRaw];
+    const roles = rolesRaw.includes(ROL_BASE)
+      ? rolesRaw
+      : [ROL_BASE, ...rolesRaw];
 
     await this.validarRolesUnicosPorJunta(juntaId, roles);
 
@@ -197,7 +204,9 @@ export class UsersService {
         where: { juntaId, telefono: telefonoNorm },
       });
       if (telExistente) {
-        throw new ConflictException('Este teléfono ya está registrado en la junta');
+        throw new ConflictException(
+          'Este teléfono ya está registrado en la junta',
+        );
       }
     }
 
@@ -216,7 +225,9 @@ export class UsersService {
           lugarExpedicion: dto.lugarExpedicion ?? null,
           passwordHash,
           requiereCambioPassword: true,
-          fechaAfiliacion: dto.fechaAfiliacion ? new Date(dto.fechaAfiliacion) : null,
+          fechaAfiliacion: dto.fechaAfiliacion
+            ? new Date(dto.fechaAfiliacion)
+            : null,
           folio: dto.folio ?? null,
           numeral: dto.numeral ?? null,
         },
@@ -284,7 +295,12 @@ export class UsersService {
     };
   }
 
-  async actualizar(id: string, dto: UpdateUserDto, juntaId: string, actualizadoPorId: string) {
+  async actualizar(
+    id: string,
+    dto: UpdateUserDto,
+    juntaId: string,
+    actualizadoPorId: string,
+  ) {
     const usuario = await this.prisma.usuario.findFirst({
       where: { id, juntaId },
     });
@@ -297,7 +313,9 @@ export class UsersService {
     let rolesAnteriores: string[] | undefined;
 
     if (dto.roles !== undefined && dto.roles.length > 0) {
-      rolesFinales = dto.roles.includes(ROL_BASE) ? dto.roles : [ROL_BASE, ...dto.roles];
+      rolesFinales = dto.roles.includes(ROL_BASE)
+        ? dto.roles
+        : [ROL_BASE, ...dto.roles];
       await this.validarRolesUnicosPorJunta(juntaId, rolesFinales, id);
       // Capturar roles actuales antes del cambio para auditoría
       const rolesActualesDb = await this.prisma.usuarioRol.findMany({
@@ -322,7 +340,9 @@ export class UsersService {
           where: { juntaId, telefono: telefonoNorm, id: { not: id } },
         });
         if (telExistente) {
-          throw new ConflictException('Este teléfono ya está registrado en la junta');
+          throw new ConflictException(
+            'Este teléfono ya está registrado en la junta',
+          );
         }
       }
     }
@@ -335,10 +355,14 @@ export class UsersService {
           ...(dto.apellidos !== undefined && { apellidos: dto.apellidos }),
           ...(dto.telefono !== undefined && { telefono: telefonoNorm }),
           ...(dto.direccion !== undefined && { direccion: dto.direccion }),
-          ...(dto.lugarExpedicion !== undefined && { lugarExpedicion: dto.lugarExpedicion }),
+          ...(dto.lugarExpedicion !== undefined && {
+            lugarExpedicion: dto.lugarExpedicion,
+          }),
           ...(dto.activo !== undefined && { activo: dto.activo }),
           ...(dto.fechaAfiliacion !== undefined && {
-            fechaAfiliacion: dto.fechaAfiliacion ? new Date(dto.fechaAfiliacion) : null,
+            fechaAfiliacion: dto.fechaAfiliacion
+              ? new Date(dto.fechaAfiliacion)
+              : null,
           }),
           ...(dto.folio !== undefined && { folio: dto.folio }),
           ...(dto.numeral !== undefined && { numeral: dto.numeral }),

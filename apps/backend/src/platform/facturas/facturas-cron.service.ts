@@ -27,14 +27,19 @@ export class FacturasCronService {
   async handleFacturasRenovacion() {
     const ejecutadoPorId = await this.obtenerUsuarioAuditoria();
     if (!ejecutadoPorId) {
-      this.logger.warn('No se encontró usuario para auditoría. Facturas mensuales omitidas.');
+      this.logger.warn(
+        'No se encontró usuario para auditoría. Facturas mensuales omitidas.',
+      );
       return;
     }
 
     try {
-      const resultado = await this.facturas.generarFacturasRenovacion(ejecutadoPorId);
+      const resultado =
+        await this.facturas.generarFacturasRenovacion(ejecutadoPorId);
       if (resultado.generadas > 0 || resultado.errores.length > 0) {
-        this.logger.log(`Renovación: generadas ${resultado.generadas}, omitidas ${resultado.omitidas}`);
+        this.logger.log(
+          `Renovación: generadas ${resultado.generadas}, omitidas ${resultado.omitidas}`,
+        );
         if (resultado.errores.length > 0) {
           this.logger.error('Errores en renovación:', resultado.errores);
         }
@@ -60,7 +65,9 @@ export class FacturasCronService {
   async handleFacturasOverridesMensuales() {
     const ejecutadoPorId = await this.obtenerUsuarioAuditoria();
     if (!ejecutadoPorId) {
-      this.logger.warn('No se encontró usuario para auditoría. Overrides mensuales omitidos.');
+      this.logger.warn(
+        'No se encontró usuario para auditoría. Overrides mensuales omitidos.',
+      );
       return;
     }
 
@@ -77,7 +84,9 @@ export class FacturasCronService {
         ejecutadoPorId,
       );
       if (resultado.generadas > 0 || resultado.errores.length > 0) {
-        this.logger.log(`Overrides mensuales: generadas ${resultado.generadas}, omitidas ${resultado.omitidas}`);
+        this.logger.log(
+          `Overrides mensuales: generadas ${resultado.generadas}, omitidas ${resultado.omitidas}`,
+        );
         if (resultado.errores.length > 0) {
           this.logger.error('Errores overrides mensuales:', resultado.errores);
         }
@@ -92,7 +101,9 @@ export class FacturasCronService {
     try {
       const vencidas = await this.juntas.marcarSuscripcionesVencidasConJuntas();
       if (vencidas.length > 0) {
-        this.logger.log(`${vencidas.length} suscripciones marcadas como vencidas`);
+        this.logger.log(
+          `${vencidas.length} suscripciones marcadas como vencidas`,
+        );
         for (const junta of vencidas) {
           if (junta.email) {
             void this.email.enviarSuscripcionVencida({
@@ -124,7 +135,9 @@ export class FacturasCronService {
 
         const suscripciones = await this.prisma.suscripcion.findMany({
           where: {
-            estado: { in: [EstadoSuscripcion.ACTIVA, EstadoSuscripcion.PRUEBA] },
+            estado: {
+              in: [EstadoSuscripcion.ACTIVA, EstadoSuscripcion.PRUEBA],
+            },
             fechaVencimiento: { gte: inicio, lte: fin },
             cancelacionSolicitada: false,
           },
@@ -143,7 +156,9 @@ export class FacturasCronService {
         }
 
         if (suscripciones.length > 0) {
-          this.logger.log(`Notificaciones vencimiento en ${d} día(s): ${suscripciones.length} juntas`);
+          this.logger.log(
+            `Notificaciones vencimiento en ${d} día(s): ${suscripciones.length} juntas`,
+          );
         }
       }
     } catch (err) {

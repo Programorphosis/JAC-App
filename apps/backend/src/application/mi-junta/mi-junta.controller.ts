@@ -65,7 +65,12 @@ export class MiJuntaController {
   /** GET /api/mi-junta/reporte-anual?anio=2025 – Reporte anual en CSV. TESORERA, ADMIN, SECRETARIA, FISCAL. */
   @Get('reporte-anual')
   @UseGuards(RolesGuard)
-  @Roles(RolNombre.TESORERA, RolNombre.ADMIN, RolNombre.SECRETARIA, RolNombre.FISCAL)
+  @Roles(
+    RolNombre.TESORERA,
+    RolNombre.ADMIN,
+    RolNombre.SECRETARIA,
+    RolNombre.FISCAL,
+  )
   async reporteAnual(
     @Request() req: { user: JwtUser },
     @Query('anio') anioParam?: string,

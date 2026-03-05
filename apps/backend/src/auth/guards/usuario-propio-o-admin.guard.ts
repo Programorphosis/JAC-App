@@ -14,8 +14,10 @@ import { JwtUser } from '../strategies/jwt.strategy';
 @Injectable()
 export class UsuarioPropioOAdminGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
-    const user: JwtUser | undefined = request.user;
+    const request = context
+      .switchToHttp()
+      .getRequest<{ user?: JwtUser; params: Record<string, string> }>();
+    const user = request.user;
 
     if (!user) {
       throw new ForbiddenException('No autenticado');
@@ -42,4 +44,3 @@ export class UsuarioPropioOAdminGuard implements CanActivate {
     );
   }
 }
-

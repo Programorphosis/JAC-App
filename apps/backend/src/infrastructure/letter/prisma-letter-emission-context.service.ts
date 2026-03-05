@@ -44,7 +44,10 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
     return this.debtService.calculateUserDebt({ usuarioId, juntaId });
   }
 
-  async getCarta(cartaId: string, juntaId: string): Promise<CartaParaEmitir | null> {
+  async getCarta(
+    cartaId: string,
+    juntaId: string,
+  ): Promise<CartaParaEmitir | null> {
     const carta = await this.client.carta.findFirst({
       where: { id: cartaId, juntaId },
       include: {
@@ -194,28 +197,26 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
     });
   }
 
-  async generateCartaPdf(
-    data: {
-      juntaId: string;
-      usuarioId: string;
-      qrToken: string;
-      consecutivo: number;
-      anio: number;
-      usuarioNombres: string;
-      usuarioApellidos: string;
-      usuarioDocumento: string;
-      fechaAfiliacion?: Date | null;
-      folio?: number | null;
-      numeral?: number | null;
-      juntaNombre?: string;
-      juntaNit?: string | null;
-      juntaDepartamento?: string | null;
-      juntaCiudad?: string | null;
-      juntaPersoneriaJuridica?: string | null;
-      usuarioTelefono?: string | null;
-      usuarioLugarExpedicion?: string | null;
-    },
-  ): Promise<{ rutaPdf: string; hashDocumento?: string } | null> {
+  async generateCartaPdf(data: {
+    juntaId: string;
+    usuarioId: string;
+    qrToken: string;
+    consecutivo: number;
+    anio: number;
+    usuarioNombres: string;
+    usuarioApellidos: string;
+    usuarioDocumento: string;
+    fechaAfiliacion?: Date | null;
+    folio?: number | null;
+    numeral?: number | null;
+    juntaNombre?: string;
+    juntaNit?: string | null;
+    juntaDepartamento?: string | null;
+    juntaCiudad?: string | null;
+    juntaPersoneriaJuridica?: string | null;
+    usuarioTelefono?: string | null;
+    usuarioLugarExpedicion?: string | null;
+  }): Promise<{ rutaPdf: string; hashDocumento?: string } | null> {
     if (!this.pdfService?.isConfigured()) return null;
 
     const junta = await this.client.junta.findUnique({
@@ -309,7 +310,7 @@ export class PrismaLetterEmissionContext implements ILetterEmissionContext {
     telefono: string | null;
   } | null> {
     const rol = await this.client.rol.findUnique({
-      where: { nombre: rolNombre as RolNombre },
+      where: { nombre: rolNombre },
       select: { id: true },
     });
     if (!rol) return null;

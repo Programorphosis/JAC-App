@@ -64,13 +64,18 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginInput): Promise<AuthResult> {
-    const where: { tipoDocumento: string; numeroDocumento: string; juntaId?: string | null } = {
+    const where: {
+      tipoDocumento: string;
+      numeroDocumento: string;
+      juntaId?: string | null;
+    } = {
       tipoDocumento: dto.tipoDocumento,
       numeroDocumento: dto.numeroDocumento,
     };
 
     if (dto.juntaId !== undefined) {
-      where.juntaId = dto.juntaId === null || dto.juntaId === 'platform' ? null : dto.juntaId;
+      where.juntaId =
+        dto.juntaId === null || dto.juntaId === 'platform' ? null : dto.juntaId;
     }
 
     const usuario = await this.prisma.usuario.findFirst({
@@ -84,23 +89,41 @@ export class AuthService {
 
     if (!usuario || !usuario.activo) {
       // Registrar intento fallido sin revelar si el usuario existe (prevenir enumeración)
-      await this.registrarLoginFallido(dto.juntaId ?? null, dto.numeroDocumento, 'CREDENCIALES_INVALIDAS');
+      await this.registrarLoginFallido(
+        dto.juntaId ?? null,
+        dto.numeroDocumento,
+        'CREDENCIALES_INVALIDAS',
+      );
       throw new UnauthorizedException('Credenciales inválidas');
     }
     if (usuario.juntaId && usuario.junta) {
       if (!usuario.junta.activo) {
-        await this.registrarLoginFallido(usuario.juntaId, usuario.numeroDocumento, 'JUNTA_INACTIVA');
+        await this.registrarLoginFallido(
+          usuario.juntaId,
+          usuario.numeroDocumento,
+          'JUNTA_INACTIVA',
+        );
         throw new UnauthorizedException('La junta no está activa');
       }
       if (usuario.junta.enMantenimiento) {
-        await this.registrarLoginFallido(usuario.juntaId, usuario.numeroDocumento, 'JUNTA_EN_MANTENIMIENTO');
-        throw new UnauthorizedException('La junta está en mantenimiento. Intente más tarde.');
+        await this.registrarLoginFallido(
+          usuario.juntaId,
+          usuario.numeroDocumento,
+          'JUNTA_EN_MANTENIMIENTO',
+        );
+        throw new UnauthorizedException(
+          'La junta está en mantenimiento. Intente más tarde.',
+        );
       }
     }
 
     const ok = await bcrypt.compare(dto.password, usuario.passwordHash);
     if (!ok) {
-      await this.registrarLoginFallido(usuario.juntaId, usuario.numeroDocumento, 'PASSWORD_INCORRECTO');
+      await this.registrarLoginFallido(
+        usuario.juntaId,
+        usuario.numeroDocumento,
+        'PASSWORD_INCORRECTO',
+      );
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
@@ -127,7 +150,9 @@ export class AuthService {
     };
 
     const expiresIn = 900; // 15 min en segundos
-    const accessToken = this.jwtService.sign(payload, { expiresIn: `${expiresIn}s` });
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: `${expiresIn}s`,
+    });
     const refreshToken = this.jwtService.sign(refreshPayload, {
       expiresIn: 604800, // 7 días en segundos
       secret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
@@ -157,7 +182,8 @@ export class AuthService {
         roles,
         permissions,
         esModificador,
-        requisitoTipoIds: usuario.requisitosComoModificador?.map((r) => r.id) ?? [],
+        requisitoTipoIds:
+          usuario.requisitosComoModificador?.map((r) => r.id) ?? [],
         requiereCambioPassword: usuario.requiereCambioPassword,
       },
     };
@@ -185,7 +211,8 @@ export class AuthService {
       },
     });
 
-    const requisitoTipoIds = usuario.requisitosComoModificador?.map((r) => r.id) ?? [];
+    const requisitoTipoIds =
+      usuario.requisitosComoModificador?.map((r) => r.id) ?? [];
     const esModificador = requisitoTipoIds.length > 0;
 
     return {
@@ -220,7 +247,8 @@ export class AuthService {
       }
 
       const roles = usuario.roles.map((ur) => ur.rol.nombre);
-      const requisitoTipoIds = usuario.requisitosComoModificador?.map((r) => r.id) ?? [];
+      const requisitoTipoIds =
+        usuario.requisitosComoModificador?.map((r) => r.id) ?? [];
       const esModificador = requisitoTipoIds.length > 0;
 
       // PA-8: Preservar impersonación en refresh
@@ -239,7 +267,9 @@ export class AuthService {
       };
 
       const expiresIn = 900;
-      const accessToken = this.jwtService.sign(newPayload, { expiresIn: `${expiresIn}s` });
+      const accessToken = this.jwtService.sign(newPayload, {
+        expiresIn: `${expiresIn}s`,
+      });
       const newRefreshToken = this.jwtService.sign(
         { ...newPayload, tipo: 'refresh' } as JwtPayload,
         {
@@ -274,7 +304,10 @@ export class AuthService {
   /**
    * PA-8: Genera tokens de impersonación para que un platform admin vea la app como junta (solo lectura).
    */
-  async impersonar(platformAdminId: string, juntaId: string): Promise<AuthResult> {
+  async impersonar(
+    platformAdminId: string,
+    juntaId: string,
+  ): Promise<AuthResult> {
     const [usuario, junta] = await Promise.all([
       this.prisma.usuario.findUniqueOrThrow({
         where: { id: platformAdminId },
@@ -308,7 +341,9 @@ export class AuthService {
     };
 
     const expiresIn = 900;
-    const accessToken = this.jwtService.sign(payload, { expiresIn: `${expiresIn}s` });
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: `${expiresIn}s`,
+    });
     const refreshToken = this.jwtService.sign(refreshPayload, {
       expiresIn: 604800,
       secret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
@@ -376,7 +411,9 @@ export class AuthService {
     const refreshPayload: JwtPayload = { ...payload, tipo: 'refresh' };
 
     const expiresIn = 900;
-    const accessToken = this.jwtService.sign(payload, { expiresIn: `${expiresIn}s` });
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: `${expiresIn}s`,
+    });
     const refreshToken = this.jwtService.sign(refreshPayload, {
       expiresIn: 604800,
       secret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
@@ -404,7 +441,8 @@ export class AuthService {
         roles,
         permissions,
         esModificador,
-        requisitoTipoIds: usuario.requisitosComoModificador?.map((r) => r.id) ?? [],
+        requisitoTipoIds:
+          usuario.requisitosComoModificador?.map((r) => r.id) ?? [],
         requiereCambioPassword: usuario.requiereCambioPassword,
       },
     };
@@ -428,7 +466,9 @@ export class AuthService {
       where: { email: emailNorm, id: { not: usuarioId } },
     });
     if (existente) {
-      throw new ConflictException('Este correo ya está registrado por otro usuario');
+      throw new ConflictException(
+        'Este correo ya está registrado por otro usuario',
+      );
     }
 
     const usuario = await this.prisma.usuario.findUniqueOrThrow({
@@ -447,7 +487,9 @@ export class AuthService {
       },
     });
 
-    const nombreUsuario = `${usuario.nombres} ${usuario.apellidos}`.trim() || usuario.numeroDocumento;
+    const nombreUsuario =
+      `${usuario.nombres} ${usuario.apellidos}`.trim() ||
+      usuario.numeroDocumento;
     await this.email.enviarCodigoVerificacionEmail({
       to: emailNorm,
       codigo,
@@ -478,7 +520,9 @@ export class AuthService {
     if (!usuario.requiereCambioPassword) {
       const actual = dto.passwordActual?.trim();
       if (!actual || actual.length < 6) {
-        throw new BadRequestException('Debes indicar tu contraseña actual para cambiarla.');
+        throw new BadRequestException(
+          'Debes indicar tu contraseña actual para cambiarla.',
+        );
       }
       const ok = await bcrypt.compare(actual, usuario.passwordHash);
       if (!ok) {
@@ -510,14 +554,18 @@ export class AuthService {
         orderBy: { fechaCreacion: 'desc' },
       });
       if (!codigoRec) {
-        throw new BadRequestException('Código inválido o expirado. Solicita uno nuevo.');
+        throw new BadRequestException(
+          'Código inválido o expirado. Solicita uno nuevo.',
+        );
       }
 
       const existente = await this.prisma.usuario.findFirst({
         where: { email: emailNorm, id: { not: usuarioId } },
       });
       if (existente) {
-        throw new ConflictException('Este correo ya está registrado por otro usuario');
+        throw new ConflictException(
+          'Este correo ya está registrado por otro usuario',
+        );
       }
 
       await this.prisma.codigoVerificacionEmail.update({
@@ -555,7 +603,9 @@ export class AuthService {
    * Solicita código de recuperación. Envía email con código de 6 dígitos.
    * No revela si el email existe (seguridad).
    */
-  async solicitarCodigoRecuperacion(dto: { email: string }): Promise<{ enviado: boolean }> {
+  async solicitarCodigoRecuperacion(dto: {
+    email: string;
+  }): Promise<{ enviado: boolean }> {
     const emailNorm = dto.email.trim().toLowerCase();
     const usuario = await this.prisma.usuario.findFirst({
       where: { email: emailNorm, activo: true, emailVerificado: true },
@@ -577,7 +627,9 @@ export class AuthService {
       },
     });
 
-    const nombreUsuario = `${usuario.nombres} ${usuario.apellidos}`.trim() || usuario.numeroDocumento;
+    const nombreUsuario =
+      `${usuario.nombres} ${usuario.apellidos}`.trim() ||
+      usuario.numeroDocumento;
     await this.email.enviarCodigoRecuperacion({
       to: usuario.email!,
       codigo,

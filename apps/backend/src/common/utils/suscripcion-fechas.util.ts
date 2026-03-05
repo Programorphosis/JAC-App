@@ -30,7 +30,9 @@ export interface CalcularFechaVencimientoInput {
  * @param input Parámetros de cálculo
  * @returns Fecha de vencimiento
  */
-export function calcularFechaVencimiento(input: CalcularFechaVencimientoInput): Date {
+export function calcularFechaVencimiento(
+  input: CalcularFechaVencimientoInput,
+): Date {
   const base = new Date(input.fechaInicio);
   const dias = input.diasPrueba ?? 0;
 

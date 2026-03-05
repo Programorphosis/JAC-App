@@ -1,4 +1,15 @@
-import { IsString, IsOptional, IsArray, IsIn, MinLength, IsDateString, IsInt, Min, Matches, ValidateIf } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsIn,
+  MinLength,
+  IsDateString,
+  IsInt,
+  Min,
+  Matches,
+  ValidateIf,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateUserDto {

@@ -22,7 +22,9 @@ type PrismaClientLike = Pick<
  */
 @Injectable()
 export class PrismaDebtDataProvider implements IDebtDataProvider {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaClientLike) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaClientLike,
+  ) {}
 
   async getUsuarioParaCalculo(usuarioId: string, juntaId: string) {
     const usuario = await this.prisma.usuario.findFirst({

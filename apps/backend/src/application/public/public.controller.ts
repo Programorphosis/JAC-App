@@ -29,10 +29,18 @@ function buildHtmlPage(data: {
 }): string {
   const titulo = data.valida ? 'Carta válida' : 'Carta no válida';
   const fechaEm = data.fechaEmision
-    ? new Date(data.fechaEmision).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' })
+    ? new Date(data.fechaEmision).toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
     : '';
   const vigencia = data.vigenciaHasta
-    ? new Date(data.vigenciaHasta).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' })
+    ? new Date(data.vigenciaHasta).toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
     : 'Sin vencimiento';
 
   if (!data.valida) {
@@ -142,10 +150,7 @@ export class PublicController {
       where: {
         qrToken,
         estado: 'APROBADA',
-        OR: [
-          { vigenciaHasta: null },
-          { vigenciaHasta: { gte: ahora } },
-        ],
+        OR: [{ vigenciaHasta: null }, { vigenciaHasta: { gte: ahora } }],
       },
       include: {
         usuario: {
@@ -170,7 +175,9 @@ export class PublicController {
       });
       const ahora = new Date();
       const payload =
-        cartaExiste?.estado === 'APROBADA' && cartaExiste.vigenciaHasta && cartaExiste.vigenciaHasta < ahora
+        cartaExiste?.estado === 'APROBADA' &&
+        cartaExiste.vigenciaHasta &&
+        cartaExiste.vigenciaHasta < ahora
           ? { valida: false, mensaje: 'Carta vencida' }
           : { valida: false, mensaje: 'Carta no encontrada o no válida' };
       if (wantsHtml) {
@@ -196,7 +203,8 @@ export class PublicController {
       },
     });
 
-    const vigenciaHasta = (carta as { vigenciaHasta?: Date }).vigenciaHasta ?? null;
+    const vigenciaHasta =
+      (carta as { vigenciaHasta?: Date }).vigenciaHasta ?? null;
     const payload = {
       valida: true,
       nombre: `${carta.usuario.nombres} ${carta.usuario.apellidos}`,

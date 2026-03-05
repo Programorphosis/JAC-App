@@ -21,7 +21,11 @@ export class EncryptionService {
 
   private loadKey(): void {
     const masterKeyHex = process.env.ENCRYPTION_MASTER_KEY;
-    if (!masterKeyHex || masterKeyHex.length !== 64 || !/^[0-9a-fA-F]+$/.test(masterKeyHex)) {
+    if (
+      !masterKeyHex ||
+      masterKeyHex.length !== 64 ||
+      !/^[0-9a-fA-F]+$/.test(masterKeyHex)
+    ) {
       return; // Validación diferida: falla en encrypt/decrypt
     }
     const buf = Buffer.from(masterKeyHex, 'hex');
@@ -43,7 +47,9 @@ export class EncryptionService {
   encrypt(plaintext: string): string {
     const key = this.getKey();
     const iv = randomBytes(IV_LENGTH);
-    const cipher = createCipheriv(ALGORITHM, key, iv, { authTagLength: AUTH_TAG_LENGTH });
+    const cipher = createCipheriv(ALGORITHM, key, iv, {
+      authTagLength: AUTH_TAG_LENGTH,
+    });
     const encrypted = Buffer.concat([
       cipher.update(plaintext, 'utf8'),
       cipher.final(),
@@ -63,10 +69,18 @@ export class EncryptionService {
     }
     const iv = payload.subarray(0, IV_LENGTH);
     const authTag = payload.subarray(payload.length - AUTH_TAG_LENGTH);
-    const encrypted = payload.subarray(IV_LENGTH, payload.length - AUTH_TAG_LENGTH);
+    const encrypted = payload.subarray(
+      IV_LENGTH,
+      payload.length - AUTH_TAG_LENGTH,
+    );
 
-    const decipher = createDecipheriv(ALGORITHM, this.getKey(), iv, { authTagLength: AUTH_TAG_LENGTH });
+    const decipher = createDecipheriv(ALGORITHM, this.getKey(), iv, {
+      authTagLength: AUTH_TAG_LENGTH,
+    });
     decipher.setAuthTag(authTag);
-    return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8');
+    return Buffer.concat([
+      decipher.update(encrypted),
+      decipher.final(),
+    ]).toString('utf8');
   }
 }

@@ -65,7 +65,10 @@ export class AuthController {
     @Request() req: { user: JwtUser },
     @Body() body: SolicitarVerificacionEmailDto,
   ) {
-    const result = await this.auth.solicitarCodigoVerificacionEmail(req.user.id, body);
+    const result = await this.auth.solicitarCodigoVerificacionEmail(
+      req.user.id,
+      body,
+    );
     return { data: result };
   }
 
@@ -91,7 +94,9 @@ export class AuthController {
   @Post('olvide-contrasena/verificar')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
-  async verificarCodigoRecuperacion(@Body() body: VerificarCodigoRecuperacionDto) {
+  async verificarCodigoRecuperacion(
+    @Body() body: VerificarCodigoRecuperacionDto,
+  ) {
     await this.auth.verificarCodigoYRecuperar(body);
     return { data: { ok: true } };
   }

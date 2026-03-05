@@ -17,7 +17,9 @@ export class AvisosJuntaService {
   ) {}
 
   /** Lista avisos activos de la junta (todos los usuarios de junta). */
-  async listarActivos(juntaId: string | null): Promise<{ data: AvisoJuntaListItem[] }> {
+  async listarActivos(
+    juntaId: string | null,
+  ): Promise<{ data: AvisoJuntaListItem[] }> {
     if (!juntaId) return { data: [] };
     const avisos = await this.prisma.avisoJunta.findMany({
       where: { juntaId, activo: true },
@@ -34,7 +36,10 @@ export class AvisosJuntaService {
   }
 
   /** Lista todos los avisos (activos e inactivos) para gestión. ADMIN, SECRETARIA. */
-  async listarTodos(juntaId: string, activo?: boolean): Promise<{ data: AvisoJuntaListItem[] }> {
+  async listarTodos(
+    juntaId: string,
+    activo?: boolean,
+  ): Promise<{ data: AvisoJuntaListItem[] }> {
     const where: { juntaId: string; activo?: boolean } = { juntaId };
     if (activo !== undefined) where.activo = activo;
     const avisos = await this.prisma.avisoJunta.findMany({

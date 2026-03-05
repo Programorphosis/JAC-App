@@ -54,18 +54,24 @@ describe('EncryptionService', () => {
   it('debe lanzar error si ENCRYPTION_MASTER_KEY no está configurada', () => {
     delete process.env.ENCRYPTION_MASTER_KEY;
     const svcSinKey = new EncryptionService();
-    expect(() => svcSinKey.encrypt('test')).toThrow('ENCRYPTION_MASTER_KEY no configurada');
+    expect(() => svcSinKey.encrypt('test')).toThrow(
+      'ENCRYPTION_MASTER_KEY no configurada',
+    );
   });
 
   it('debe lanzar error si ENCRYPTION_MASTER_KEY tiene longitud incorrecta', () => {
     process.env.ENCRYPTION_MASTER_KEY = 'abc123';
     const svcMalKey = new EncryptionService();
-    expect(() => svcMalKey.encrypt('test')).toThrow('ENCRYPTION_MASTER_KEY no configurada');
+    expect(() => svcMalKey.encrypt('test')).toThrow(
+      'ENCRYPTION_MASTER_KEY no configurada',
+    );
   });
 
   it('debe lanzar error si ENCRYPTION_MASTER_KEY tiene caracteres no-hex', () => {
     process.env.ENCRYPTION_MASTER_KEY = 'g'.repeat(64);
     const svcBadKey = new EncryptionService();
-    expect(() => svcBadKey.encrypt('test')).toThrow('ENCRYPTION_MASTER_KEY no configurada');
+    expect(() => svcBadKey.encrypt('test')).toThrow(
+      'ENCRYPTION_MASTER_KEY no configurada',
+    );
   });
 });
