@@ -13,7 +13,7 @@ export class DomainError extends Error {
   ) {
     super(message);
     this.name = 'DomainError';
-    Object.setPrototypeOf(this, DomainError.prototype);
+    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 

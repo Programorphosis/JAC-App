@@ -1275,7 +1275,7 @@ Requiere verificar que tu app no escribe en el filesystem (lo cual es correcto �
 | 18 | Healthcheck Caddy | 6.4 | 15min | ✅ |
 | 19 | Timeout en entrypoint | 6.5 | 15min | ✅ |
 | 20 | `strict: true` (incluye noImplicitAny) | 8.1 | 3d | ✅ |
-| 21 | Tests webhook Wompi | 2.3 | 3d | |
+| 21 | Tests webhook Wompi | 2.3 | 3d | ✅ (PagosService 36 + WompiService 15) |
 | 22 | Coverage threshold | 2.4 | 30min | ✅ |
 | 23 | Guard en `usuarios/:id` | 5.2 | 30min | ✅ |
 | 24 | Race condition interceptor JWT | 5.3 | 1h | ✅ |
@@ -1285,7 +1285,7 @@ Requiere verificar que tu app no escribe en el filesystem (lo cual es correcto �
 | 28 | `strictBindCallApply` + `noFallthroughCasesInSwitch` | 8.2 | 1h | ✅ |
 | 29 | Fijar tags de imágenes | 6.6 | 5min | ✅ |
 | 30 | Docker build en CI | 3.4 | 1h | ✅ |
-| 31 | Tests frontend | 2.5 | 3d | |
+| 31 | Tests frontend | 2.5 | 3d | ✅ (AuthService 66 tests) |
 | 32 | `withFetch()` en Angular | 5.4 | 5min | ✅ |
 
 ### Futuro (cuando haya usuarios reales)
