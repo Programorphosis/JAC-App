@@ -1,0 +1,2 @@
+npx lint-staged
+cd apps/backend && npx jest --ci --bail

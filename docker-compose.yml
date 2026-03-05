@@ -65,6 +65,9 @@ services:
       context: ./apps/backend
       dockerfile: Dockerfile
     container_name: jac-backend
+    read_only: true
+    tmpfs:
+      - /tmp
     security_opt:
       - no-new-privileges:true
     environment:
@@ -96,6 +99,11 @@ services:
       context: ./apps/frontend
       dockerfile: Dockerfile
     container_name: jac-frontend
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run
+      - /var/cache/nginx
     security_opt:
       - no-new-privileges:true
     networks:
@@ -122,6 +130,9 @@ services:
   caddy:
     image: caddy:2.9-alpine
     container_name: jac-caddy
+    read_only: true
+    tmpfs:
+      - /tmp
     security_opt:
       - no-new-privileges:true
     ports:

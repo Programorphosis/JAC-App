@@ -16,14 +16,22 @@
     "docker:dev:up": "docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.local up -d --build",
     "docker:dev:down": "docker compose -f docker-compose.yml -f docker-compose.dev.yml down",
     "docker:prod:up": "docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d --build",
-    "docker:prod:down": "docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production down"
+    "docker:prod:down": "docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production down",
+    "prepare": "husky"
   },
   "dependencies": {
     "@nestjs/platform-express": "^11.0.1"
   },
   "devDependencies": {
     "@angular/service-worker": "^19.2.19",
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.2"
+  },
+  "lint-staged": {
+    "apps/backend/src/**/*.ts": [
+      "eslint --fix"
+    ]
   },
   "engines": {
     "node": ">=18.0.0"

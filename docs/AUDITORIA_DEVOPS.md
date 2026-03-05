@@ -1290,10 +1290,10 @@ Requiere verificar que tu app no escribe en el filesystem (lo cual es correcto �
 
 ### Futuro (cuando haya usuarios reales)
 
-| # | Ítem | Sección | Esfuerzo |
-|---|------|---------|----------|
-| 33 | Prometheus + Grafana | 7.4 | 2d |
-| 34 | CSRF Protection | 10.1 | 1d |
-| 35 | SW dataGroups | 10.2 | 1h |
-| 36 | Pre-commit hooks (Husky) | 10.3 | 1h |
-| 37 | Read-only filesystem | 10.4 | 30min |
+| # | Ítem | Sección | Esfuerzo | Estado |
+|---|------|---------|----------|--------|
+| 33 | Prometheus + Grafana | 7.4 | 2d | |
+| 34 | CSRF Protection | 10.1 | 1d | |
+| 35 | SW dataGroups | 10.2 | 1h | ✅ |
+| 36 | Pre-commit hooks (Husky) | 10.3 | 1h | ✅ |
+| 37 | Read-only filesystem | 10.4 | 30min | ✅ |
