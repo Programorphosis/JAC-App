@@ -47,7 +47,10 @@ monitor.{$DOMAIN} {
         {$MONITOR_BASICAUTH}
     }
     reverse_proxy uptime-kuma:3001
-    log { output stdout format json }
+    log {
+        output stdout
+        format json
+    }
     header -Server
 }
 
@@ -57,6 +60,9 @@ grafana.{$DOMAIN} {
         {$MONITOR_BASICAUTH}
     }
     reverse_proxy grafana:3000
-    log { output stdout format json }
+    log {
+        output stdout
+        format json
+    }
     header -Server
 }
