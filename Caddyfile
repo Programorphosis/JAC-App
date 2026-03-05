@@ -8,6 +8,12 @@
 #      levantar Caddy por primera vez. Let's Encrypt valida el dominio.
 #   3. Los certificados se renuevan automáticamente.
 #
+# Subdominios de monitoreo (monitor.{DOMAIN}, grafana.{DOMAIN}):
+#   - Requieren DNS A para monitor.* y grafana.* apuntando a esta IP
+#   - MONITOR_BASICAUTH en .env.production: "admin <hash>"
+#   - Generar hash: docker run --rm caddy:2.9-alpine caddy hash-password --plaintext 'tu_password'
+#   - Por defecto usa un hash inseguro; cambiar en producción
+#
 # Puertos requeridos abiertos en firewall:
 #   80  → HTTP (Caddy redirige automáticamente a HTTPS)
 #   443 → HTTPS
@@ -33,4 +39,24 @@
 
     # Compresión (complementa la de nginx)
     encode zstd gzip
+}
+
+# ── Uptime Kuma (monitor.{DOMAIN}) ────────────────────────────────────────
+monitor.{$DOMAIN} {
+    basicauth /* {
+        {$MONITOR_BASICAUTH}
+    }
+    reverse_proxy uptime-kuma:3001
+    log { output stdout format json }
+    header -Server
+}
+
+# ── Grafana (grafana.{DOMAIN}) ─────────────────────────────────────────────
+grafana.{$DOMAIN} {
+    basicauth /* {
+        {$MONITOR_BASICAUTH}
+    }
+    reverse_proxy grafana:3000
+    log { output stdout format json }
+    header -Server
 }

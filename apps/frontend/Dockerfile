@@ -23,10 +23,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 RUN rm -f /etc/nginx/conf.d/default.conf.bak \
  && chown -R nginx:nginx /usr/share/nginx/html \
- && chown -R nginx:nginx /var/cache/nginx \
  && chown -R nginx:nginx /var/log/nginx \
- && touch /var/run/nginx.pid \
- && chown nginx:nginx /var/run/nginx.pid
+ && sed -i 's|/run/nginx.pid|/tmp/nginx.pid|' /etc/nginx/nginx.conf
 
 USER nginx
 

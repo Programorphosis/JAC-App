@@ -1,25 +1,22 @@
 # ──────────────────────────────────────────────────────────────────────────
 # Stack de MONITOREO – JAC App
 #
-# Corre independiente del stack principal.
-# USO:
-#   docker compose -f docker-compose.monitoring.yml up -d
+# USO (con stack principal):
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+#     -f docker-compose.monitoring.yml --env-file .env.production up -d
 #
-# Uptime Kuma: http://localhost:3001
-#   - Primera vez: crear cuenta admin
-#   - Agregar monitores:
-#       • HTTP(s) → http://frontend/                      (App web)
-#       • HTTP(s) → http://backend:3000/api/health/live   (Liveness backend)
-#       • HTTP(s) → http://backend:3000/api/health/ready  (Readiness DB)
+# Subdominios (Caddy, requieren DNS A para monitor.* y grafana.*):
+#   - https://monitor.{DOMAIN}  → Uptime Kuma
+#   - https://grafana.{DOMAIN}  → Grafana
 #
-# pgAdmin (opcional, quitar si no se necesita):
-#   http://localhost:5050  →  PGADMIN_EMAIL / PGADMIN_PASSWORD
+# Uptime Kuma (puerto 3001): crear cuenta admin, monitores, notificaciones.
+# Grafana (puerto 3002): admin / admin (cambiar en primer login). Datasource Prometheus preconfigurado.
 # ──────────────────────────────────────────────────────────────────────────
 
 services:
 
   uptime-kuma:
-    image: louislam/uptime-kuma:1
+    image: louislam/uptime-kuma:1.23.15
     container_name: jac-uptime-kuma
     volumes:
       - uptime-kuma-data:/app/data
@@ -27,11 +24,50 @@ services:
       - "3001:3001"
     networks:
       - monitoring
-      - jac_internal        # ← conecta con la red interna del stack principal
+      - jac_internal
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: jac-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    networks:
+      - monitoring
+      - jac_internal
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: jac-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_SERVER_ROOT_URL: "https://grafana.${DOMAIN:-localhost}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "false"
+      GF_DATASOURCES_DEFAULT_NAME: Prometheus
+      GF_DATASOURCES_DEFAULT_TYPE: prometheus
+      GF_DATASOURCES_DEFAULT_URL: http://prometheus:9090
+      GF_DATASOURCES_DEFAULT_IS_DEFAULT: "true"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3002:3000"
+    networks:
+      - monitoring
+      - jac_internal
+    depends_on:
+      - prometheus
     restart: unless-stopped
 
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:8.17.0
     container_name: jac-pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL:    ${PGADMIN_EMAIL:-admin@jac.local}
@@ -56,4 +92,6 @@ networks:
 
 volumes:
   uptime-kuma-data:
+  prometheus-data:
+  grafana-data:
   pgadmin-data:

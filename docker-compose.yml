@@ -102,8 +102,6 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-      - /var/run
-      - /var/cache/nginx
     security_opt:
       - no-new-privileges:true
     networks:
@@ -145,6 +143,7 @@ services:
       - caddy-config:/config
     environment:
       DOMAIN: "${DOMAIN}"
+      MONITOR_BASICAUTH: "${MONITOR_BASICAUTH:-admin JDJhJDEwJEVCNmdaNEg2Ti5iejRMYkF3MFZhZ3VtV3E1SzBWZEZ5Q3VWc0tzOEJwZE9TaFlZdEVkZDhX}"
     networks:
       - internal
     depends_on:
