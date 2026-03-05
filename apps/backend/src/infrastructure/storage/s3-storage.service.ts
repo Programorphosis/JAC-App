@@ -11,6 +11,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  HeadBucketCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -45,6 +46,16 @@ export class S3StorageService {
 
   isConfigured(): boolean {
     return !!this.bucket && !!process.env.AWS_ACCESS_KEY_ID;
+  }
+
+  async ping(): Promise<boolean> {
+    if (!this.isConfigured()) return false;
+    try {
+      await this.client.send(new HeadBucketCommand({ Bucket: this.bucket }));
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   validateFile(file: { size: number; mimetype: string }): void {

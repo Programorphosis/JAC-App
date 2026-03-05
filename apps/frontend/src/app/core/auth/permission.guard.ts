@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { Router, CanActivateFn } from '@angular/router';
+import { Router, ActivatedRouteSnapshot, CanActivateFn } from '@angular/router';
 import { AuthService } from './auth.service';
 import { PERMISSIONS } from './permissions.constants';
 
@@ -47,3 +47,13 @@ export const configuracionGuard = requirePermission(PERMISSIONS.JUNTA_CONFIG_WOM
 export const planSuscripcionGuard = requirePermission(
   PERMISSIONS.JUNTA_SUSCRIPCION_GESTIONAR,
 );
+
+export const usuarioDetalleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  const paramId = route.paramMap.get('id');
+  if (paramId === auth.currentUser()?.id) return true;
+  if (auth.can(PERMISSIONS.USUARIOS_VER)) return true;
+  router.navigate(['/app']);
+  return false;
+};

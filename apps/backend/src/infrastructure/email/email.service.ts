@@ -62,6 +62,16 @@ export class EmailService {
     this.logger.log(`Email configurado: ${transport} (${host}:${port})`);
   }
 
+  async ping(): Promise<boolean> {
+    if (!this.enabled || !this.transporter) return false;
+    try {
+      await this.transporter.verify();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /** Envío genérico. No lanza excepción: los errores quedan solo en logs. */
   async enviar(opts: {
     to: string;

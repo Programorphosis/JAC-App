@@ -84,7 +84,7 @@ describe('WebhooksController', () => {
 
   it('debe ignorar si no hay payment_link_id', async () => {
     const body = makeBody();
-    body.data.transaction.payment_link_id = null;
+    body.data.transaction.payment_link_id = null as any;
     const result = await controller.wompi(body as any, '');
     expect(result).toEqual({ received: true });
   });

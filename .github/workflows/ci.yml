@@ -43,3 +43,15 @@ jobs:
 
       - name: Build frontend
         run: npm run build --workspace=frontend
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t jac-backend:ci ./apps/backend
+
+      - name: Build frontend image
+        run: docker build -t jac-frontend:ci ./apps/frontend

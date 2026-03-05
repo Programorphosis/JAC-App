@@ -13,6 +13,7 @@ import {
   facturasPlataformaGuard,
   configuracionGuard,
   planSuscripcionGuard,
+  usuarioDetalleGuard,
 } from './core/auth/permission.guard';
 
 export const routes: Routes = [
@@ -56,6 +57,7 @@ export const routes: Routes = [
       },
       {
         path: 'usuarios/:id',
+        canActivate: [usuarioDetalleGuard],
         loadComponent: () =>
           import('./features/usuarios/usuario-detail/usuario-detail.component').then((m) => m.UsuarioDetailComponent),
       },
