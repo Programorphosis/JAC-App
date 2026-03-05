@@ -7,7 +7,7 @@ import { IsUUID, IsOptional, IsIn, IsInt, Min } from 'class-validator';
  */
 export class CrearIntencionSuscripcionDto {
   @IsUUID('4', { message: 'planId debe ser un UUID válido' })
-  planId: string;
+  planId!: string;
 
   @IsOptional()
   @IsIn(['mensual', 'anual'], { message: 'periodo debe ser mensual o anual' })

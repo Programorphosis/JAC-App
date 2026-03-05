@@ -7,10 +7,10 @@ export class RegistrarPagoFacturaDto {
   @Type(() => Number)
   @IsNumber()
   @Min(0.01, { message: 'El monto debe ser mayor a cero' })
-  monto: number;
+  monto!: number;
 
   @IsIn(METODOS_VALIDOS, { message: 'Método de pago inválido' })
-  metodo: (typeof METODOS_VALIDOS)[number];
+  metodo!: (typeof METODOS_VALIDOS)[number];
 
   @IsOptional()
   @IsString()

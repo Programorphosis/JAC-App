@@ -6,5 +6,5 @@ import { IsUUID } from 'class-validator';
  */
 export class CrearIntencionPagoFacturaDto {
   @IsUUID('4', { message: 'facturaId debe ser un UUID válido' })
-  facturaId: string;
+  facturaId!: string;
 }

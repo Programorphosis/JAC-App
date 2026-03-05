@@ -14,7 +14,7 @@ export class CambiarPasswordDto {
 
   @IsString()
   @MinLength(6, { message: 'La nueva contraseña debe tener al menos 6 caracteres' })
-  passwordNueva: string;
+  passwordNueva!: string;
 
   /** Obligatorio cuando es el primer cambio (requiereCambioPassword). Para futuras recuperaciones. */
   @IsOptional()

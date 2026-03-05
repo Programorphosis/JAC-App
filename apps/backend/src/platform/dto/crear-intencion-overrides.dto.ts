@@ -8,7 +8,7 @@ import { Type } from 'class-transformer';
  */
 export class CrearIntencionOverridesDto {
   @IsUUID('4', { message: 'suscripcionId debe ser un UUID válido' })
-  suscripcionId: string;
+  suscripcionId!: string;
 
   @IsOptional()
   @Type(() => Number)

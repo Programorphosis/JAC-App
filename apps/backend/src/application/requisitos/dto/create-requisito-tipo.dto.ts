@@ -2,7 +2,7 @@ import { IsString, IsOptional, IsBoolean, IsUUID } from 'class-validator';
 
 export class CreateRequisitoTipoDto {
   @IsString()
-  nombre: string;
+  nombre!: string;
 
   @IsOptional()
   @IsUUID()

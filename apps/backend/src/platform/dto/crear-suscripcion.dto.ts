@@ -5,7 +5,7 @@ const PERIODOS_VALIDOS = ['mensual', 'anual'] as const;
 
 export class CrearSuscripcionDto {
   @IsString()
-  planId: string;
+  planId!: string;
 
   @IsOptional()
   @Type(() => Number)

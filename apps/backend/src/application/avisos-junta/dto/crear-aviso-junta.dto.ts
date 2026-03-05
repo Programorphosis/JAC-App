@@ -8,9 +8,9 @@ export class CrearAvisoJuntaDto {
   @IsString()
   @MinLength(1, { message: 'El título es requerido' })
   @MaxLength(200, { message: 'El título no puede exceder 200 caracteres' })
-  titulo: string;
+  titulo!: string;
 
   @IsString()
   @MinLength(1, { message: 'El contenido es requerido' })
-  contenido: string;
+  contenido!: string;
 }

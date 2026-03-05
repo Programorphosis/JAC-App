@@ -1274,7 +1274,7 @@ Requiere verificar que tu app no escribe en el filesystem (lo cual es correcto �
 | 17 | Límites de recursos Docker | 6.3 | 15min | ✅ |
 | 18 | Healthcheck Caddy | 6.4 | 15min | ✅ |
 | 19 | Timeout en entrypoint | 6.5 | 15min | ✅ |
-| 20 | `noImplicitAny: true` | 8.1 | 3d | |
+| 20 | `strict: true` (incluye noImplicitAny) | 8.1 | 3d | ✅ |
 | 21 | Tests webhook Wompi | 2.3 | 3d | |
 | 22 | Coverage threshold | 2.4 | 30min | ✅ |
 | 23 | Guard en `usuarios/:id` | 5.2 | 30min | ✅ |

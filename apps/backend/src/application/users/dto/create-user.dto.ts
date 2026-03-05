@@ -3,16 +3,16 @@ import { Type } from 'class-transformer';
 
 export class CreateUserDto {
   @IsString()
-  tipoDocumento: string;
+  tipoDocumento!: string;
 
   @IsString()
-  numeroDocumento: string;
+  numeroDocumento!: string;
 
   @IsString()
-  nombres: string;
+  nombres!: string;
 
   @IsString()
-  apellidos: string;
+  apellidos!: string;
 
   @IsOptional()
   @IsString()

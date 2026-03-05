@@ -11,11 +11,11 @@ export class CrearAvisoDto {
   @IsString()
   @MinLength(1, { message: 'El título es requerido' })
   @MaxLength(200)
-  titulo: string;
+  titulo!: string;
 
   @IsString()
   @MinLength(1, { message: 'El contenido es requerido' })
-  contenido: string;
+  contenido!: string;
 
   @IsOptional()
   @IsEnum(AlcanceAvisoDto, { message: 'Alcance debe ser PLATAFORMA, TODAS_JUNTAS o JUNTA_ESPECIFICA' })

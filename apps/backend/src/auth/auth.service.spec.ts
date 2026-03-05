@@ -36,7 +36,7 @@ function makeUsuario(overrides: Record<string, unknown> = {}) {
 }
 
 function createMocks() {
-  const prisma = {
+  const prisma: Record<string, any> = {
     usuario: {
       findFirst: jest.fn(),
       findUnique: jest.fn(),

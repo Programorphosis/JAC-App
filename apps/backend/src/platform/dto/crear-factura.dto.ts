@@ -7,10 +7,10 @@ export class CrearFacturaDto {
   @Type(() => Number)
   @IsNumber()
   @Min(0.01, { message: 'El monto debe ser mayor a cero' })
-  monto: number;
+  monto!: number;
 
   @IsDateString({}, { message: 'Fecha de vencimiento inválida' })
-  fechaVencimiento: string;
+  fechaVencimiento!: string;
 
   @IsOptional()
   @IsIn(TIPOS_VALIDOS)

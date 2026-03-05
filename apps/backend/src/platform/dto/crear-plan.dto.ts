@@ -2,7 +2,7 @@ import { IsString, IsInt, IsOptional, IsBoolean, Min } from 'class-validator';
 
 export class CrearPlanDto {
   @IsString()
-  nombre: string;
+  nombre!: string;
 
   @IsOptional()
   @IsString()
@@ -10,11 +10,11 @@ export class CrearPlanDto {
 
   @IsInt()
   @Min(0)
-  precioMensual: number;
+  precioMensual!: number;
 
   @IsInt()
   @Min(0)
-  precioAnual: number;
+  precioAnual!: number;
 
   @IsOptional()
   @IsInt()
