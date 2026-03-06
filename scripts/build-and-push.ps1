@@ -37,6 +37,12 @@ docker push "${prefix}/jacapp-frontend:latest"
 
 Write-Host ""
 Write-Host "=== Listo. En el servidor ejecuta: ===" -ForegroundColor Green
-Write-Host "  docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production pull"
-Write-Host "  docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d"
+Write-Host ""
+Write-Host "  # App + monitoreo (Uptime Kuma, Prometheus, Grafana):" -ForegroundColor Yellow
+Write-Host "  docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production pull"
+Write-Host "  docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production up -d"
+Write-Host ""
+Write-Host "  # Solo app (sin monitoreo):" -ForegroundColor Yellow
+Write-Host "  docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml --env-file .env.production pull"
+Write-Host "  docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml --env-file .env.production up -d"
 Write-Host ""

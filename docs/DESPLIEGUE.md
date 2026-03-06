@@ -14,10 +14,10 @@ Para desplegar cambios cuando el servidor ya está configurado:
 | 2 | PC | `$env:DOCKER_IMAGE_PREFIX="tuusuario"; .\scripts\build-and-push.ps1` |
 | 3 | Servidor | `cd ~/JAC-App` |
 | 4 | Servidor | `git pull` |
-| 5 | Servidor | `docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production pull` |
-| 6 | Servidor | `docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d` |
+| 5 | Servidor | `docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production pull` |
+| 6 | Servidor | `docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production up -d` |
 
-**Notas:** `.env.production` está en `.gitignore`. El seed solo se ejecuta la primera vez.
+**Notas:** `.env.production` está en `.gitignore`. El seed solo se ejecuta la primera vez. Sin monitoreo: quitar `-f docker-compose.monitoring.yml`.
 
 ---
 
@@ -41,19 +41,23 @@ $env:DOCKER_IMAGE_PREFIX = "tu-usuario"
 
 ### 2.3 En el servidor
 
+**Con monitoreo** (Uptime Kuma, Prometheus, Grafana):
+
 ```bash
 cd ~/JAC-App
 docker login   # primera vez
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production pull
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d
+docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production pull
+docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production up -d
 ```
+
+**Solo app** (sin monitoreo): quitar `-f docker-compose.monitoring.yml` de los comandos.
 
 ### 2.4 Seed (solo primera vez)
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml exec backend npx prisma migrate reset --force
+docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml exec backend npx prisma migrate reset --force
 # O si usas seed-dev:
-docker compose -f docker-compose.yml -f docker-compose.prod.yml exec backend node dist/prisma/seed-dev.js
+docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml exec backend node dist/prisma/seed-dev.js
 ```
 
 ---
@@ -70,6 +74,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml exec backend nod
 ### 3.2 DNS (Hostinger u otro)
 
 - Registro A: `@` → IP de Lightsail
+- Con monitoreo: `monitor.tudominio` y `grafana.tudominio` → misma IP
 - Propagación: 5–60 min
 
 ### 3.3 SSH
@@ -102,7 +107,7 @@ aws configure
 
 ### 3.5 Firewall
 
-Puertos: 22 (SSH), 80 (HTTP), 443 (HTTPS).
+Puertos: 22 (SSH), 80 (HTTP), 443 (HTTPS). Con monitoreo: 3001 (Uptime Kuma), 3002 (Grafana) si accedes directo; si usas Caddy (monitor.*, grafana.*), basta 443.
 
 ### 3.6 Código y .env.production
 
@@ -189,11 +194,14 @@ Requiere `AWS_BACKUP_BUCKET` en `.env.production`. Ver `docs/BACKUP_RESTORE.md`.
 ## 7. Comandos útiles
 
 ```bash
+# Compose base (con monitoreo)
+COMPOSE="-f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production"
+
 # Logs
-docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f backend
+docker compose $COMPOSE logs -f backend
 
 # Estado
-docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
+docker compose $COMPOSE ps
 
 # Health
 curl http://localhost:3000/api/health/ready

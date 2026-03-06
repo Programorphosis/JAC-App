@@ -143,7 +143,7 @@ services:
       - caddy-config:/config
     environment:
       DOMAIN: "${DOMAIN}"
-      MONITOR_BASICAUTH: "${MONITOR_BASICAUTH:-admin JDJhJDEwJEVCNmdaNEg2Ti5iejRMYkF3MFZhZ3VtV3E1SzBWZEZ5Q3VWc0tzOEJwZE9TaFlZdEVkZDhX}"
+      MONITOR_BASICAUTH_HASH: "${MONITOR_BASICAUTH_HASH:-$$2a$$14$$ZZ3xHL.PChV046EynYzIleaNxTLJ7ecHnbhZ0zqlS368HOTBwTOj6}"
     networks:
       - internal
     depends_on:
