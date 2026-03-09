@@ -294,28 +294,30 @@ export DOCKER_IMAGE_PREFIX=tu-usuario
 
 en el server:
 
-docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.monitoring.yml --env-file .env.production down -v
-Opción 1: Crear la red antes de levantar el stack
+`docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.monitoring.yml --env-file .env.production down -v`
 
-`docker network create jac-app_internal`
-Luego:
+`docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production pull`
 
-`docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production up -d`
-Opción 2: Levantar primero sin monitoreo
+Levantar primero sin monitoreo
 
 `docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml --env-file .env.production up -d`
 Eso crea la red jac-app_internal. Después puedes añadir monitoreo:
 
 `docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production up -d`
-La opción 1 es más directa si quieres tener todo desde el primer up.
 
-# Opción A: cargar el .env y usar la variable
-source .env.production
-curl -v -X POST https://jacapp.online/api/bootstrap \
-  -H "Content-Type: application/json" \
-  -H "X-Bootstrap-Token: $BOOTSTRAP_TOKEN" \
-  -d '{
-    "platformAdmin": {"nombres":"Admin","apellidos":"Plataforma","tipoDocumento":"CC","numeroDocumento":"00000000","password":"Cambiar123!"},
-    "primeraJunta": {"nombre":"Junta Prueba","email":"contacto@test.com","telefono":"3001234567","adminUser":{"nombres":"Juan","apellidos":"Pérez","tipoDocumento":"CC","numeroDocumento":"12345678"}}
-  }'
-  
+
+
+seed
+
+docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml --env-file .env.production exec backend node dist/prisma/seed-dev.js
+
+
+Usuario	Doc	Estado	Para probar
+María	1001001	Carta APROBADA con rutaPdf y qrToken	Descarga PDF, validación QR
+Carlos	1001002	Carta APROBADA con rutaPdf y qrToken	Descarga PDF, validación QR
+Ana	1001003	Pago carta vigente, sin carta	Solicitud de carta
+Pedro	1001004	1 pago junta, con deuda	Flujo de pagos
+Laura	1001005	1 pago junta, con deuda	Flujo de pagos
+Roberto	1001006	1 pago junta, con deuda	Flujo de pagos
+Secretaria	1001014	Rol SECRETARIA	Aprobación de cartas
+Tesorera	1001015	Rol TESORERA	Registro de pagos

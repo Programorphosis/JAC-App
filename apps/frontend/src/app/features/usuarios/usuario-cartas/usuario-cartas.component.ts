@@ -30,6 +30,9 @@ export class UsuarioCartasComponent implements OnInit {
   descargandoCartaId: string | null = null;
   descargandoPdfPrueba = false;
 
+  /** Origen de la app (ej. https://jacapp.online) para URLs absolutas al copiar */
+  private origin = '';
+
   constructor(
     private readonly cartasSvc: CartasService,
     private readonly pagos: PagosService,
@@ -38,6 +41,9 @@ export class UsuarioCartasComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      this.origin = window.location.origin;
+    }
     if (this.usuarioId) {
       this.cargar();
     }
@@ -190,8 +196,7 @@ export class UsuarioCartasComponent implements OnInit {
   /** Construye la URL pública de validación de carta a partir del qrToken (URL absoluta para copiar) */
   urlValidacion(carta: CartaItem): string | null {
     if (!carta.qrToken) return null;
-    const base = typeof window !== 'undefined' ? window.location.origin : '';
-    return `${base}/api/public/validar-carta/${carta.qrToken}`;
+    return `${this.origin}/api/public/validar-carta/${carta.qrToken}`;
   }
 
   copiarEnlaceValidacion(carta: CartaItem): void {
