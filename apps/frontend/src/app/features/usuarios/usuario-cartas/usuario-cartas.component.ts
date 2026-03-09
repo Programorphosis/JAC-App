@@ -11,7 +11,6 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { AppCanDirective } from '../../../core/auth/app-can.directive';
 import { getApiErrorMessage } from '../../../shared/utils/api-error.util';
 import { FormatearFechaPipe } from '../../../shared/pipes/formatear-fecha.pipe';
-import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-usuario-cartas',
@@ -188,10 +187,11 @@ export class UsuarioCartasComponent implements OnInit {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(v);
   }
 
-  /** Construye la URL pública de validación de carta a partir del qrToken */
+  /** Construye la URL pública de validación de carta a partir del qrToken (URL absoluta para copiar) */
   urlValidacion(carta: CartaItem): string | null {
     if (!carta.qrToken) return null;
-    return `${environment.apiUrl}/public/validar-carta/${carta.qrToken}`;
+    const base = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${base}/api/public/validar-carta/${carta.qrToken}`;
   }
 
   copiarEnlaceValidacion(carta: CartaItem): void {

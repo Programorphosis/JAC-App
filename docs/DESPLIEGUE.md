@@ -226,3 +226,96 @@ curl http://localhost:3000/api/health/ready
 - `docs/BACKUP_RESTORE.md` — Restauración detallada
 - `docs/CONFIGURACION_DOMINIO_JACAPP.md` — Dominio jacapp.online
 - `.env.production.example` — Plantilla de variables
+
+
+
+## 9. Construir imágenes y hacer push a Docker Hub y GitHub Container Registry
+
+### Paso 1: Configura el prefijo de la imagen
+
+Asegúrate que tu usuario de Docker Hub o GitHub esté en la variable:
+
+```powershell
+$env:DOCKER_IMAGE_PREFIX="tu-usuario"
+```
+> Reemplaza `"tu-usuario"` por tu nombre de usuario real de Docker Hub o GitHub.
+
+---
+
+### Paso 2: Login en los registries
+
+#### Docker Hub
+
+```bash
+docker login
+```
+
+
+
+### Paso 3: Build y push de las imágenes
+
+Desde la raíz del repositorio, ejecuta (en Powershell en Windows o bash en Mac/Linux):
+
+```powershell
+cd "ruta/a/JAC-App"
+$env:DOCKER_IMAGE_PREFIX="programorphosis92"
+.\scripts\build-and-push.ps1
+```
+Esto:
+- Construye las imágenes `frontend` y `backend` con la etiqueta adecuada.
+- Hace push a Docker Hub y, si está configurado, a GitHub Container Registry.
+
+> Si usas solo bash (Linux/Mac):
+
+```bash
+export DOCKER_IMAGE_PREFIX=tu-usuario
+./scripts/build-and-push.sh
+```
+
+---
+
+### Paso 4: Verifica en Docker Hub y/o GitHub
+
+- Ingresa a https://hub.docker.com/repository/docker/tu-usuario/jac-app-backend o frontend.
+
+
+---
+
+#### Notas
+
+- Recuerda usar el mismo prefijo y nombres en `docker-compose.prod.images.yml`.
+- Si necesitas automatizar el build con GitHub Actions, revisa `.github/workflows/publish-images.yml`.
+
+¡Listo! Ahora puedes desplegar en el servidor con las imágenes recién subidas.
+
+
+
+
+
+en el server:
+
+docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.monitoring.yml --env-file .env.production down -v
+Opción 1: Crear la red antes de levantar el stack
+
+`docker network create jac-app_internal`
+Luego:
+
+`docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production up -d`
+Opción 2: Levantar primero sin monitoreo
+
+`docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml --env-file .env.production up -d`
+Eso crea la red jac-app_internal. Después puedes añadir monitoreo:
+
+`docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production up -d`
+La opción 1 es más directa si quieres tener todo desde el primer up.
+
+# Opción A: cargar el .env y usar la variable
+source .env.production
+curl -v -X POST https://jacapp.online/api/bootstrap \
+  -H "Content-Type: application/json" \
+  -H "X-Bootstrap-Token: $BOOTSTRAP_TOKEN" \
+  -d '{
+    "platformAdmin": {"nombres":"Admin","apellidos":"Plataforma","tipoDocumento":"CC","numeroDocumento":"00000000","password":"Cambiar123!"},
+    "primeraJunta": {"nombre":"Junta Prueba","email":"contacto@test.com","telefono":"3001234567","adminUser":{"nombres":"Juan","apellidos":"Pérez","tipoDocumento":"CC","numeroDocumento":"12345678"}}
+  }'
+  

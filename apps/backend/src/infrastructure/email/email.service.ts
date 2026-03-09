@@ -32,7 +32,7 @@ export class EmailService {
   private readonly appUrl: string;
 
   constructor() {
-    const transport = (process.env.EMAIL_TRANSPORT ??
+    const transport = (process.env.EMAIL_TRANSPORT?.trim() ??
       'disabled') as EmailTransport;
     this.appUrl = (
       process.env.APP_PUBLIC_URL ?? 'http://localhost:4200'

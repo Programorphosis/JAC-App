@@ -429,6 +429,7 @@ Fase 12 (Deploy)
 | Tema | Documento |
 |------|-----------|
 | Plan general | `plan.md` |
+| **Modelo de negocio** | `MODELO_NEGOCIO.md` |
 | **Frontend Angular** | `ARQUITECTURA_FRONTEND_ANGULAR.md` |
 | Multi-tenant y seguridad base | `00_ARQUITECTURA_RECTOR.md`, `00_ARQUITECTURA_RECTOR copy.md` |
 | Schema | `SCHEMA BASE v1.md` |
