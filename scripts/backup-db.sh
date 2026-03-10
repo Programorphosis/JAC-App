@@ -54,13 +54,15 @@ BACKUP_TIMEZONE="${BACKUP_TIMEZONE:-America/Bogota}"
 
 # ── Modo --install-cron ────────────────────────────────────────────────────
 if [ "${1:-}" = "--install-cron" ]; then
-  CRON_CMD="0 2 * * * $SCRIPT_DIR/backup-db.sh >> /var/log/jac-backup.log 2>&1"
+  CRON_LOG="$PROJECT_DIR/logs/jac-backup.log"
+  mkdir -p "$(dirname "$CRON_LOG")"
+  CRON_CMD="0 2 * * * $SCRIPT_DIR/backup-db.sh >> $CRON_LOG 2>&1"
   if (crontab -l 2>/dev/null || true) | grep -qF "backup-db.sh"; then
     echo "[CRON] La entrada ya existe en crontab. No se modificó."
   else
     (crontab -l 2>/dev/null; echo "$CRON_CMD") | crontab -
     echo "[CRON] Backup diario instalado a las 2:00 AM"
-    echo "[CRON] Logs en: /var/log/jac-backup.log"
+    echo "[CRON] Logs en: $CRON_LOG"
   fi
   exit 0
 fi
