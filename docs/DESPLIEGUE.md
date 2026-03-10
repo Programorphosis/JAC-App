@@ -294,7 +294,7 @@ export DOCKER_IMAGE_PREFIX=tu-usuario
 
 en el server:
 
-`docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.monitoring.yml --env-file .env.production down -v`
+`docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.monitoring.yml --env-file .env.production down`
 
 `docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.prod.images.yml -f docker-compose.monitoring.yml --env-file .env.production pull`
 

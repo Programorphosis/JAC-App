@@ -49,6 +49,9 @@ AWS_BACKUP_PREFIX="${AWS_BACKUP_PREFIX:-db-backups}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 S3_RETENTION_DAYS="${S3_RETENTION_DAYS:-90}"  # Retención más larga en S3 (es barato)
 
+# Zona horaria para el nombre del archivo (ej. America/Bogota para Colombia)
+BACKUP_TIMEZONE="${BACKUP_TIMEZONE:-America/Bogota}"
+
 # ── Modo --install-cron ────────────────────────────────────────────────────
 if [ "${1:-}" = "--install-cron" ]; then
   CRON_CMD="0 2 * * * $SCRIPT_DIR/backup-db.sh >> /var/log/jac-backup.log 2>&1"
@@ -62,7 +65,7 @@ if [ "${1:-}" = "--install-cron" ]; then
   exit 0
 fi
 
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+TIMESTAMP=$(TZ="${BACKUP_TIMEZONE}" date +"%Y%m%d_%H%M%S")
 BACKUP_FILENAME="jac_${DB_NAME}_${TIMESTAMP}.sql.gz"
 BACKUP_FILE="$BACKUP_DIR/$BACKUP_FILENAME"
 

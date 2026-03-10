@@ -112,6 +112,7 @@ Para validar que el proceso funciona correctamente:
 | `DB_PASSWORD` | Contraseña (obligatoria) | — |
 | `CONTAINER_NAME` | Nombre del contenedor Docker | `jac-postgres` |
 | `BACKUP_DIR` | Directorio local de backups | `./backups` |
+| `BACKUP_TIMEZONE` | Zona horaria para el nombre del archivo | `America/Bogota` |
 | `AWS_BACKUP_BUCKET` | Bucket S3 para backups | `asojac-backups-prod` |
 | `AWS_BACKUP_PREFIX` | Prefijo/carpeta en S3 | `db-backups` |
 
